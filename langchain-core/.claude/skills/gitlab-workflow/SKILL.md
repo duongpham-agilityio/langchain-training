@@ -29,7 +29,7 @@ If `glab` is missing or logged out, ask the user to run `! glab auth login --hos
 
 ## 3. Review and group the changes
 
-Run `git status --short`, `git diff --stat`, and `git add -A --dry-run`, and read them.
+Run `git status --short`, `git diff --stat`, and `git add -A --dry-run`, and read them. Ignore `docs/daily-report/`: it's a local note (§7), never stage it.
 
 **Safety first.** Stop and fix `.gitignore` (tell the user) if anything like `.env`, `.env.local`, `*.pem`, `node_modules`, `dist`, or a nested `.git` would be staged. `.env.example` is fine. If the changes don't match what the user described, say so before committing.
 
@@ -112,6 +112,10 @@ glab mr view <iid>                        # report state, pipeline, mergeability
 - New project: `glab repo create <name> --private` (add `-g <group>` for a group), then `git remote add origin <ssh-url>` and push — confirm private/public first.
 - Check `git ls-remote --symref origin HEAD` to learn the remote default branch before choosing an MR target.
 
-## 7. Reporting back
+## 7. Daily report
+
+After the MR is open, append an entry to `docs/daily-report/<today>.md` following `references/daily-report.md`. Don't stage or commit it. This feeds the user's end-of-day progress email.
+
+## 8. Reporting back
 
 Reply in Vietnamese. Lead with the result: the commits (headers), the MR URL and its target branch, and that it is waiting for the user to review and merge. Finish with anything that needs the user's attention; skip the rest.
