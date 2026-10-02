@@ -3,7 +3,7 @@
 import { createAgent } from "langchain";
 
 const agent = createAgent({
-  model: "openai:gpt-5.5",
+  model: process.env.AI_MODEL ?? "",
   systemPrompt: `Bạn là một trợ lý chuyên về summary thông tin nhận được từ user`,
 });
 

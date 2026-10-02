@@ -55,7 +55,7 @@ for await (const data of dataSets) {
   );
 
   const agent = createAgent({
-    model: "openai:gpt-4o-mini",
+    model: process.env.AI_MODEL ?? "",
     systemPrompt: `Bạn là một trợ lý chuyên về summary thông tin nhận được từ user`,
     tools: [searchProductById],
   });

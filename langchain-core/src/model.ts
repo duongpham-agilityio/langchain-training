@@ -7,7 +7,7 @@
 import { HumanMessage, initChatModel, SystemMessage, tool } from "langchain";
 import * as z from "zod";
 
-const standaloneModel = await initChatModel("openai:gpt-4o-mini");
+const standaloneModel = await initChatModel(process.env.AI_MODEL);
 
 const OutputSchema = z.object({
   userInput: z.string().describe("yêu cầu của người dùng."),
