@@ -36,7 +36,7 @@ const trimMessages = createMiddleware({
 const checkMessages = createMiddleware({
   name: "Check Messages",
   wrapModelCall: (request, handler) => {
-    console.log(request.state.messages);
+    // console.log(request.state.messages);
 
     return handler(request);
   },
@@ -59,9 +59,16 @@ for await (const input of inputs) {
     config,
   );
 
-  result.messages.slice(-2).forEach((message) => {
-    // Access message text using message.text
-    console.log(`${message.type}: ${message.text}`);
-  });
-  console.log("\n\n--------------------------------\n\n");
+  // result.messages.slice(-2).forEach((message) => {
+  //   // Access message text using message.text
+  //   console.log(`${message.type}: ${message.text}`);
+  // });
+  // console.log("\n\n--------------------------------\n\n");
 }
+
+// Lấy trạng thái hiện tại của thread từ DB/Checkpointer
+const currentState = await agent.getState(config);
+
+// Lấy danh sách messages để render ra UI
+const messagesForUI = currentState.values.messages;
+console.log(messagesForUI.length);
