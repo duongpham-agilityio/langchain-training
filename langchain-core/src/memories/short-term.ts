@@ -1,15 +1,19 @@
 import { createAgent, createMiddleware } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
+import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 
 type Config = Parameters<typeof agent.invoke>[1];
 
-const inputs = [
-  "Xin chào. Tôi tên là Dương",
-  "Tôi tên là gì?",
-  "Bạn biết LangChain không?",
-  "Cho tôi biết các tính năng nổi bật của nó",
-  "Tôi tên là gì?", // Với cấu hình trim hiện tại, message này sẽ không trả lời được tên
-];
+const PG_DB = process.env.DB ?? "";
+const schema = "custom";
+
+const pgCheckpointer = PostgresSaver.fromConnString(PG_DB, {
+  schema,
+});
+
+await pgCheckpointer.setup();
+
+const inputs = ["Tôi tên là gì?"];
 const config: Config = {
   configurable: {
     thread_id: "short-term-memory",
@@ -21,8 +25,8 @@ const trimMessages = createMiddleware({
   wrapModelCall: (request, handler) => {
     const requestMessages = [...request.messages];
     let newMessages = requestMessages;
-    const MAX_MESSAGES_INPUT = 2;
-    if (requestMessages.length > 2) {
+    const MAX_MESSAGES_INPUT = 10;
+    if (requestMessages.length > MAX_MESSAGES_INPUT) {
       newMessages = requestMessages.slice((MAX_MESSAGES_INPUT + 1) * -1);
     }
 
@@ -36,18 +40,16 @@ const trimMessages = createMiddleware({
 const checkMessages = createMiddleware({
   name: "Check Messages",
   wrapModelCall: (request, handler) => {
-    // console.log(request.state.messages);
-
     return handler(request);
   },
 });
 
-const checkpointer = new MemorySaver(); // Lưu ở memory
+const checkpointer = new MemorySaver();
 
 const agent = createAgent({
   model: process.env.AI_MODEL ?? "",
   systemPrompt: `Bạn là trợ lý, giúp giải đáp các thắc mắc của người dùng`,
-  checkpointer,
+  checkpointer: pgCheckpointer,
   middleware: [trimMessages, checkMessages],
 });
 
@@ -59,16 +61,9 @@ for await (const input of inputs) {
     config,
   );
 
-  // result.messages.slice(-2).forEach((message) => {
-  //   // Access message text using message.text
-  //   console.log(`${message.type}: ${message.text}`);
-  // });
-  // console.log("\n\n--------------------------------\n\n");
+  result.messages.slice(-2).forEach((message) => {
+    // Access message text using message.text
+    console.log(`${message.type}: ${message.text}`);
+  });
+  console.log("\n\n--------------------------------\n\n");
 }
-
-// Lấy trạng thái hiện tại của thread từ DB/Checkpointer
-const currentState = await agent.getState(config);
-
-// Lấy danh sách messages để render ra UI
-const messagesForUI = currentState.values.messages;
-console.log(messagesForUI.length);
