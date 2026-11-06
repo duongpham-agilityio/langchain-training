@@ -1,0 +1,133 @@
+/*
+ * Raw design tokens for Release Notes Builder (docs/design/theme.md).
+ *
+ * This is the ONLY file that should change when swapping themes: values only,
+ * no Tailwind wiring. `src/index.css` maps these into Tailwind's `@theme` via
+ * `@theme inline`, so every `--color-*`/`--font-*`/`--text-*` name below
+ * becomes a Tailwind utility (bg-primary, text-on-surface, font-mono, ...)
+ * without needing to touch that mapping when the palette changes.
+ *
+ * To swap themes later: either edit the values below, or point the
+ * `@import './styles/theme.css'` in src/index.css at a different token file
+ * with the same variable names.
+ */
+:root {
+  /* Colors */
+  --color-surface: #fcf8fb;
+  --color-surface-dim: #dcd9dc;
+  --color-surface-bright: #fcf8fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f2f5;
+  --color-surface-container: #f0edf0;
+  --color-surface-container-high: #eae7ea;
+  --color-surface-container-highest: #e5e1e4;
+  --color-on-surface: #1c1b1d;
+  --color-on-surface-variant: #4a4455;
+  --color-on-surface-muted: #686478;
+  --color-inverse-surface: #313032;
+  --color-inverse-on-surface: #f3f0f2;
+  --color-outline: #7b7487;
+  --color-outline-variant: #ccc3d8;
+  /* Hairline dividers (outline-subtle) and control outlines (outline-strong).
+     `outline-variant` above is a third, heavier weight the rest of the app
+     still uses — see docs/design/Main.dc.html --border / --border-strong. */
+  --color-outline-subtle: #ebe8f0;
+  --color-outline-strong: #dcd7e5;
+  --color-surface-tint: #732ee4;
+  --color-primary: #630ed4;
+  --color-primary-hover: #560bb8;
+  --color-primary-soft: #f3edfd;
+  --color-primary-soft-strong: #e8dffb;
+  --color-on-primary-soft: #5710c2;
+  --color-primary-ink: #26063f;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #7c3aed;
+  --color-on-primary-container: #ede0ff;
+  --color-inverse-primary: #d2bbff;
+  --color-secondary: #712edd;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #8b4ef7;
+  --color-on-secondary-container: #fffbff;
+  --color-tertiary: #4e4e57;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #66666f;
+  --color-on-tertiary-container: #e7e5f0;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-primary-fixed: #eaddff;
+  --color-primary-fixed-dim: #d2bbff;
+  --color-on-primary-fixed: #25005a;
+  --color-on-primary-fixed-variant: #5a00c6;
+  --color-secondary-fixed: #ebddff;
+  --color-secondary-fixed-dim: #d3bbff;
+  --color-on-secondary-fixed: #250059;
+  --color-on-secondary-fixed-variant: #5b00c5;
+  --color-tertiary-fixed: #e3e1ec;
+  --color-tertiary-fixed-dim: #c7c5d0;
+  --color-on-tertiary-fixed: #1a1b23;
+  --color-on-tertiary-fixed-variant: #46464f;
+  --color-background: #fcf8fb;
+  --color-on-background: #1c1b1d;
+  --color-surface-variant: #e5e1e4;
+  --color-surface-bg: #fcf8fb;
+  --color-border-subtle: #e2e8f0;
+  --color-success-emerald: #059669;
+  --color-error-rose: #e11d48;
+  --color-warning-purple: #9333ea;
+  --color-ai-gradient-start: #7c3aed;
+  --color-ai-gradient-end: #4f46e5;
+
+  /* Fonts */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Typography scale — font-size paired with line-height/letter-spacing/weight,
+     each becomes a single `text-*` utility (e.g. `text-headline-lg`). The two
+     `label-mono*` styles pair with the `font-mono` utility since Tailwind's
+     `--text-*` namespace doesn't carry font-family. */
+  --text-display: 48px;
+  --text-display--line-height: 56px;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--letter-spacing: -0.01em;
+  --text-headline-md--font-weight: 600;
+
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-lg--font-weight: 600;
+
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 18px;
+  --text-body-sm--font-weight: 400;
+
+  --text-label-xs: 11.5px;
+  --text-label-xs--line-height: 16px;
+  --text-label-xs--font-weight: 500;
+
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 16px;
+  --text-label-sm--letter-spacing: 0.05em;
+  --text-label-sm--font-weight: 500;
+
+  --text-label-mono: 13px;
+  --text-label-mono--line-height: 16px;
+  --text-label-mono--font-weight: 500;
+
+  --text-label-mono-xs: 11px;
+  --text-label-mono-xs--line-height: 16px;
+  --text-label-mono-xs--font-weight: 500;
+}

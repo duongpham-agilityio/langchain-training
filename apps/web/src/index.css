@@ -1,0 +1,154 @@
+/*
+ * Inter + JetBrains Mono per docs/design/theme.md typography. Loaded via CSS
+ * @import (reached through `import './index.css'` in main.tsx) rather than an
+ * index.html <link>, so font loading stays inside the same JS/CSS import
+ * graph as the rest of the app's styles.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+@import 'tailwindcss';
+@import './styles/theme.css';
+
+/*
+ * Tailwind v4 reads theme tokens from `@theme`, but a plain `@theme` block
+ * bakes each value in at build time. `@theme inline` instead keeps every
+ * generated utility (bg-primary, text-on-surface, font-mono, text-display, ...)
+ * pointing at the runtime CSS variable of the same name from
+ * ./styles/theme.css — so re-theming later is a one-file edit (or swapping
+ * that file's @import target) with nothing to change here.
+ */
+@theme inline {
+  --color-surface: var(--color-surface);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-surface-bright: var(--color-surface-bright);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+  --color-on-surface: var(--color-on-surface);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  --color-on-surface-muted: var(--color-on-surface-muted);
+  --color-inverse-surface: var(--color-inverse-surface);
+  --color-inverse-on-surface: var(--color-inverse-on-surface);
+  --color-outline: var(--color-outline);
+  --color-outline-variant: var(--color-outline-variant);
+  --color-outline-subtle: var(--color-outline-subtle);
+  --color-outline-strong: var(--color-outline-strong);
+  --color-surface-tint: var(--color-surface-tint);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-soft: var(--color-primary-soft);
+  --color-primary-soft-strong: var(--color-primary-soft-strong);
+  --color-on-primary-soft: var(--color-on-primary-soft);
+  --color-primary-ink: var(--color-primary-ink);
+  --color-on-primary: var(--color-on-primary);
+  --color-primary-container: var(--color-primary-container);
+  --color-on-primary-container: var(--color-on-primary-container);
+  --color-inverse-primary: var(--color-inverse-primary);
+  --color-secondary: var(--color-secondary);
+  --color-on-secondary: var(--color-on-secondary);
+  --color-secondary-container: var(--color-secondary-container);
+  --color-on-secondary-container: var(--color-on-secondary-container);
+  --color-tertiary: var(--color-tertiary);
+  --color-on-tertiary: var(--color-on-tertiary);
+  --color-tertiary-container: var(--color-tertiary-container);
+  --color-on-tertiary-container: var(--color-on-tertiary-container);
+  --color-error: var(--color-error);
+  --color-on-error: var(--color-on-error);
+  --color-error-container: var(--color-error-container);
+  --color-on-error-container: var(--color-on-error-container);
+  --color-primary-fixed: var(--color-primary-fixed);
+  --color-primary-fixed-dim: var(--color-primary-fixed-dim);
+  --color-on-primary-fixed: var(--color-on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--color-on-primary-fixed-variant);
+  --color-secondary-fixed: var(--color-secondary-fixed);
+  --color-secondary-fixed-dim: var(--color-secondary-fixed-dim);
+  --color-on-secondary-fixed: var(--color-on-secondary-fixed);
+  --color-on-secondary-fixed-variant: var(--color-on-secondary-fixed-variant);
+  --color-tertiary-fixed: var(--color-tertiary-fixed);
+  --color-tertiary-fixed-dim: var(--color-tertiary-fixed-dim);
+  --color-on-tertiary-fixed: var(--color-on-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--color-on-tertiary-fixed-variant);
+  --color-background: var(--color-background);
+  --color-on-background: var(--color-on-background);
+  --color-surface-variant: var(--color-surface-variant);
+  --color-surface-bg: var(--color-surface-bg);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-success-emerald: var(--color-success-emerald);
+  --color-error-rose: var(--color-error-rose);
+  --color-warning-purple: var(--color-warning-purple);
+  --color-ai-gradient-start: var(--color-ai-gradient-start);
+  --color-ai-gradient-end: var(--color-ai-gradient-end);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --text-display: var(--text-display);
+  --text-display--line-height: var(--text-display--line-height);
+  --text-display--letter-spacing: var(--text-display--letter-spacing);
+  --text-display--font-weight: var(--text-display--font-weight);
+
+  --text-headline-lg: var(--text-headline-lg);
+  --text-headline-lg--line-height: var(--text-headline-lg--line-height);
+  --text-headline-lg--letter-spacing: var(--text-headline-lg--letter-spacing);
+  --text-headline-lg--font-weight: var(--text-headline-lg--font-weight);
+
+  --text-headline-md: var(--text-headline-md);
+  --text-headline-md--line-height: var(--text-headline-md--line-height);
+  --text-headline-md--letter-spacing: var(--text-headline-md--letter-spacing);
+  --text-headline-md--font-weight: var(--text-headline-md--font-weight);
+
+  --text-body-lg: var(--text-body-lg);
+  --text-body-lg--line-height: var(--text-body-lg--line-height);
+  --text-body-lg--font-weight: var(--text-body-lg--font-weight);
+
+  --text-body-md: var(--text-body-md);
+  --text-body-md--line-height: var(--text-body-md--line-height);
+  --text-body-md--font-weight: var(--text-body-md--font-weight);
+
+  --text-body-sm: var(--text-body-sm);
+  --text-body-sm--line-height: var(--text-body-sm--line-height);
+  --text-body-sm--font-weight: var(--text-body-sm--font-weight);
+
+  --text-label-xs: var(--text-label-xs);
+  --text-label-xs--line-height: var(--text-label-xs--line-height);
+  --text-label-xs--font-weight: var(--text-label-xs--font-weight);
+
+  --text-label-sm: var(--text-label-sm);
+  --text-label-sm--line-height: var(--text-label-sm--line-height);
+  --text-label-sm--letter-spacing: var(--text-label-sm--letter-spacing);
+  --text-label-sm--font-weight: var(--text-label-sm--font-weight);
+
+  --text-label-mono: var(--text-label-mono);
+  --text-label-mono--line-height: var(--text-label-mono--line-height);
+  --text-label-mono--font-weight: var(--text-label-mono--font-weight);
+
+  --text-label-mono-xs: var(--text-label-mono-xs);
+  --text-label-mono-xs--line-height: var(--text-label-mono-xs--line-height);
+  --text-label-mono-xs--font-weight: var(--text-label-mono-xs--font-weight);
+}
+
+/*
+ * Tailwind v4 (and any Tailwind-based library, e.g. @copilotkit/react-core/v2)
+ * ships its styles inside @layer. CSS cascade layers give unlayered rules
+ * unconditional top priority over ANY layered rule, regardless of import
+ * order or specificity — so plain global CSS here would silently beat
+ * CopilotKit's own layered styles. Keeping our globals inside @layer base
+ * lets them participate in the same cascade instead of always winning.
+ */
+@layer base {
+  :root {
+    font: var(--text-body-md) / var(--text-body-md--line-height) var(--font-sans);
+    color-scheme: light;
+    color: var(--color-on-surface);
+    background: var(--color-background);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+  }
+}
