@@ -7,7 +7,10 @@
   },
   "scripts": {
     "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=release-copilot",
+    "dev:ai": "turbo run dev --filter=@training/ai",
     "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
