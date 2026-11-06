@@ -1,6 +1,6 @@
 export const SLACK_ERROR_MESSAGES = {
   MISSING_WEBHOOK_URL:
-    'Missing required env var: SLACK_WEBHOOK_URL. Set it in .env, then restart the Mastra server.',
+    'Missing required env var: SLACK_WEBHOOK_URL. Set it in .env, then restart the server.',
   INVALID_REQUEST: 'Invalid publish request',
   SLACK_REJECTED: 'Slack rejected the message',
   WEBHOOK_TIMEOUT:

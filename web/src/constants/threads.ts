@@ -1,6 +1,6 @@
 // Shared between the hook that opens the title-polling window
 // (use-draft-thread-row) and the one that polls the thread list while it is
-// open (use-thread-session). Mastra generates a thread title in a promise it
+// open (use-thread-session). The server generates a thread title in a promise it
 // does not await, so the title lands some time after the run that triggered it
 // finishes — these values are how long the client keeps looking for it.
 export const THREAD_TITLE_POLL_INTERVAL_MS = 1_500;

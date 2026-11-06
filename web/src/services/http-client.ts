@@ -5,7 +5,7 @@ import { getAuthHeader } from '@/services/get-auth-header.ts';
 
 export const releaseCopilotHttpClient = new HttpClient({
   baseUrl: () =>
-    getRequiredEnv(import.meta.env.VITE_MASTRA_SERVER_URL, 'VITE_MASTRA_SERVER_URL'),
+    getRequiredEnv(import.meta.env.VITE_API_SERVER_URL, 'VITE_API_SERVER_URL'),
   getAuthHeader,
   timeoutMs: FETCH_TIMEOUT_MS,
 });

@@ -45,10 +45,10 @@ export const useDraftThreadRow = ({
   }, [isDraftInProgress, threadId, resourceId, setDraftThread]);
 
   // A run ending is the earliest moment the server row can exist and the only
-  // moment a title can appear: Mastra runs `generateTitle` once per thread,
+  // moment a title can appear: the server generates a title once per thread,
   // after it has persisted the response messages. So this opens a polling
   // window instead of refetching once — the title is written in a promise
-  // Mastra does not await, so it usually lands a moment *after* RUN_FINISHED,
+  // the server does not await, so it usually lands a moment *after* RUN_FINISHED,
   // and a single refetch here comes back with no title at all.
   //
   // The gate is the row's title: nothing is polled for a thread that already

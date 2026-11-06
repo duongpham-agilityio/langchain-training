@@ -23,7 +23,7 @@ const THREADS_STALE_TIME_MS = 30_000;
 
 // A row counts as titled once it carries something other than the placeholder
 // use-draft-thread-row writes (`title: threadId`). A missing row, an empty
-// title and the placeholder all mean "still waiting on Mastra".
+// title and the placeholder all mean "still waiting on the server".
 const hasGeneratedTitle = (
   threads: ThreadSummary[] | undefined,
   pendingThreadId: string,
@@ -103,7 +103,7 @@ export const useThreadSession = (): UseThreadSessionResult => {
     staleTime: THREADS_STALE_TIME_MS,
     // The only polling this query ever does, and only inside the window
     // use-draft-thread-row opens after a run whose thread still has no
-    // generated title. Mastra writes that title in a promise it does not
+    // generated title. The server writes that title in a promise it does not
     // await, so a single refetch on RUN_FINISHED loses the race; an interval
     // that turns itself off as soon as one of the three stop conditions holds
     // costs a request or two instead. `refetchInterval` ignores `staleTime`, so

@@ -8,7 +8,7 @@ export const toNetworkErrorMessage = (error: unknown, target: string): string =>
   }
 
   if (error instanceof TypeError) {
-    return `Could not connect to ${target}. Check that the Mastra server is running and VITE_MASTRA_SERVER_URL points at it.`;
+    return `Could not connect to ${target}. Check that the API server is running and VITE_API_SERVER_URL points at it.`;
   }
 
   return error instanceof Error ? error.message : String(error);

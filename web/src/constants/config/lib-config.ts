@@ -1,15 +1,5 @@
 import { KnownPlatformId } from '../../types/platform';
 
-export const MASTRA_CORS_CONFIG = {
-  origin: '*',
-  allowMethods: ['*'],
-  allowHeaders: ['*'],
-};
-
-export const MASTRA_LOGGER_NAME = 'Mastra';
-
-export const MASTRA_OBSERVABILITY_SERVICE_NAME = 'mastra';
-
 export const RELEASE_NOTES_TITLE_PREFIX = 'Release Notes - #';
 
 export const APP_STORE_CHARACTER_LIMIT = 4000;

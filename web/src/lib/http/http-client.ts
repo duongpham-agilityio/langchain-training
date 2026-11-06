@@ -45,8 +45,7 @@ export interface HttpClientConfig {
   // different bases) always reads the current value.
   baseUrl: () => string;
   // Left out of src/services/ call sites and injected here instead, so this
-  // module stays importable from src/mastra/ (server bundle) without pulling
-  // in the client-only Zustand auth store.
+  // module does not pull in the client-only Zustand auth store.
   getAuthHeader?: () => Record<string, string>;
   timeoutMs: number;
 }
