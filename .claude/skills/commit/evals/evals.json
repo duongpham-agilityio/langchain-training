@@ -1,0 +1,49 @@
+{
+  "skill_name": "commit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "commit auto giúp tôi. Tôi vừa thêm validate password trong src/features/login/ (sửa index.tsx và thêm validate-password.ts + test), đang ở branch feat/login-validation.",
+      "expected_output": "Auto mode: one commit, no approval question, then a git log listing the hash and subject.",
+      "files": [],
+      "assertions": [
+        "Skill states auto mode before inspecting",
+        "Runs git status and git diff HEAD --stat before committing",
+        "Stages explicit paths, not git add -A or git add .",
+        "Creates exactly one commit with a subject like feat(login): add password validation (lowercase, imperative, no period)",
+        "Does not ask for approval before committing",
+        "Commit message has no body and no Co-Authored-By trailer",
+        "Final report lists commit hash and subject and says nothing was pushed",
+        "Does not run git push"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "commit manual: tôi có thay đổi trong src/features/todo/ (thêm filter completed), sửa typo trong README.md, và nâng version vite trong package.json. Đang ở branch chore/misc-updates.",
+      "expected_output": "Manual mode: plan with three separate commits (feat, docs, chore), each with its own files, then asks for approval and stops without committing.",
+      "files": [],
+      "assertions": [
+        "Skill states manual mode",
+        "Splits the changes into at least three commits instead of one",
+        "Uses types feat, docs and chore for the respective commits",
+        "Plan lists the files and message of each commit",
+        "Asks the user to approve and stops before any git commit",
+        "No git commit has run before the user answers",
+        "No Co-Authored-By trailer in any planned message"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "tạo commit cho tôi, tôi vừa sửa vài file trong src/shared/ và đang ở branch main.",
+      "expected_output": "Stops because the current branch is main; suggests creating a branch (create-branch skill) and makes no commit.",
+      "files": [],
+      "assertions": [
+        "Detects the current branch is main",
+        "Refuses to commit and stops",
+        "Suggests creating a branch first, mentioning the create-branch skill if available",
+        "Runs no git add and no git commit",
+        "Defaults to manual mode when the user names none"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "skill_name": "create-branch",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Tôi lỡ code form validate email login ngay trên main rồi, chưa commit gì. Tạo branch cho mấy changes này giúp tôi.",
+      "expected_output": "New branch feat/<login-related kebab> created from main; uncommitted changes still present in working tree; no commit made; no push.",
+      "files": [],
+      "assertions": [
+        "Branch name starts with feat/",
+        "Branch name is lowercase kebab-case after the prefix and mentions login or email validation",
+        "Current branch is no longer main",
+        "Uncommitted changes (login-form.ts and test) are still in the working tree",
+        "No new commit was created (git log has only the init commit)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "tạo nhánh mới cho mấy thay đổi hiện tại đi",
+      "expected_output": "New branch docs/<kebab> created; changes preserved; no commit.",
+      "files": [],
+      "assertions": [
+        "Branch name starts with docs/",
+        "Branch name is lowercase kebab-case with 2-5 words",
+        "Current branch is no longer main",
+        "README.md modification and docs/architecture.md still uncommitted in working tree",
+        "No new commit was created"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "create a branch for my current changes",
+      "expected_output": "Agent notices unrelated feat (cart) + chore (package.json/.gitignore) changes and stops to suggest splitting / asks user, rather than silently creating one branch.",
+      "files": [],
+      "assertions": [
+        "Agent identifies that changes mix a feature (cart) and chore (config) changes",
+        "Agent suggests splitting or asks the user which to branch for before creating anything",
+        "Agent did not commit, push or stash",
+        "Working tree changes are intact"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "tạo branch cho thay đổi hiện tại (đang đứng trên develop)",
+      "expected_output": "New branch created directly from develop without asking about the base; parent recorded as develop; report says it was created from develop.",
+      "files": [],
+      "assertions": [
+        "Agent did not ask whether to branch from develop or main",
+        "git config branch.<new>.parent returns develop",
+        "Report states the branch was created from develop",
+        "No new commit was created"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "tạo branch mới cho thay đổi hiện tại (đang đứng trên feat/a, thay đổi mục đích khác)",
+      "expected_output": "New branch created from feat/a without asking; parent recorded as feat/a.",
+      "files": [],
+      "assertions": [
+        "Agent did not ask whether to branch from feat/a or main",
+        "git config branch.<new>.parent returns feat/a",
+        "Report states the branch was created from feat/a",
+        "No new commit was created"
+      ]
+    }
+  ]
+}

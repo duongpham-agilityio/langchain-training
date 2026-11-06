@@ -1,0 +1,118 @@
+{
+  "skill_name": "push-pr",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "tạo PR giúp tôi, branch feat/login-validation có 2 commit, đã clean. Chạy manual nhé",
+      "expected_output": "Runs pre-flight, shows a drafted title and body (What/Why/How tested/Screenshots) plus the exact git push command, and stops for approval before pushing or creating the PR.",
+      "files": [],
+      "assertions": [
+        "Runs git status and git remote -v before pushing",
+        "Draft title follows Conventional Commits with a lowercase subject",
+        "Draft body has sections What, Why, How tested and Screenshots",
+        "How tested lists concrete steps a reviewer can follow, not invented results",
+        "Shows the exact git push -u <remote> <branch> command without --force",
+        "Does not run git push or gh pr create before the user approves"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "auto push và tạo PR luôn, tôi đang ở branch feat/search-box có 3 commit, UI có đổi",
+      "expected_output": "Auto mode: pushes and creates the PR without asking approval, with a full description; asks for or flags missing screenshots since the UI changed.",
+      "files": [],
+      "assertions": [
+        "Runs gh pr create with --base and a heredoc body without waiting for approval",
+        "Body contains all four sections What, Why, How tested, Screenshots",
+        "Screenshots section is not silently N/A because the UI changed; it asks for images or lists them as missing",
+        "Final report includes PR URL, base/head and what was not done"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "push code lên giúp tôi",
+      "expected_output": "Current branch is main: stops, refuses to push main, and offers to create a feature branch.",
+      "files": [],
+      "assertions": [
+        "Detects the current branch is main",
+        "Does not run git push",
+        "Offers to create a correctly named feature branch instead"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "open a PR for this branch, auto mode. (A PR for fix/date-parse already exists.)",
+      "expected_output": "Detects the existing PR via gh pr view and reports its URL instead of creating a duplicate.",
+      "files": [],
+      "assertions": [
+        "Runs gh pr view to check for an existing PR",
+        "Does not run gh pr create",
+        "Reports the existing PR URL"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "push code và tạo PR, repo này chưa add remote nào, branch feat/x sạch",
+      "expected_output": "Stops with no remote; shows commands for the user to run; does not run gh repo create or git remote add.",
+      "files": [],
+      "assertions": [
+        "Reports that there is no remote",
+        "Does not run git push, gh repo create or git remote add",
+        "Shows git remote add / gh repo create as commands for the user to run"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "/push-pr auto  (repo has remotes github and origin; branch already tracks github/feat/y)",
+      "expected_output": "Uses github from the branch upstream without asking which remote, then pushes and creates the PR.",
+      "files": [],
+      "assertions": [
+        "Does not ask which remote to use",
+        "Pushes to github",
+        "Creates the PR without waiting for approval"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "tạo PR giúp tôi, auto. Branch feat/x được tạo từ develop, remote github có develop",
+      "expected_output": "Base is the parent branch develop, not main.",
+      "files": [],
+      "assertions": [
+        "Runs gh pr create with --base develop",
+        "Does not target main",
+        "Final report states base develop"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "tạo PR, remote=origin. Branch feat/x được tạo từ develop nhưng origin không có develop",
+      "expected_output": "Stops and tells the user the remote has no target branch develop.",
+      "files": [],
+      "assertions": [
+        "Reports that remote origin has no target branch develop",
+        "Does not run git push or create a PR",
+        "Does not fall back to main or another base"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "tạo PR giúp tôi. Branch feat/y không có reflog (clone mới), không rõ tạo từ branch nào",
+      "expected_output": "Stops because the parent branch cannot be detected and asks the user for the target branch.",
+      "files": [],
+      "assertions": [
+        "Reports it cannot detect the parent branch",
+        "Asks the user for the target branch",
+        "Does not push or create a PR, and does not default to main"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "tạo PR vào base release/1.2, manual",
+      "expected_output": "Explicit base argument wins over the parent branch.",
+      "files": [],
+      "assertions": [
+        "Draft and command use release/1.2 as the base",
+        "Stops for approval before pushing"
+      ]
+    }
+  ]
+}

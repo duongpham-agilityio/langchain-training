@@ -1,0 +1,65 @@
+{
+  "skill_name": "ticket-implement",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "làm ticket 91 theo plan đi",
+      "expected_output": "Finds docs/plans/ticket-91-confirm-delete-todo.md, spawns exactly one general-purpose sub-agent with the plan path and the contract, relays the report in Vietnamese and suggests commit then push-pr.",
+      "files": [],
+      "assertions": [
+        "ls docs/plans/ticket-91-*.md was used to locate the plan",
+        "Exactly one sub-agent of type general-purpose was spawned",
+        "The sub-agent prompt contains the plan path and forbids commit, push and PR",
+        "The sub-agent prompt tells it to append a Deviations section to the plan file for any adjustment",
+        "Main thread did not run pnpm test, lint or build itself",
+        "Final reply is Vietnamese and suggests commit and push-pr without running them"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "implement docs/plans/ticket-95-paginate-the-todo-list.md",
+      "expected_output": "Uses the given path directly, spawns one general-purpose agent, relays its report.",
+      "files": [],
+      "assertions": [
+        "The given path was used without searching for another plan",
+        "Exactly one sub-agent was spawned for the whole ticket, not one per Step",
+        "No git commit, push or branch change was made by the main thread"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "thực thi plan cho ticket 999",
+      "expected_output": "No docs/plans/ticket-999-*.md exists; one Vietnamese line saying so, suggests ticket-plan, no agent spawned.",
+      "files": [],
+      "assertions": [
+        "No sub-agent was spawned",
+        "Reply is a single short Vietnamese line mentioning the plan is missing",
+        "Reply suggests running ticket-plan",
+        "No file was created or edited"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "làm ticket 89, plan có mục Assumptions chưa xác nhận nhưng cứ chạy luôn",
+      "expected_output": "Does not ask the user to confirm assumptions; the agent prompt says to use the stated defaults and list them in the report.",
+      "files": [],
+      "assertions": [
+        "Main thread did not stop to ask about the assumptions",
+        "The sub-agent prompt says to use the plan's default for unconfirmed assumptions and list them in the report",
+        "Final reply lists the assumptions the agent used"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "chạy plan ticket 90",
+      "expected_output": "Agent reports a Deviations entry (test could not pass inside the planned Files). Reply surfaces the deviation and its reason, and does not claim all checks passed if one failed.",
+      "files": [],
+      "assertions": [
+        "Reply states each deviation with its reason",
+        "Reply does not say the work is done if the report shows a failed or skipped check",
+        "Main thread did not re-run any command to verify",
+        "The original plan text above the Deviations section was not modified"
+      ]
+    }
+  ]
+}
