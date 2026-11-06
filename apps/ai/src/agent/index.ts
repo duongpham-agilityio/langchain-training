@@ -2,13 +2,13 @@ import { createAgent } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 
 // Configs
-import { config } from "../config";
+import { config } from "@/config";
 
 // Constants
-import { SYSTEM_PROMPT } from "../constants";
+import { SYSTEM_PROMPT } from "@/constants";
 
 // Tools
-import { tools } from "../tools";
+import { tools } from "@/tools";
 
 export const createBaseAgent = () =>
   createAgent({

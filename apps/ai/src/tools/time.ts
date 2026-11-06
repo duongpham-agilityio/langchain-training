@@ -1,10 +1,10 @@
 import { tool } from "langchain";
 
 // Constants
-import { TOOL_NAMES } from "../constants";
+import { TOOL_NAMES } from "@/constants";
 
 // Schemas
-import { getCurrentTimeSchema } from "../schemas";
+import { getCurrentTimeSchema } from "@/schemas";
 
 const GET_CURRENT_TIME_DESCRIPTION =
   "Get the current server time in ISO 8601 format.";

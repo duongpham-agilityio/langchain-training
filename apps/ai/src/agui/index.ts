@@ -3,7 +3,7 @@ import { AIMessageChunk, type BaseMessage } from "@langchain/core/messages";
 import { IterableReadableStream } from "@langchain/core/utils/stream";
 
 // Agents
-import type { BaseAgent } from "../agent";
+import type { BaseAgent } from "@/agent";
 
 /**
  * Yields only the model's text chunks. Server tool calls are dropped so the

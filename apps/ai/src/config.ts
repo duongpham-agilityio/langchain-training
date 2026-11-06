@@ -3,7 +3,7 @@ import {
   DEFAULT_MODEL,
   DEFAULT_PORT,
   RUNTIME_BASE_PATH,
-} from "./constants";
+} from "@/constants";
 
 export const config = {
   port: Number(process.env.AI_PORT ?? DEFAULT_PORT),

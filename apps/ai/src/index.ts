@@ -2,9 +2,9 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { CopilotRuntime, createCopilotEndpoint, InMemoryAgentRunner } from "@copilotkit/runtime/v2";
-import { createBaseAgent } from "./agent";
-import { createAguiAgent } from "./agui";
-import { config } from "./config";
+import { createBaseAgent } from "@/agent";
+import { createAguiAgent } from "@/agui";
+import { config } from "@/config";
 
 const runtime = new CopilotRuntime({
   agents: { default: createAguiAgent(createBaseAgent()) },
