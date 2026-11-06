@@ -1,0 +1,175 @@
+/*
+ * Retheme @copilotkit/react-core/v2 (CopilotSidebar, CopilotChat, ...) to the
+ * design tokens in ./theme.css. CopilotKit renders every one of its own
+ * elements with a `data-copilotkit` attribute and reads shadcn-style CSS
+ * variables (--primary, --card, --sidebar, ...) scoped to that selector — see
+ * node_modules/@copilotkit/react-core/dist/v2/index.css. Re-declaring the
+ * same variables here retargets the whole widget without touching its JSX.
+ *
+ * Deliberately NOT inside `@layer` (see src/index.css for why): unlayered
+ * rules always beat layered ones regardless of import order, so this wins
+ * over CopilotKit's own `[data-copilotkit]` defaults without caring whether
+ * this file loads before or after `@copilotkit/react-core/v2/styles.css`.
+ */
+[data-copilotkit] {
+  --background: var(--color-surface);
+  --foreground: var(--color-on-surface);
+
+  --card: var(--color-surface-container-lowest);
+  --card-foreground: var(--color-on-surface);
+
+  --popover: var(--color-surface-container-lowest);
+  --popover-foreground: var(--color-on-surface);
+
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-on-primary);
+
+  --secondary: var(--color-primary-fixed);
+  --secondary-foreground: var(--color-on-primary-fixed-variant);
+
+  --muted: var(--color-surface-container);
+  --muted-foreground: var(--color-on-surface-muted);
+
+  --accent: var(--color-secondary-container);
+  --accent-foreground: var(--color-on-secondary-container);
+
+  --destructive: var(--color-error);
+  --destructive-foreground: var(--color-on-error);
+
+  --border: var(--color-outline-subtle);
+  --input: var(--color-outline-strong);
+  --ring: var(--color-primary);
+
+  --radius: 0.5rem;
+
+  --sidebar: var(--color-surface-container-lowest);
+  --sidebar-foreground: var(--color-on-surface);
+  --sidebar-primary: var(--color-primary);
+  --sidebar-primary-foreground: var(--color-on-primary);
+  --sidebar-accent: var(--color-surface-container-low);
+  --sidebar-accent-foreground: var(--color-on-surface);
+  --sidebar-border: var(--color-outline-variant);
+  --sidebar-ring: var(--color-primary);
+}
+
+/*
+ * CopilotChatInput's visible "pill" (the rounded-[28px]/bg-white/shadow box)
+ * is a separate inner div from the one the `input` slot's `className` prop
+ * reaches — its shape is hardcoded with no corresponding slot, so it can't
+ * be reshaped from React props at all. Overridden here instead, on its
+ * stable `data-testid`, for the same unlayered-beats-layered reason as
+ * above.
+ */
+[data-testid='copilot-chat-input'] {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-strong);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 2px rgba(23, 21, 28, 0.04),
+    0 6px 16px rgba(23, 21, 28, 0.06);
+  min-height: 46px;
+}
+
+/*
+ * Same "no slot reaches this node" problem for the rest of the input's
+ * internals: CopilotChatInput lays its add-button, textarea and send button
+ * out as three grid columns whose row/column assignment flips only when the
+ * component itself decides the textarea has wrapped (`data-layout`). The
+ * design's composer (docs/design/Main.dc.html `.composer`) is always the
+ * two-row shape — textarea across the top, a toolbar strip beneath it with
+ * the send button at its right — so the grid areas are pinned here instead
+ * of waiting on that internal state.
+ */
+[data-testid='copilot-chat-input'] > div {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0;
+  padding: 0;
+}
+
+/*
+ * The add-menu button renders permanently disabled while no `onAddFile`
+ * handler is wired (it has no menu items to open), so it's hidden rather
+ * than shown as the design's live attach control.
+ */
+[data-testid='copilot-chat-input'] > div > div:first-child {
+  display: none;
+}
+
+[data-testid='copilot-chat-input'] > div > div:nth-child(2) {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-height: 0;
+}
+
+[data-testid='copilot-chat-textarea'] {
+  padding: 14px 16px 4px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  max-height: 180px;
+}
+
+[data-testid='copilot-chat-textarea']::placeholder {
+  color: var(--color-on-surface-muted);
+}
+
+[data-testid='copilot-chat-input'] > div > div:last-child {
+  grid-column: 3;
+  grid-row: 2;
+  gap: 6px;
+  padding: 6px 8px 8px 0;
+}
+
+/*
+ * The design puts an "⏎ to send" hint left of the send button. There is no
+ * slot between the toolbar's children, so it's generated on the toolbar
+ * itself — decorative only, the shortcut is CopilotKit's own behavior.
+ */
+[data-testid='copilot-chat-input'] > div > div:last-child::before {
+  content: '⏎ to send';
+  font-size: 11.5px;
+  color: var(--color-on-surface-muted);
+  white-space: nowrap;
+}
+
+[data-testid='copilot-chat-input'] > div > div:last-child > div {
+  margin: 0;
+}
+
+[data-testid='copilot-input-overlay'] > div {
+  background: transparent;
+}
+
+[data-testid='copilot-message-list'] {
+  --none-spacing: 0;
+  margin-left: var(--none-spacing);
+  margin-right: var(--none-spacing);
+  padding-left: var(--none-spacing);
+  padding-right: var(--none-spacing);
+}
+
+/*
+ * Same layering problem as above: CopilotChatInput's `sendButton.className`
+ * prop lands on this node alongside the component's own hardcoded
+ * `cpk:bg-black`/`cpk:disabled:bg-[#00000014]` utilities, which win the
+ * cascade regardless of class order since they compile into the same
+ * Tailwind utilities layer as our own `bg-primary`/`text-on-primary`. Figma's
+ * send button (node 1:760) is solid primary-purple with no distinct disabled
+ * look, so it's forced here, unlayered, rather than via the ineffective prop.
+ */
+[data-testid='copilot-send-button'] {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 1px 2px rgba(23, 21, 28, 0.06);
+}
+
+[data-testid='copilot-send-button']:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}

@@ -1,0 +1,30 @@
+{
+  "name": "release-notes-builder-langchain",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "node --env-file=.env --import tsx --watch server/index.ts",
+    "dev:all": "concurrently -n vite,server -c blue,magenta \"pnpm dev\" \"pnpm dev:server\"",
+    "build": "tsc -b && vite build",
+    "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@copilotkit/react-core": "^1.84.1",
+    "@copilotkit/react-ui": "^1.84.1",
+    "@supabase/supabase-js": "^2.119.0",
+    "@tanstack/react-query": "^5.106.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.69.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
+    "react-router": "^8.5.1",
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.16"
+  }
+}
