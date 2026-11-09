@@ -6,3 +6,4 @@ export * from "./release-notes";
 export * from "./server";
 export * from "./tools";
 export * from "./skills";
+export * from "./slack";
