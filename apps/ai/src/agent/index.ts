@@ -1,14 +1,14 @@
-import { createAgent } from "langchain";
+import { createAgent, humanInTheLoopMiddleware } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 
 // Configs
 import { config } from "@/config";
 
 // Constants
-import { SYSTEM_PROMPT } from "@/constants";
+import { SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
 
 // Middlewares
-import { confirmationMiddleware, skillsMiddleware } from "@/middlewares";
+import { skillsMiddleware } from "@/middlewares";
 
 // Tools
 import { tools } from "@/tools";
@@ -30,8 +30,20 @@ export const createBaseAgent = ({
     model: new ChatOpenAI({ model: config.model }),
     tools,
     systemPrompt,
-    // Skills and Slack confirmation always on; callers add more (e.g. guards) after it.
-    middleware: [skillsMiddleware, confirmationMiddleware, ...(middleware ?? [])],
+    // Skills and Slack approval always on; callers add more (e.g. guards) after it.
+    middleware: [
+      skillsMiddleware,
+      // Pauses the run (LangGraph interrupt) until the user approves or rejects a Slack publish.
+      humanInTheLoopMiddleware({
+        interruptOn: {
+          [TOOL_NAMES.publishReleaseNotesToSlack]: {
+            allowedDecisions: ["approve", "reject"],
+            description: SLACK_APPROVAL_DESCRIPTION,
+          },
+        },
+      }),
+      ...(middleware ?? []),
+    ],
     checkpointer,
   });
 

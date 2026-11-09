@@ -1,5 +1,3 @@
-import { getCurrentTaskInput } from "@langchain/langgraph";
-import type { BaseMessage } from "@langchain/core/messages";
 import { tool } from "langchain";
 
 // Configs
@@ -17,13 +15,11 @@ import {
 import { SlackPublishRequestSchema } from "@/schemas";
 
 // Utils
-import { findApprovedPublish, postToSlackWebhook, SlackWebhookError } from "@/utils";
+import { postToSlackWebhook, SlackWebhookError } from "@/utils";
 
+/** Runs only after `humanInTheLoopMiddleware` got an approval; a rejection never reaches this body. */
 export const publishReleaseNotesToSlack = tool(
   async (request) => {
-    const { messages } = getCurrentTaskInput<{ messages: BaseMessage[] }>();
-    if (!findApprovedPublish(messages, request)) return SLACK_TOOL_MESSAGES.NOT_APPROVED;
-
     const webhookUrl = config.slackWebhookUrl;
     if (!webhookUrl) return SLACK_ERROR_MESSAGES.MISSING_WEBHOOK_URL;
 

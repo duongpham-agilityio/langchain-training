@@ -336,11 +336,8 @@ export const RELEASE_FLOW = `
 When the user asks to send release notes to Slack:
 
 1. Use the finished draft of the destination they mean (ask which one if several exist and it is unclear).
-2. Call \`confirmSlackPublish\` with that draft's platformId, label and exact content. Stop and wait for the answer.
-3. If the answer is \`approved\`, call \`publishReleaseNotesToSlack\` once with exactly the same platformId, label and content, then reply with one short line.
-4. If the answer is \`rejected\`, reply that nothing was sent. Do not ask again unless the user asks again.
-
-Never call \`publishReleaseNotesToSlack\` without an approved answer in this conversation.
+2. Call \`publishReleaseNotesToSlack\` once with that draft's platformId, label and exact content. The system asks the user to approve before it runs; do not ask for confirmation yourself.
+3. After a published result, reply with one short line. If the user rejected, reply that nothing was sent and do not call the tool again unless they ask again.
 `;
 
 /**

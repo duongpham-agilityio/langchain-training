@@ -6,7 +6,7 @@ import DashboardLayout from '@/layouts/DashboardLayout.tsx';
 import { useArchiveRelease } from '@/hooks/use-archive-release.ts';
 import { usePreviewPanel } from '@/hooks/use-preview-panel.ts';
 import { useReleaseDraft } from '@/hooks/use-release-draft.tsx';
-import { useSlackPublishConfirmation } from '@/hooks/use-slack-publish-confirmation.tsx';
+import { useSlackPublishApproval } from '@/hooks/use-slack-publish-approval.tsx';
 import { useSlackSuggestion } from '@/hooks/use-slack-suggestion.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
 import { useToast } from '@/hooks/use-toast.ts';
@@ -20,8 +20,8 @@ import {
 } from '@/lib/release-notes/release-title.ts';
 
 // Single call site for the CopilotKit tool registration this page owns:
-// useReleaseDraft (renderReleaseNotesPreview) and useSlackPublishConfirmation
-// (confirmSlackPublish). Anything that only READS the
+// useReleaseDraft (renderReleaseNotesPreview) and useSlackPublishApproval
+// (Slack publish approval). Anything that only READS the
 // draft uses useReleaseDraftView() instead — usePreviewPanel does exactly
 // that. Slack publishing is a backend agent tool gated by the confirmation
 // card; useSlackSuggestion below only configures the chat suggestion that
@@ -36,7 +36,7 @@ const DashboardPage = () => {
     isPreviewOpen,
     onOpenPreview: openPreview,
   });
-  useSlackPublishConfirmation();
+  useSlackPublishApproval();
   useSlackSuggestion(draft);
   const { threadId, threads } = useThreadSession();
   const { showToast } = useToast();

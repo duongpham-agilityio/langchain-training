@@ -3,6 +3,7 @@ import {
   AbstractAgent,
   EventType,
   type BaseEvent,
+  type Interrupt,
   type RunAgentInput,
 } from "@ag-ui/client";
 import {
@@ -12,10 +13,14 @@ import {
   ToolMessage,
   type BaseMessage,
 } from "@langchain/core/messages";
+import { Command } from "@langchain/langgraph";
 import { Observable } from "rxjs";
 
 // Agents
 import type { BaseAgent } from "@/agent";
+
+// Constants
+import { APPROVAL_INTERRUPT_REASON, APPROVAL_REJECT_MESSAGE } from "@/constants";
 
 /** Flattens AG-UI user content (string or multimodal parts) to plain text. */
 const toText = (content: unknown): string => {
@@ -55,6 +60,40 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
     }
   });
 
+type ApprovalDecision = { type: "approve" } | { type: "reject"; message: string };
+
+/**
+ * AG-UI resume entries -> the decisions `humanInTheLoopMiddleware` expects.
+ * Only an explicit `resolved` answer with `approve` approves; anything else rejects.
+ */
+export const toResumeCommand = (resume: NonNullable<RunAgentInput["resume"]>) =>
+  new Command({
+    resume: {
+      decisions: resume.map(
+        (entry): ApprovalDecision =>
+          entry.status === "resolved" && entry.payload?.decision === "approve"
+            ? { type: "approve" }
+            : { type: "reject", message: APPROVAL_REJECT_MESSAGE },
+      ),
+    },
+  });
+
+/** LangGraph `__interrupt__` update -> AG-UI interrupts (one per pending approval). */
+const toInterrupts = (raw: unknown): Interrupt[] =>
+  (Array.isArray(raw) ? raw : []).flatMap((item: { id?: string; value?: ApprovalRequest }) =>
+    (item.value?.actionRequests ?? []).map((action) => ({
+      id: String(item.id),
+      reason: APPROVAL_INTERRUPT_REASON,
+      message: action.description,
+      metadata: { toolName: action.name, args: action.args },
+    })),
+  );
+
+/** Shape of a `humanInTheLoopMiddleware` interrupt value. */
+type ApprovalRequest = {
+  actionRequests: { name: string; args: Record<string, unknown>; description?: string }[];
+};
+
 /**
  * AG-UI agent that forwards server tool calls to the client (spike A, route B).
  *
@@ -82,13 +121,22 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           runId: input.runId,
         });
 
-        const stream = await this.agent.stream(
-          { messages: toLangChainMessages(input) },
-          {
-            streamMode: "messages",
-            configurable: { thread_id: input.threadId },
-          },
-        );
+        const config = { configurable: { thread_id: input.threadId } };
+        // With a checkpointer the thread already holds the history; resending it would duplicate messages.
+        const snapshot = (await this.agent.getState(config)) as {
+          values?: { messages?: unknown[] };
+        };
+        const hasState = (snapshot.values?.messages?.length ?? 0) > 0;
+        const messages = toLangChainMessages(input);
+        const agentInput = input.resume?.length
+          ? toResumeCommand(input.resume)
+          : { messages: hasState ? messages.slice(-1) : messages };
+
+        const stream = await this.agent.stream(agentInput, {
+          ...config,
+          streamMode: ["messages", "updates"],
+        });
+        const interrupts: Interrupt[] = [];
 
         // The model's chunk `index` ties arg deltas to their call id.
         const idByIndex = new Map<number, string>();
@@ -101,7 +149,13 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           textId = null;
         };
 
-        for await (const [chunk] of stream) {
+        for await (const [mode, data] of stream) {
+          if (mode === "updates") {
+            // A LangGraph interrupt surfaces only as an `__interrupt__` update.
+            interrupts.push(...toInterrupts((data as Record<string, unknown>).__interrupt__));
+            continue;
+          }
+          const [chunk] = data;
           if (ToolMessage.isInstance(chunk)) {
             closeText();
             if (openCalls.delete(chunk.tool_call_id)) {
@@ -162,12 +216,13 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         }
 
         closeText();
-        // A confirmation call ends the run without a tool result; close it so the UI can answer.
+        // An interrupted tool call has no result yet; close it so the stream stays well formed.
         for (const id of openCalls) emit({ type: EventType.TOOL_CALL_END, toolCallId: id });
         emit({
           type: EventType.RUN_FINISHED,
           threadId: input.threadId,
           runId: input.runId,
+          ...(interrupts.length ? { outcome: { type: "interrupt", interrupts } } : {}),
         });
         subscriber.complete();
       };
