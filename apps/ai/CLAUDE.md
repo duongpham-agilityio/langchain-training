@@ -20,9 +20,10 @@ Root shortcut: `pnpm dev:ai`. No test runner, no lint script in this app (root `
 
 ## Architecture
 
-- `src/index.ts` — `CopilotRuntime` with one agent `releaseCopilotAgent` and `InMemoryAgentRunner`; Hono mounts `createCopilotEndpoint` at `/api/copilotkit`, plus `GET /health`.
+- `src/index.ts` — `CopilotRuntime` with one agent `releaseCopilotAgent` and `InMemoryAgentRunner`; Hono mounts `createCopilotEndpoint` at `/api/copilotkit`, plus `GET /health`, which runs `select 1` on the shared pg pool and returns `{ ok, db: { reachable } }` (200, or 503 when the database is unreachable).
 - `src/agent/` — `createBaseAgent()` = `createAgent` + `ChatOpenAI`, `tools`, `systemPrompt`. Exports `BaseAgent` type.
 - `src/agui/` — wraps the agent in `@ag-ui/langchain` `LangChainAgent`. `streamTextChunks` runs `agent.stream(..., {streamMode: "messages"})` and yields **only text chunks**; server tool calls are dropped on purpose (AG-UI history must not hold tool calls the client cannot answer). The bridge treats tools as frontend tools; the agent runs its own server-side tool loop.
+- `src/db/` — `createPgPool()` (lazy `pg.Pool` from `DATABASE_URL`, 3 s connection timeout, `error` listener so idle-client errors do not crash the process; reusable by the checkpointer), `createSupabaseAdminClient()` (service-role key, no session persistence), `checkDatabase(pool)` for `/health`.
 - `src/middlewares/`, `src/skills/` — empty (`.gitkeep`); reserved for agent middleware and skills.
 
 ## Cross-app wiring
