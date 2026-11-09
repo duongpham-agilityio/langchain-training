@@ -330,6 +330,14 @@ export const RELEASE_FLOW = `
 1. Call \`load_skill\` for \`platform-formatting\`.
 2. Write the complete finished draft, then call \`renderReleaseNotesPreview\` exactly once with it. Never make partial or repeated calls, and never put the draft text in the chat.
 3. After the tool result, reply with one short line.
+
+## Sending to Slack
+
+When the user asks to send release notes to Slack:
+
+1. Use the finished draft of the destination they mean (ask which one if several exist and it is unclear).
+2. Call \`publishReleaseNotesToSlack\` once with that draft's platformId, label and exact content. The system asks the user to approve before it runs; do not ask for confirmation yourself.
+3. After a published result, reply with one short line. If the user rejected, reply that nothing was sent and do not call the tool again unless they ask again.
 `;
 
 /**

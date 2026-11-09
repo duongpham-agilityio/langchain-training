@@ -1,4 +1,5 @@
 import { serve } from "@hono/node-server";
+import { MemorySaver } from "@langchain/langgraph";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -19,8 +20,11 @@ import { checkDatabase, createPgPool, createSupabaseAdminClient } from "@/db";
 import { type AuthEnv, createRequireAuth } from "@/middlewares";
 import { createReleaseHistoryRoutes, createSlackRoute } from "@/routes";
 
+// In memory for now: a pending approval survives only while the server runs (Postgres checkpointer comes with M-22).
+const checkpointer = new MemorySaver();
+
 const runtime = new CopilotRuntime({
-  agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent()) },
+  agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent({ checkpointer })) },
   runner: new InMemoryAgentRunner(),
 });
 
