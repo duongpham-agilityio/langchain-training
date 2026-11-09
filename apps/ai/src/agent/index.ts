@@ -7,6 +7,9 @@ import { config } from "@/config";
 // Constants
 import { SYSTEM_PROMPT } from "@/constants";
 
+// Middlewares
+import { skillsMiddleware } from "@/middlewares";
+
 // Tools
 import { tools } from "@/tools";
 
@@ -27,7 +30,8 @@ export const createBaseAgent = ({
     model: new ChatOpenAI({ model: config.model }),
     tools,
     systemPrompt,
-    middleware,
+    // Skills always on; callers add more (e.g. guards) after it.
+    middleware: [skillsMiddleware, ...(middleware ?? [])],
     checkpointer,
   });
 
