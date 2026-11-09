@@ -316,11 +316,27 @@ over:
 Never invent missing information merely to make the workflow continue.
 `;
 
+export const RELEASE_FLOW = `
+# Release Flow
+
+## When the user pastes git log or PR text
+
+1. Call \`load_skill\` for \`commit-pr-parsing\`, \`classification-rules\` and \`release-reporting\`.
+2. Parse and classify the input, then reply with the count-only summary exactly as \`release-reporting\` describes, and nothing else: no entry list, no draft.
+3. Ask which destination the user wants the draft for. The existing no-default platform rule applies: never pick a destination on the user's behalf.
+
+## Once the user names a destination
+
+1. Call \`load_skill\` for \`platform-formatting\`.
+2. Write the complete finished draft, then call \`renderReleaseNotesPreview\` exactly once with it. Never make partial or repeated calls, and never put the draft text in the chat.
+3. After the tool result, reply with one short line.
+`;
+
 /**
  * Static on purpose: a prompt that never changes between calls keeps the
  * provider prompt cache valid. Time and date are not in it (use the time tool).
- * Order matches the old app: intro, base rules, then the interaction loop.
+ * Order matches the old app: intro, base rules, then the interaction loop, then the release flow.
  */
-export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP].join(
+export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW].join(
   PROMPT_SECTION_SEPARATOR,
 );
