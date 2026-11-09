@@ -17,8 +17,6 @@ import { Observable } from "rxjs";
 // Agents
 import type { BaseAgent } from "@/agent";
 
-type PendingToolCall = { name: string; args: string };
-
 /** Flattens AG-UI user content (string or multimodal parts) to plain text. */
 const toText = (content: unknown): string => {
   if (typeof content === "string") return content;
@@ -60,12 +58,11 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
 /**
  * AG-UI agent that forwards server tool calls to the client (spike A, route B).
  *
- * Text streams token by token. Tool calls do NOT: the preview card must appear
- * only once the model has finished, so tool-call chunks are buffered and the
- * client receives TOOL_CALL_START/ARGS/END plus TOOL_CALL_RESULT together when
- * the tool's result arrives. The client never sees a partial draft.
- * `@ag-ui/langchain`'s `chainFn` cannot emit a tool result event, hence this
- * small custom agent instead of `LangChainAgent`.
+ * Text and tool-call chunks stream as they arrive (TOOL_CALL_START/ARGS/END,
+ * then TOOL_CALL_RESULT when the tool returns). The preview is not rendered
+ * progressively: the web render tool shows the card only once the call has
+ * its result (`status === "complete"`). `@ag-ui/langchain`'s `chainFn` cannot
+ * emit a tool result event, hence this small custom agent.
  */
 export class ReleaseNotesAguiAgent extends AbstractAgent {
   constructor(private readonly agent: BaseAgent) {
@@ -93,9 +90,9 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           },
         );
 
-        // Tool-call chunks per call id; the model's `index` ties arg deltas to their call.
-        const pending = new Map<string, PendingToolCall>();
+        // The model's chunk `index` ties arg deltas to their call id.
         const idByIndex = new Map<number, string>();
+        const openCalls = new Set<string>();
         let textId: string | null = null;
 
         const closeText = () => {
@@ -107,21 +104,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         for await (const [chunk] of stream) {
           if (ToolMessage.isInstance(chunk)) {
             closeText();
-            const call = pending.get(chunk.tool_call_id);
-            if (call) {
-              const { tool_call_id: toolCallId } = chunk;
+            if (openCalls.delete(chunk.tool_call_id)) {
               emit({
-                type: EventType.TOOL_CALL_START,
-                toolCallId,
-                toolCallName: call.name,
+                type: EventType.TOOL_CALL_END,
+                toolCallId: chunk.tool_call_id,
               });
-              emit({
-                type: EventType.TOOL_CALL_ARGS,
-                toolCallId,
-                delta: call.args,
-              });
-              emit({ type: EventType.TOOL_CALL_END, toolCallId });
-              pending.delete(toolCallId);
             }
             emit({
               type: EventType.TOOL_CALL_RESULT,
@@ -136,13 +123,24 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
 
           for (const part of chunk.tool_call_chunks ?? []) {
             const index = part.index ?? 0;
-            if (part.id) idByIndex.set(index, part.id);
-            const id = part.id ?? idByIndex.get(index);
-            if (!id) continue;
-            const entry = pending.get(id) ?? { name: "", args: "" };
-            entry.name ||= part.name ?? "";
-            entry.args += part.args ?? "";
-            pending.set(id, entry);
+            if (part.id && part.name) {
+              closeText();
+              idByIndex.set(index, part.id);
+              openCalls.add(part.id);
+              emit({
+                type: EventType.TOOL_CALL_START,
+                toolCallId: part.id,
+                toolCallName: part.name,
+              });
+            }
+            const id = idByIndex.get(index);
+            if (id && part.args) {
+              emit({
+                type: EventType.TOOL_CALL_ARGS,
+                toolCallId: id,
+                delta: part.args,
+              });
+            }
           }
 
           // `.text` flattens both string content and content-block arrays.
