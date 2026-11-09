@@ -25,7 +25,7 @@ Root shortcut: `pnpm dev:ai`. No test runner, no lint script in this app (root `
 - `src/agui/` — wraps the agent in `@ag-ui/langchain` `LangChainAgent`. `streamTextChunks` runs `agent.stream(..., {streamMode: "messages"})` and yields **only text chunks**; server tool calls are dropped on purpose (AG-UI history must not hold tool calls the client cannot answer). The bridge treats tools as frontend tools; the agent runs its own server-side tool loop.
 - `src/db/` — `createPgPool()` (lazy `pg.Pool` from `DATABASE_URL`, 3 s connection timeout, `error` listener so idle-client errors do not crash the process; reusable by the checkpointer), `createSupabaseAdminClient()` (service-role key, no session persistence), `checkDatabase(pool)` for `/health`.
 - `src/middlewares/auth.ts` — `createRequireAuth(supabase)` Hono middleware mounted on `/api/*`: reads `Authorization: Bearer <token>`, verifies with `supabase.auth.getUser`, sets `c.get("userId")` (type `AuthEnv`); missing/invalid token gets 401 `{ error: "Unauthorized" }`, `OPTIONS` passes. `/health` is outside `/api` and stays public.
-- `src/skills/` — empty (`.gitkeep`); reserved for skills.
+- `src/skills/` — on-demand skills (`commit-pr-parsing`, `classification-rules`, `platform-formatting`, `release-reporting`) as TS modules + `SKILLS` registry. `middlewares/skills.ts` appends a short catalog to the system message each turn and registers the `load_skill` tool; full rules load only when the model calls it. Add a skill = new module + entry in `SKILLS`.
 
 ## Cross-app wiring
 
