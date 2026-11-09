@@ -13,8 +13,12 @@ import type { BaseAgent } from "@/agent";
 const streamTextChunks = async function* (
   agent: BaseAgent,
   messages: BaseMessage[],
+  threadId: string,
 ) {
-  const stream = await agent.stream({ messages }, { streamMode: "messages" });
+  const stream = await agent.stream(
+    { messages },
+    { streamMode: "messages", configurable: { thread_id: threadId } },
+  );
   for await (const [chunk] of stream) {
     if (!AIMessageChunk.isInstance(chunk)) continue;
     
@@ -34,8 +38,10 @@ const streamTextChunks = async function* (
  */
 export const createAguiAgent = (agent: BaseAgent) =>
   new LangChainAgent({
-    chainFn: ({ messages }) =>
-      IterableReadableStream.fromAsyncGenerator(
-        streamTextChunks(agent, messages),
-      ),
+    chainFn: ({ messages, threadId }) => {
+      console.log(`[agui] thread ${threadId}`);
+      return IterableReadableStream.fromAsyncGenerator(
+        streamTextChunks(agent, messages, threadId),
+      );
+    },
   });
