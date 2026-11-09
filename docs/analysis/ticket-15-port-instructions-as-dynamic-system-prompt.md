@@ -6,15 +6,10 @@ Done when: the agent answers using the old wording; diff against the old text sh
 
 ## What's ambiguous
 - "Depends on: M-11" (factory options) is not merged yet; this ticket must not wait on it.
-- "release-notes: intro, loop": the old intro has a "Right now" time block built at call time.
+- The old intro has a "Right now" time block built at call time; it conflicts with a cacheable static prompt.
 
 ## First step
 Copy the old text from `copilotkit-training/release-copilot/src/mastra/instructions/v2` into `constants/prompts.ts`.
 
 ## Clarifying questions
-1. Should the "Right now" time block of the intro be kept?
-   Default assumption: yes, as a function of the current time; this is what makes the prompt dynamic. Correct?
-   Answer: _(pending)_
-2. Wire the middleware directly in `createBaseAgent` (M-11 not merged)?
-   Default assumption: yes, `middleware: [createSystemPromptMiddleware()]`; M-11 can later pass it via options. Correct?
-   Answer: _(pending)_
+No ambiguity left: the user decided to pass the prompt straight to `createAgent` (no middleware, no time block) to keep prompt caching effective.

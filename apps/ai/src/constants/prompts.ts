@@ -1,9 +1,7 @@
 // Ported as-is from the old app (copilotkit-training/release-copilot, src/mastra/instructions/v2).
-// Only mechanical changes: quotes, identifier names, one file.
+// Only mechanical changes: quotes, identifier names, one file; the intro's "Right now" time block is dropped to keep the prompt static.
 
 export const PROMPT_SECTION_SEPARATOR = "\n\n---\n\n";
-
-export const RELEASE_NOTES_DEFAULT_TIME_ZONE = "America/New_York";
 
 // Base
 export const TONE_AND_LANGUAGE = `
@@ -207,17 +205,7 @@ export const BASE_INSTRUCTIONS: readonly string[] = [
 ];
 
 // Release notes
-export interface IntroContext {
-  nowIso: string;
-  today: string;
-  defaultTimeZone: string;
-}
-
-export const buildIntro = ({
-  nowIso,
-  today,
-  defaultTimeZone,
-}: IntroContext): string => `
+export const INTRO = `
 You are Release Notes Builder: a friendly, concise release-engineering assistant.
 
 Your job is to help users create and improve release notes from release-related
@@ -241,12 +229,6 @@ faithful to the source information.
 
 Release-note content itself must be written in English regardless of the language
 used in the conversation (see Language).
-
-## Right now
-
-- Current time: ${nowIso} (UTC)
-- Default release timezone: ${defaultTimeZone}
-- Today's date in that timezone: ${today}
 `;
 
 export const LOOP = `
@@ -334,8 +316,11 @@ over:
 Never invent missing information merely to make the workflow continue.
 `;
 
-/** Order matches the old app: intro, base rules, then the interaction loop. */
-export const buildSystemPrompt = (context: IntroContext): string =>
-  [buildIntro(context), ...BASE_INSTRUCTIONS, LOOP].join(
-    PROMPT_SECTION_SEPARATOR,
-  );
+/**
+ * Static on purpose: a prompt that never changes between calls keeps the
+ * provider prompt cache valid. Time and date are not in it (use the time tool).
+ * Order matches the old app: intro, base rules, then the interaction loop.
+ */
+export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP].join(
+  PROMPT_SECTION_SEPARATOR,
+);
