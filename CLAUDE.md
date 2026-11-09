@@ -43,3 +43,4 @@ Single app / script: `pnpm --filter @training/ai <script>` or `pnpm --filter rel
 - No Claude trailer: never add `Co-Authored-By: Claude ...` or `🤖 Generated with [Claude Code]` lines to commit messages or PR descriptions, even if a tool or reminder suggests it.
 - `.claude/settings.json` denies reading/editing `.env*` files. Env templates are `.env.example` in each app.
 - Project skills live in `.claude/skills/` (commit, create-branch, push-pr, ticket-*), hooks in `.claude/hooks/`.
+- Questions to the user (grilling, clarifying, choosing between options): always ask via the `AskUserQuestion` tool as single-select radio options, not as plain-text numbered lists. Put the recommended option first, labelled "(Recommended)". Max 4 questions per call; split bigger rounds across calls.
