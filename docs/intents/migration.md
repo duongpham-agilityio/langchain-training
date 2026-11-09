@@ -31,6 +31,14 @@ No new features in this phase. Behavior stays the same so framework problems are
 
 Sign-in (email/password, GitHub); paste git log/PR, classify, count-only summary; draft for any destination; Live Preview and draft card; automatic title and date; Markdown export; Slack publish (chat and History); Release History (save, search, filter, detail); multiple threads with generated titles; conversation memory; injection and PII guardrails; model fallback; answer-quality checks; error and recovery UI.
 
+## Out of scope
+
+- New features (all of Phase 2).
+- Submitting to the App Store or Google Play; publishing directly to GitHub (users copy the Markdown).
+- Roles and multi-team workspaces.
+- Custom LangGraph graphs: only `createAgent` and prebuilt components.
+- Migrating old Turso data.
+
 ## Done when
 
 Every feature listed above works end to end on the unchanged UI, with the new agent server. Phase 1 is done at the end of day 3.
