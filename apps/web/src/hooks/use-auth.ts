@@ -15,15 +15,9 @@ export const useAuth = () => {
   );
 
   useEffect(() => {
-    const unsubscribe = supabaseAuthService.onAuthStateChange(
-      async (session) => {
-        const randomNumber = Math.floor(Math.random() * 4) + 1;
-
-        setTimeout(() => {
-          setSession(session);
-        }, 1000 * randomNumber);
-      },
-    );
+    const unsubscribe = supabaseAuthService.onAuthStateChange((session) => {
+      setSession(session);
+    });
     return unsubscribe;
   }, [setSession]);
 
