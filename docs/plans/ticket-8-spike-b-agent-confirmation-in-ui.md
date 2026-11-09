@@ -23,3 +23,10 @@ Show that an agent confirmation request renders in the web UI, that Approve and 
 - `pnpm typecheck`, `pnpm lint`, `pnpm build` exit 0
 - Both paths shown working in the browser with evidence
 - Findings doc written
+
+## Deviations
+- Fake model is a hand-made `AIMessageChunk` stream inside `chainFn` (not a LangChain `FakeToolCallingModel`): the spike only needs the transport/UI path. No new dependency added.
+- Spike server added `DELETE /spike/actions` (reset helper) besides `GET /spike/actions`.
+- Screenshots are `.jpg` (copied from the Browser pane output).
+- Reject was verified as the second turn after Approve in the same thread (covers the "twice in one thread" check) rather than as a separate fresh-thread run.
+- `apps/web/hitl-spike.html` is served by the Vite dev server only; it is not added to the Vite build inputs.
