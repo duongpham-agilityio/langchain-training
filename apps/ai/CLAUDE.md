@@ -20,14 +20,14 @@ Root shortcut: `pnpm dev:ai`. No test runner, no lint script in this app (root `
 
 ## Architecture
 
-- `src/index.ts` — `CopilotRuntime` with one agent `default` and `InMemoryAgentRunner`; Hono mounts `createCopilotEndpoint` at `/api/copilotkit`, plus `GET /health`.
+- `src/index.ts` — `CopilotRuntime` with one agent `releaseCopilotAgent` and `InMemoryAgentRunner`; Hono mounts `createCopilotEndpoint` at `/api/copilotkit`, plus `GET /health`.
 - `src/agent/` — `createBaseAgent()` = `createAgent` + `ChatOpenAI`, `tools`, `systemPrompt`. Exports `BaseAgent` type.
 - `src/agui/` — wraps the agent in `@ag-ui/langchain` `LangChainAgent`. `streamTextChunks` runs `agent.stream(..., {streamMode: "messages"})` and yields **only text chunks**; server tool calls are dropped on purpose (AG-UI history must not hold tool calls the client cannot answer). The bridge treats tools as frontend tools; the agent runs its own server-side tool loop.
 - `src/middlewares/`, `src/skills/` — empty (`.gitkeep`); reserved for agent middleware and skills.
 
 ## Cross-app wiring
 
-Web calls this server via `VITE_COPILOTKIT_RUNTIME_URL`. Server default is `http://localhost:4000/api/copilotkit`, but `apps/web/.env.example` still points at `:4111/copilotkit`. Make them match when running both.
+Web builds the runtime URL from `VITE_API_SERVER_URL` + `COPILOTKIT_ROUTE_PATH` (`/api/copilotkit`). Server default is `http://localhost:4000/api/copilotkit`; keep `AI_PORT` and `VITE_API_SERVER_URL` in step. The web asks for agent id `releaseCopilotAgent`.
 
 ## Code style and structure
 

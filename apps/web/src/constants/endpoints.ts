@@ -1,4 +1,4 @@
-export const COPILOTKIT_ROUTE_PATH = '/copilotkit';
+export const COPILOTKIT_ROUTE_PATH = '/api/copilotkit';
 
 export const SLACK_PUBLISH_ROUTE_PATH = '/slack/publish';
 

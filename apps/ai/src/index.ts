@@ -5,9 +5,10 @@ import { CopilotRuntime, createCopilotEndpoint, InMemoryAgentRunner } from "@cop
 import { createBaseAgent } from "@/agent";
 import { createAguiAgent } from "@/agui";
 import { config } from "@/config";
+import { RELEASE_COPILOT_AGENT_ID } from "@/constants";
 
 const runtime = new CopilotRuntime({
-  agents: { default: createAguiAgent(createBaseAgent()) },
+  agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent()) },
   runner: new InMemoryAgentRunner(),
 });
 
