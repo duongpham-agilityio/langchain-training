@@ -4,3 +4,4 @@ export * from "./prompts";
 export * from "./release-notes";
 export * from "./server";
 export * from "./tools";
+export * from "./skills";
