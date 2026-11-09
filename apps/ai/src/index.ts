@@ -13,10 +13,11 @@ import {
   RELEASE_HISTORY_PATH,
   RELEASE_HISTORY_PATH_PATTERN,
   RELEASE_COPILOT_AGENT_ID,
+  SLACK_PATH_PATTERN,
 } from "@/constants";
 import { checkDatabase, createPgPool, createSupabaseAdminClient } from "@/db";
 import { type AuthEnv, createRequireAuth } from "@/middlewares";
-import { createReleaseHistoryRoutes } from "@/routes";
+import { createReleaseHistoryRoutes, createSlackRoute } from "@/routes";
 
 const runtime = new CopilotRuntime({
   agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent()) },
@@ -38,6 +39,8 @@ app.use(API_PATH_PATTERN, requireAuth);
 app.use(RELEASE_HISTORY_PATH, requireAuth);
 app.use(RELEASE_HISTORY_PATH_PATTERN, requireAuth);
 app.route("/", createReleaseHistoryRoutes(pgPool));
+app.use(SLACK_PATH_PATTERN, requireAuth);
+app.route("/", createSlackRoute());
 
 app.get(HEALTH_PATH, async (c) => {
   const db = await checkDatabase(pgPool);
