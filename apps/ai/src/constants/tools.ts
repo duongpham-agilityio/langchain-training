@@ -1,3 +1,3 @@
 export const TOOL_NAMES = {
-  getCurrentTime: "get_current_time",
+  renderReleaseNotesPreview: "renderReleaseNotesPreview",
 } as const;

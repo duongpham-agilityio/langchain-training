@@ -1,2 +1,2 @@
-export * from "./time";
+export * from "./release-notes-draft";
 export * from "./skills";

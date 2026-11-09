@@ -1,5 +1,5 @@
-import { getCurrentTime } from "./time";
+import { renderReleaseNotesPreview } from "./release-notes-preview";
 
-export * from "./time";
+export * from "./release-notes-preview";
 
-export const tools = [getCurrentTime];
+export const tools = [renderReleaseNotesPreview];
