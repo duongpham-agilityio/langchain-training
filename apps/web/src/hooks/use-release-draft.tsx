@@ -95,14 +95,10 @@ export const useReleaseDraft = ({
     parameters: ReleaseNotesDraftSchema,
     agentId: RELEASE_COPILOT_AGENT_ID,
     render: (props) => {
-      if (props.status === 'inProgress') {
-        return (
-          <ReleaseDraftCard
-            title="Release notes"
-            isGenerating
-            onOpen={onOpenPreview}
-          />
-        );
+      // The preview must never stream: show nothing until the tool call has
+      // its final result, so the card and Live Preview appear complete.
+      if (props.status !== 'complete') {
+        return <></>;
       }
 
       const result = ReleaseNotesDraftSchema.safeParse(props.parameters);

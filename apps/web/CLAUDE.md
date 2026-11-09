@@ -25,7 +25,7 @@ No test runner. `pnpm build` is the typecheck (strict tsc incl. `noUnusedLocals/
 - `providers/AppProviders.tsx` mounts `CopilotKit` (v2) with `Authorization: Bearer <supabase access token>` on every agent request; `QueryProvider` wraps the whole tree.
 - Auth: `lib/auth/auth-service.ts` is the interface, `supabase-auth-service.ts` the implementation; session lives in `store/auth-store.ts` (`AuthStatus`).
 - HTTP to the agent server: `lib/http/http-client.ts` (`HttpClient`) → `services/http-client.ts` (configured instance with auth header + timeout) → one file per call in `services/` (`list-release-history.ts`, `publish-to-slack.ts`, ...). Endpoint paths in `constants/endpoints.ts`. Responses are validated with zod `safeParse` and throw a descriptive error on shape mismatch.
-- Chat → UI: agent tool calls (`constants/agent-tools/`, e.g. `renderReleaseNotesPreview`) render the draft card / Live Preview; `store/draft-slice.ts` holds per-thread draft state, `use-agent-context.ts` feeds the current draft back to the agent.
+- Chat → UI: agent tool calls (`constants/agent-tools/`, e.g. `renderReleaseNotesPreview`) render the draft card / Live Preview (only at `status === 'complete'`, never while in progress); `store/draft-slice.ts` holds per-thread draft state, `use-agent-context.ts` feeds the current draft back to the agent.
 - Thread id lives in the URL (`/?thread=<id>`, `use-thread-url-sync`); History selection also lives in URL search params.
 
 ## Code style and structure
