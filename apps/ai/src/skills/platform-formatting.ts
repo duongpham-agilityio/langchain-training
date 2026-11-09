@@ -7,7 +7,7 @@ export const platformFormatting = {
 Format the draft for the destination the user names. If none is named, ask; do not default silently.
 
 ## Common structure
-Title and date line, then sections in this order: Breaking changes, Features, Fixes, Performance, Docs, Internal, Other. Omit empty sections. Each item is one line: subject in plain language, then the reference (\`#123\`) when known.
+Content only, no title or date line (the tool adds them). Sections in this order: Breaking changes, Features, Fixes, Performance, Docs, Internal, Other. Omit empty sections. Each item is one line: subject in plain language, then the reference (\`#123\`) when known.
 
 ## Destinations
 - markdown / github: \`##\` section headings, \`-\` bullets, references as \`#123\` so GitHub links them.

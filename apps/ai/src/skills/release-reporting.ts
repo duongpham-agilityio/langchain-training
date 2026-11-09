@@ -18,7 +18,7 @@ After classification, reply with counts per class and the total, nothing else:
 Hide classes with 0. Then ask which destination the user wants the draft for.
 
 ## Step 2: draft
-Only after the user names a destination: load \`platform-formatting\`, write the draft, and present it for review. Do not publish, save or send anything without an explicit user request.
+Only after the user names a destination: load \`platform-formatting\`, write the complete draft, and call \`renderReleaseNotesPreview\` exactly once with it. Do not print the draft in chat; after the result, reply with one short line. Do not publish, save or send anything without an explicit user request.
 
 ## Rules
 - Counts come from the classified entries, never estimated.
