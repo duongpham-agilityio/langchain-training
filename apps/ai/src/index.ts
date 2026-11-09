@@ -1,11 +1,12 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { CopilotRuntime, createCopilotEndpoint, InMemoryAgentRunner } from "@copilotkit/runtime/v2";
 import { createBaseAgent } from "@/agent";
 import { createAguiAgent } from "@/agui";
 import { config } from "@/config";
-import { RELEASE_COPILOT_AGENT_ID } from "@/constants";
+import { CORS_ALLOWED_HEADERS, RELEASE_COPILOT_AGENT_ID } from "@/constants";
 
 const runtime = new CopilotRuntime({
   agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent()) },
@@ -14,6 +15,8 @@ const runtime = new CopilotRuntime({
 
 const app = new Hono();
 app.use(logger());
+// Global CORS so every route (not only CopilotKit's) accepts the Authorization header.
+app.use("*", cors({ origin: config.corsOrigin, allowHeaders: CORS_ALLOWED_HEADERS }));
 
 app.get("/health", (c) => c.json({ ok: true }));
 
