@@ -162,6 +162,8 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         }
 
         closeText();
+        // A confirmation call ends the run without a tool result; close it so the UI can answer.
+        for (const id of openCalls) emit({ type: EventType.TOOL_CALL_END, toolCallId: id });
         emit({
           type: EventType.RUN_FINISHED,
           threadId: input.threadId,

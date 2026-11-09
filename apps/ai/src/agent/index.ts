@@ -8,7 +8,7 @@ import { config } from "@/config";
 import { SYSTEM_PROMPT } from "@/constants";
 
 // Middlewares
-import { skillsMiddleware } from "@/middlewares";
+import { confirmationMiddleware, skillsMiddleware } from "@/middlewares";
 
 // Tools
 import { tools } from "@/tools";
@@ -30,8 +30,8 @@ export const createBaseAgent = ({
     model: new ChatOpenAI({ model: config.model }),
     tools,
     systemPrompt,
-    // Skills always on; callers add more (e.g. guards) after it.
-    middleware: [skillsMiddleware, ...(middleware ?? [])],
+    // Skills and Slack confirmation always on; callers add more (e.g. guards) after it.
+    middleware: [skillsMiddleware, confirmationMiddleware, ...(middleware ?? [])],
     checkpointer,
   });
 
