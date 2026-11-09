@@ -4,3 +4,6 @@ export const getRequiredEnv = (value: string | undefined, name: string): string 
   }
   return value;
 };
+
+export const joinUrl = (origin: string, path: string): string =>
+  `${origin.replace(/\/+$/, '')}${path}`;
