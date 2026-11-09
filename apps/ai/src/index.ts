@@ -6,8 +6,14 @@ import { CopilotRuntime, createCopilotEndpoint, InMemoryAgentRunner } from "@cop
 import { createBaseAgent } from "@/agent";
 import { createAguiAgent } from "@/agui";
 import { config } from "@/config";
-import { CORS_ALLOWED_HEADERS, HEALTH_PATH, RELEASE_COPILOT_AGENT_ID } from "@/constants";
+import {
+  API_PATH_PATTERN,
+  CORS_ALLOWED_HEADERS,
+  HEALTH_PATH,
+  RELEASE_COPILOT_AGENT_ID,
+} from "@/constants";
 import { checkDatabase, createPgPool, createSupabaseAdminClient } from "@/db";
+import { type AuthEnv, createRequireAuth } from "@/middlewares";
 
 const runtime = new CopilotRuntime({
   agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent()) },
@@ -16,13 +22,14 @@ const runtime = new CopilotRuntime({
 
 // The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
 const pgPool = createPgPool();
-// Not used yet; kept for upcoming tickets that need server-side Supabase access.
 export const supabaseAdmin = createSupabaseAdminClient();
 
-const app = new Hono();
+const app = new Hono<AuthEnv>();
 app.use(logger());
 // Global CORS so every route (not only CopilotKit's) accepts the Authorization header.
 app.use("*", cors({ origin: config.corsOrigin, allowHeaders: CORS_ALLOWED_HEADERS }));
+// Every /api route needs a valid Supabase session; /health is registered outside it and stays public.
+app.use(API_PATH_PATTERN, createRequireAuth(supabaseAdmin));
 
 app.get(HEALTH_PATH, async (c) => {
   const db = await checkDatabase(pgPool);
