@@ -2,14 +2,14 @@
 
 Issue #24. Done when: the whole Day 2 flow is run once on the unchanged UI and each step is recorded pass/fail. Checked on 2026-11-09 against `practices` at merge commit `7567060` (PR #56, Slack publish tool).
 
-**Verdict: the whole run was NOT performed. Every code path for the flow exists and `pnpm lint`, `pnpm typecheck` and `pnpm build` pass, but the worktree has no `apps/ai/.env` or `apps/web/.env` (Supabase, model and Slack settings), so the app cannot start and all live rows are UNVERIFIED. No UI change was made. The run must be repeated by hand with real env values before #24 can be closed.**
+**Verdict: the run is NOT complete. Steps 1 to 4 and 6 pass live. Step 5 (save to History) fails with HTTP 500 because the database host is unreachable from this machine, so steps 5 and 7 are blocked. #24 should not be closed yet.**
 
 ## Setup
 
-- Dev test account: use the dev test account for local sign-in on `http://localhost:5173/` (credentials are not recorded here).
-- Env: `apps/ai/.env` and `apps/web/.env` copied from the `.env.example` files with real Supabase and model keys. `SLACK_WEBHOOK_URL` set locally to a throwaway test channel; never commit it.
-- Start: `pnpm dev` from the repo root.
-- Not available in this check: both `.env` files are absent from the worktree, so `apps/ai/src/config.ts` fails at startup. Env files are also blocked for the checker by `.claude/settings.json`.
+- Dev test account for local sign-in (credentials are not recorded here).
+- Env: `apps/ai/.env` and `apps/web/.env` copied from the main checkout (git-ignored).
+- Agent server: `pnpm --filter @training/ai dev` on `:4000`. Web: `pnpm --filter release-copilot dev --port 5175`, because `:5173` was taken by another process. The server allows only `AI_CORS_ORIGIN=http://localhost:5173`, so it was started with `AI_CORS_ORIGIN=http://localhost:5175` set in the shell (no file changed).
+- Browser: headless Playwright, screenshots in `docs/verification/screenshots/`.
 
 ## 1. Dependencies
 
@@ -22,25 +22,27 @@ Issue #24. Done when: the whole Day 2 flow is run once on the unchanged UI and e
 
 ## 2. Checklist
 
-| # | Step | Expected | Backing issue and code present | Result | Evidence |
-|---|------|----------|--------------------------------|--------|----------|
-| 1 | Sign in with the dev test account | Dashboard shown | M-09 #12; `apps/web/src/routes/SignInPage.tsx` | UNVERIFIED | Needs Supabase env; app cannot start |
-| 2 | Paste a git log in chat | Message accepted, agent replies | M-11/M-12 #14/#15; `apps/web/src/components/chat` | UNVERIFIED | Needs server and model key |
-| 3 | Count-only summary | Counts only, no full notes | M-16 #19; `apps/ai/src/tools/` and skills | UNVERIFIED | Needs model key |
-| 4 | Streamed preview card | Card builds up while streaming | M-14/M-15 #17/#18; `apps/ai/src/tools/release-notes-preview.ts` | UNVERIFIED | Needs model key |
-| 5 | Save to History | Release appears in `HistoryPage` | M-17/M-18 #20/#21; `apps/ai/src/routes/release-history.ts`, `apps/web/src/services/save-release-history.ts`, `apps/web/src/hooks/use-archive-release.ts`, `apps/web/src/routes/HistoryPage.tsx` | UNVERIFIED | Needs Supabase DB |
-| 6 | Publish to Slack from chat | Confirmation card shown, message posted after approve | M-19/M-20 #22/#23; `apps/ai/src/tools/publish-release-notes-to-slack.ts`, `apps/ai/src/routes/slack.ts`, `apps/web/src/components/chat/SlackPublishConfirmCard.tsx` | UNVERIFIED | Needs model key and test webhook |
-| 7 | Publish to Slack from History | Message posted | M-19 #22; `apps/web/src/services/publish-to-slack.ts`, `apps/web/src/hooks/use-send-release-to-slack.ts` (used in `HistoryPage.tsx`) | UNVERIFIED | Needs Supabase and test webhook |
+| # | Step | Expected | Result | Evidence |
+|---|------|----------|--------|----------|
+| 1 | Sign in with the dev test account | Dashboard shown | PASS | Signed-out `/` redirected to `/sign-in`; sign-in landed on the dashboard showing the account email |
+| 2 | Paste a git log in chat | Message accepted, agent replies | PASS | 5-line log accepted, agent replied (`m-21-chat-after-paste.png`) |
+| 3 | Count-only summary | Counts only, no full notes | PASS | "Features: 2, Docs: 1, Internal: 2, Total: 5", then asked for a destination (`m-21-chat-after-paste.png`) |
+| 4 | Streamed preview card | Card appears and opens in the preview panel | PASS | "Release notes / Slack" card and RELEASE_NOTES.md panel (`m-21-chat-slack-draft.png`) |
+| 5 | Save to History | Release appears in History | FAIL | `POST /release-history` returned 500; toast "Couldn't archive release notes" (`m-21-after-archive.png`). Server log: `connect EHOSTUNREACH 2406:da12:...:5432` from `saveReleaseHistory` in `apps/ai/src/db/release-history.ts` |
+| 6 | Publish to Slack from chat | Confirmation card, message posted after approve | PASS | "Send to Slack" opened the card "Publish 'Slack' release notes to Slack?" with Approve and Reject (`m-21-slack-confirmation.png`). After Approve the agent replied "Release notes published to Slack." and the message was received in Slack (confirmed by the user) (`m-21-slack-published.png`) |
+| 7 | Publish to Slack from History | Message posted | BLOCKED | Needs a saved release (step 5) |
 
-Code check: no row has missing code; every file named above exists on `practices`.
+## 3. Static checks
 
-## 3. Static checks (run in this worktree)
+- `pnpm lint`, `pnpm typecheck`, `pnpm build` exit 0
+- `pnpm test`: no script, exits 1 (no test runner in this repo)
 
-- `pnpm lint` exit 0
-- `pnpm typecheck` exit 0
-- `pnpm build` exit 0
-- `pnpm test`: no script, exits 1 (no test runner in this repo).
+## 4. Gaps
 
-## Gaps
+1. **Save to History fails (step 5), environment.** The Postgres host resolves to an IPv6 address only and this machine has no IPv6 route. Likely fix: use the Supabase session pooler connection string (IPv4) as the database URL in `apps/ai/.env`. No code change is needed. Re-run steps 5 and 7 after that.
+2. **Version and title are not applied from a plain request (small).** "Set version 1.0.0 and title ..." only got "Understood" and the preview card did not change, so Archive stayed disabled ("Ask Release Builder for a version and title to archive"). Archive enabled only after "Regenerate the Slack release notes draft now, with version 1.0.0 and title ...". Likely a prompt or tool-use gap in the agent.
+3. **Agent asked for a destination although the first message said "for Slack" (small).** Answering "Slack" fixed it.
+4. **Thread list returns 404.** `GET /api/memory/threads` is not implemented on the new server; the sidebar shows the raw thread id and the console logs repeated errors. This belongs to Day 3 (threads, M-22 and later), not Day 2.
+5. **CORS origin is hard-wired to `:5173`.** Any other web port fails until `AI_CORS_ORIGIN` is overridden.
 
-No small gap was found, so no code was changed. No new GitHub issues were opened: nothing failed, the rows are only unrun. The one open item is the missing env, so the live run is still to be done by hand.
+No code was changed. Gaps 2 and 3 are candidates for new issues; none have been opened yet.
