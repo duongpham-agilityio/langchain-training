@@ -10,10 +10,13 @@ import {
   API_PATH_PATTERN,
   CORS_ALLOWED_HEADERS,
   HEALTH_PATH,
+  RELEASE_HISTORY_PATH,
+  RELEASE_HISTORY_PATH_PATTERN,
   RELEASE_COPILOT_AGENT_ID,
 } from "@/constants";
 import { checkDatabase, createPgPool, createSupabaseAdminClient } from "@/db";
 import { type AuthEnv, createRequireAuth } from "@/middlewares";
+import { createReleaseHistoryRoutes } from "@/routes";
 
 const runtime = new CopilotRuntime({
   agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent()) },
@@ -29,7 +32,12 @@ app.use(logger());
 // Global CORS so every route (not only CopilotKit's) accepts the Authorization header.
 app.use("*", cors({ origin: config.corsOrigin, allowHeaders: CORS_ALLOWED_HEADERS }));
 // Every /api route needs a valid Supabase session; /health is registered outside it and stays public.
-app.use(API_PATH_PATTERN, createRequireAuth(supabaseAdmin));
+const requireAuth = createRequireAuth(supabaseAdmin);
+app.use(API_PATH_PATTERN, requireAuth);
+// The web client calls History at /release-history (no /api prefix), so it needs its own guard.
+app.use(RELEASE_HISTORY_PATH, requireAuth);
+app.use(RELEASE_HISTORY_PATH_PATTERN, requireAuth);
+app.route("/", createReleaseHistoryRoutes(pgPool));
 
 app.get(HEALTH_PATH, async (c) => {
   const db = await checkDatabase(pgPool);

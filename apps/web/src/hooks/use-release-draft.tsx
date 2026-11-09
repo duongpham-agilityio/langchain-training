@@ -95,11 +95,10 @@ export const useReleaseDraft = ({
     parameters: ReleaseNotesDraftSchema,
     agentId: RELEASE_COPILOT_AGENT_ID,
     render: (props) => {
-      // The transport streams the tool-call arguments, but the preview must
-      // not render progressively: nothing (no card, no placeholder) shows
-      // until the call is complete and the arguments are final.
-      if (props.status === 'inProgress') {
-        return null;
+      // The preview must never stream: show nothing until the tool call has
+      // its final result, so the card and Live Preview appear complete.
+      if (props.status !== 'complete') {
+        return <></>;
       }
 
       const result = ReleaseNotesDraftSchema.safeParse(props.parameters);
