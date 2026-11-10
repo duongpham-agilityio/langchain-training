@@ -1,4 +1,5 @@
 import { serve } from "@hono/node-server";
+import { ChatOpenAI } from "@langchain/openai";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -16,8 +17,9 @@ import {
   SLACK_PATH_PATTERN,
 } from "@/constants";
 import { checkDatabase, createCheckpointer, createPgPool, createSupabaseAdminClient } from "@/db";
-import { type AuthEnv, createRequireAuth } from "@/middlewares";
+import { type AuthEnv, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import { createReleaseHistoryRoutes, createSlackRoute, createThreadsRoute } from "@/routes";
+import { createThreadTitleScheduler } from "@/utils";
 
 // The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
 const pgPool = createPgPool();
@@ -26,7 +28,12 @@ const pgPool = createPgPool();
 const checkpointer = await createCheckpointer(pgPool);
 
 const runtime = new CopilotRuntime({
-  agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent({ checkpointer })) },
+  agents: {
+    [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(
+      createBaseAgent({ checkpointer }),
+      createThreadTitleScheduler(pgPool, new ChatOpenAI({ model: config.model })),
+    ),
+  },
   runner: new InMemoryAgentRunner(),
 });
 
@@ -39,6 +46,8 @@ app.use("*", cors({ origin: config.corsOrigin, allowHeaders: CORS_ALLOWED_HEADER
 // Every /api route needs a valid Supabase session; /health is registered outside it and stays public.
 const requireAuth = createRequireAuth(supabaseAdmin);
 app.use(API_PATH_PATTERN, requireAuth);
+// Lets the agent run (which only sees AG-UI input) know the verified owner for the thread row.
+app.use(API_PATH_PATTERN, userContextMiddleware);
 // The web client calls History at /release-history (no /api prefix), so it needs its own guard.
 app.use(RELEASE_HISTORY_PATH, requireAuth);
 app.use(RELEASE_HISTORY_PATH_PATTERN, requireAuth);
