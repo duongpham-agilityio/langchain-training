@@ -1,5 +1,4 @@
 import { serve } from "@hono/node-server";
-import { MemorySaver } from "@langchain/langgraph";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -16,20 +15,21 @@ import {
   RELEASE_COPILOT_AGENT_ID,
   SLACK_PATH_PATTERN,
 } from "@/constants";
-import { checkDatabase, createPgPool, createSupabaseAdminClient } from "@/db";
+import { checkDatabase, createCheckpointer, createPgPool, createSupabaseAdminClient } from "@/db";
 import { type AuthEnv, createRequireAuth } from "@/middlewares";
 import { createReleaseHistoryRoutes, createSlackRoute } from "@/routes";
 
-// In memory for now: a pending approval survives only while the server runs (Postgres checkpointer comes with M-22).
-const checkpointer = new MemorySaver();
+// The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
+const pgPool = createPgPool();
+
+// Threads and pending approvals live in Postgres, so they survive a restart. The runner below only replays events.
+const checkpointer = await createCheckpointer(pgPool);
 
 const runtime = new CopilotRuntime({
   agents: { [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(createBaseAgent({ checkpointer })) },
   runner: new InMemoryAgentRunner(),
 });
 
-// The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
-const pgPool = createPgPool();
 export const supabaseAdmin = createSupabaseAdminClient();
 
 const app = new Hono<AuthEnv>();
