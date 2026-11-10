@@ -5,6 +5,12 @@ import {
   CopilotKitCoreErrorCode,
   type AbstractAgent,
 } from '@copilotkit/react-core/v2';
+import {
+  CHAT_ERROR_TITLES,
+  ChatErrorKind,
+  classifyChatError,
+} from '@/lib/chat-error.ts';
+import { supabaseAuthService } from '@/lib/auth/supabase-auth-service.ts';
 import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id.ts';
 import {
   useChatSendFailureStore,
@@ -23,10 +29,19 @@ const SEND_FAILED_CODES: ReadonlySet<CopilotKitCoreErrorCode> = new Set([
   CopilotKitCoreErrorCode.AGENT_THREAD_LOCKED,
 ]);
 
-const toFailureTitle = (code: CopilotKitCoreErrorCode): string =>
-  code === CopilotKitCoreErrorCode.AGENT_THREAD_LOCKED
-    ? 'Release Builder is still answering a previous message.'
-    : 'Message failed to send.';
+const toFailure = (
+  code: CopilotKitCoreErrorCode,
+  error: Error,
+): Pick<ChatSendFailure, 'kind' | 'title'> => {
+  if (code === CopilotKitCoreErrorCode.AGENT_THREAD_LOCKED) {
+    return {
+      kind: ChatErrorKind.Other,
+      title: 'Release Builder is still answering a previous message.',
+    };
+  }
+  const kind = classifyChatError(error);
+  return { kind, title: CHAT_ERROR_TITLES[kind] };
+};
 
 const findLastUserMessageId = (agent: AbstractAgent): string | undefined =>
   agent.messages.findLast((message) => message.role === 'user')?.id;
@@ -55,7 +70,7 @@ export const useChatSendFailureListener = (): void => {
         console.error(`[chat] ${code}`, error, context);
         setFailure({
           messageId,
-          title: toFailureTitle(code),
+          ...toFailure(code, error),
           detail: error.message,
         });
       },
@@ -68,6 +83,8 @@ export const useChatSendFailureListener = (): void => {
 interface UseChatSendFailureResult {
   failure: ChatSendFailure | null;
   retry: () => void;
+  // A 401 cannot be fixed by re-sending with the same token; sign-in is the recovery.
+  signInAgain: () => void;
 }
 
 export const useChatSendFailure = (
@@ -97,5 +114,9 @@ export const useChatSendFailure = (
     });
   }, [copilotkit, messageId]);
 
-  return { failure, retry };
+  const signInAgain = useCallback(() => {
+    void supabaseAuthService.signOut();
+  }, []);
+
+  return { failure, retry, signInAgain };
 };

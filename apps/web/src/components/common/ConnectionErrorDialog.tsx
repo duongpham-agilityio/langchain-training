@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 import { useRuntimeConnection } from '@/hooks/use-runtime-connection.ts';
+import { supabaseAuthService } from '@/lib/auth/supabase-auth-service.ts';
 import Button, { ButtonSize, ButtonVariant } from './Button.tsx';
 
 // Mounted once in App, next to ToastViewport. Opens when CopilotKit can't reach
 // the runtime; dismissing keeps it closed until the connection recovers and
 // fails again, so History stays usable while Release Builder is down.
 const ConnectionErrorDialog = () => {
-  const { hasConnectionError, errorMessage } = useRuntimeConnection();
+  const { hasConnectionError, errorMessage, isUnauthorized } = useRuntimeConnection();
   const [isDismissed, setIsDismissed] = useState(false);
 
   if (!hasConnectionError && isDismissed) {
@@ -49,14 +50,15 @@ const ConnectionErrorDialog = () => {
           id="connection-error-dialog-title"
           className="text-headline-md text-on-surface mt-4 font-semibold"
         >
-          Connection error
+          {isUnauthorized ? 'Session expired' : 'Connection error'}
         </h2>
         <p
           id="connection-error-dialog-description"
           className="text-body-md text-on-surface-variant mt-1.5"
         >
-          Can’t reach the Release Builder server, so chat is unavailable. Check your
-          connection, then reload the page.
+          {isUnauthorized
+            ? 'Your session is no longer valid, so chat is unavailable. Sign in again to continue.'
+            : 'Can’t reach the Release Builder server, so chat is unavailable. Check your connection, then reload the page.'}
         </p>
         {errorMessage && (
           <p className="text-label-sm text-on-surface-variant/70 mt-2 font-mono break-words">
@@ -74,10 +76,14 @@ const ConnectionErrorDialog = () => {
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Sm}
-            onClick={() => window.location.reload()}
+            onClick={() =>
+              isUnauthorized
+                ? void supabaseAuthService.signOut()
+                : window.location.reload()
+            }
             autoFocus
           >
-            Reload
+            {isUnauthorized ? 'Sign in again' : 'Reload'}
           </Button>
         </div>
       </div>
