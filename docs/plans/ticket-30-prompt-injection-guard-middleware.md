@@ -14,3 +14,6 @@ PII redaction (M-28), web changes, LLM-based classification.
 
 ## Revision (review on PR #64)
 The fixed rule list is replaced by a small classifier model (`AI_GUARD_MODEL`) returning a structured verdict (`safe` | `injection`). Classifier errors are fail-closed. Analysis question 1 (old rules) no longer applies.
+
+## Revision 2 (checkpoint finding)
+Experiment (MemorySaver, `checkpointer.list`): a `beforeAgent` + `jumpTo: "end"` block saved the user message (input and step 0) and the refusal (step 1). So the check moved to the AG-UI bridge, before the graph; the middleware was removed. Verify: `pnpm --filter @training/ai verify:guard`.

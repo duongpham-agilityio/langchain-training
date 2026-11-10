@@ -19,7 +19,7 @@ import {
 import { checkDatabase, createCheckpointer, createPgPool, createSupabaseAdminClient } from "@/db";
 import { type AuthEnv, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import { createReleaseHistoryRoutes, createSlackRoute, createThreadsRoute } from "@/routes";
-import { createThreadTitleScheduler } from "@/utils";
+import { createPromptInjectionGuard, createThreadTitleScheduler } from "@/utils";
 
 // The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
 const pgPool = createPgPool();
@@ -32,6 +32,7 @@ const runtime = new CopilotRuntime({
     [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(
       createBaseAgent({ checkpointer }),
       createThreadTitleScheduler(pgPool, new ChatOpenAI({ model: config.model })),
+      createPromptInjectionGuard(new ChatOpenAI({ model: config.guardModel, temperature: 0 })),
     ),
   },
   runner: new InMemoryAgentRunner(),

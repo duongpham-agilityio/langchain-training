@@ -18,3 +18,5 @@ export const PROMPT_INJECTION_REFUSAL =
 // Fail-closed: if the classifier call errors, the turn is stopped rather than sent unchecked.
 export const PROMPT_INJECTION_CHECK_FAILED =
   "I couldn't run the safety check on your message just now. Please try again in a moment.";
+
+export const GUARD_REPLIES = [PROMPT_INJECTION_REFUSAL, PROMPT_INJECTION_CHECK_FAILED];
