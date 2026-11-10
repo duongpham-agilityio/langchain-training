@@ -60,6 +60,16 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
     }
   });
 
+/**
+ * With a checkpointer the thread already holds everything up to the last assistant reply, and the
+ * bridge drops AG-UI message ids so the reducer cannot dedupe a resent history (spike C). Keep only
+ * the user messages after the last assistant message.
+ */
+export const trimToNewMessages = (messages: BaseMessage[]): BaseMessage[] => {
+  const lastAssistant = messages.findLastIndex((message) => AIMessage.isInstance(message));
+  return messages.slice(lastAssistant + 1).filter((message) => HumanMessage.isInstance(message));
+};
+
 type ApprovalDecision = { type: "approve" } | { type: "reject"; message: string };
 
 /**
@@ -130,7 +140,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         const messages = toLangChainMessages(input);
         const agentInput = input.resume?.length
           ? toResumeCommand(input.resume)
-          : { messages: hasState ? messages.slice(-1) : messages };
+          : { messages: hasState ? trimToNewMessages(messages) : messages };
 
         const stream = await this.agent.stream(agentInput, {
           ...config,
