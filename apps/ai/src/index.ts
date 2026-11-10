@@ -17,7 +17,7 @@ import {
 } from "@/constants";
 import { checkDatabase, createCheckpointer, createPgPool, createSupabaseAdminClient } from "@/db";
 import { type AuthEnv, createRequireAuth } from "@/middlewares";
-import { createReleaseHistoryRoutes, createSlackRoute } from "@/routes";
+import { createReleaseHistoryRoutes, createSlackRoute, createThreadsRoute } from "@/routes";
 
 // The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
 const pgPool = createPgPool();
@@ -45,6 +45,7 @@ app.use(RELEASE_HISTORY_PATH_PATTERN, requireAuth);
 app.route("/", createReleaseHistoryRoutes(pgPool));
 app.use(SLACK_PATH_PATTERN, requireAuth);
 app.route("/", createSlackRoute());
+app.route("/", createThreadsRoute(pgPool));
 
 app.get(HEALTH_PATH, async (c) => {
   const db = await checkDatabase(pgPool);
