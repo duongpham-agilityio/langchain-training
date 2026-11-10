@@ -8,7 +8,12 @@ import { config } from "@/config";
 import { SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
 
 // Middlewares
-import { createModelFallbackMiddleware, memoryMiddleware, skillsMiddleware } from "@/middlewares";
+import {
+  createModelFallbackMiddleware,
+  createPiiMiddleware,
+  memoryMiddleware,
+  skillsMiddleware,
+} from "@/middlewares";
 
 // Tools
 import { tools } from "@/tools";
@@ -35,6 +40,8 @@ export const createBaseAgent = ({
       // Outermost model wrapper: a failing primary call is retried on the fallback model.
       createModelFallbackMiddleware(),
       skillsMiddleware,
+      // Redacts email and phone in user input before the model sees it (and in stored messages).
+      ...createPiiMiddleware(),
       memoryMiddleware,
       // Pauses the run (LangGraph interrupt) until the user approves or rejects a Slack publish.
       humanInTheLoopMiddleware({
