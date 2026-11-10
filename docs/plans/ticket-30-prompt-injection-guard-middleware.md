@@ -11,3 +11,6 @@ Unconfirmed assumptions: rules are a standard set, not the old Mastra list; refu
 
 ## Out of scope
 PII redaction (M-28), web changes, LLM-based classification.
+
+## Revision (review on PR #64)
+The fixed rule list is replaced by a small classifier model (`AI_GUARD_MODEL`) returning a structured verdict (`safe` | `injection`). Classifier errors are fail-closed. Analysis question 1 (old rules) no longer applies.

@@ -10,8 +10,8 @@ import { SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constan
 // Middlewares
 import {
   createModelFallbackMiddleware,
+  createPromptInjectionMiddleware,
   memoryMiddleware,
-  promptInjectionMiddleware,
   skillsMiddleware,
 } from "@/middlewares";
 
@@ -40,7 +40,7 @@ export const createBaseAgent = ({
       // Outermost model wrapper: a failing primary call is retried on the fallback model.
       createModelFallbackMiddleware(),
       // Blocks an injection attempt before the model runs and replies with a refusal.
-      promptInjectionMiddleware,
+      createPromptInjectionMiddleware,
       skillsMiddleware,
       memoryMiddleware,
       // Pauses the run (LangGraph interrupt) until the user approves or rejects a Slack publish.

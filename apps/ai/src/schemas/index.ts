@@ -3,3 +3,4 @@ export * from "./skills";
 export * from "./release-history";
 export * from "./slack-publish";
 export * from "./threads";
+export * from "./prompt-injection";
