@@ -5,3 +5,4 @@ export * from "./thread-title";
 export * from "./user-context";
 export * from "./schedule-thread-title";
 export * from "./prompt-injection-guard";
+export * from "./pii";
