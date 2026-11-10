@@ -20,10 +20,14 @@ import { Observable } from "rxjs";
 import type { BaseAgent } from "@/agent";
 
 // Constants
-import { APPROVAL_INTERRUPT_REASON, APPROVAL_REJECT_MESSAGE } from "@/constants";
+import {
+  APPROVAL_INTERRUPT_REASON,
+  APPROVAL_REJECT_MESSAGE,
+  GUARD_REPLIES,
+} from "@/constants";
 
 // Utils
-import type { ThreadTitleScheduler } from "@/utils";
+import type { PromptInjectionGuard, ThreadTitleScheduler } from "@/utils";
 
 /** Flattens AG-UI user content (string or multimodal parts) to plain text. */
 const toText = (content: unknown): string => {
@@ -68,6 +72,17 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
  * bridge drops AG-UI message ids so the reducer cannot dedupe a resent history (spike C). Keep only
  * the user messages after the last assistant message.
  */
+/**
+ * Removes turns the guard stopped (a guard reply and the user message before it) from a client
+ * history, so a thread with no saved state does not store them when the next turn resends everything.
+ */
+export const dropGuardedTurns = (messages: BaseMessage[]): BaseMessage[] =>
+  messages.filter((message, index) => {
+    const isGuardReply = (m?: BaseMessage) =>
+      !!m && AIMessage.isInstance(m) && GUARD_REPLIES.includes(m.text);
+    return !isGuardReply(message) && !isGuardReply(messages[index + 1]);
+  });
+
 export const trimToNewMessages = (messages: BaseMessage[]): BaseMessage[] => {
   const lastAssistant = messages.findLastIndex((message) => AIMessage.isInstance(message));
   return messages.slice(lastAssistant + 1).filter((message) => HumanMessage.isInstance(message));
@@ -120,6 +135,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
   constructor(
     private readonly agent: BaseAgent,
     private readonly scheduleTitle?: ThreadTitleScheduler,
+    private readonly guard?: PromptInjectionGuard,
   ) {
     super();
   }
@@ -137,13 +153,29 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           runId: input.runId,
         });
 
+        // Runs before the graph so a blocked turn is never checkpointed (see createPromptInjectionGuard).
+        const incoming = toLangChainMessages(input);
+        const latest = incoming.at(-1);
+        if (this.guard && !input.resume?.length && latest && HumanMessage.isInstance(latest)) {
+          const reply = await this.guard(latest.text);
+          if (reply !== null) {
+            const messageId = randomUUID();
+            emit({ type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" });
+            emit({ type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: reply });
+            emit({ type: EventType.TEXT_MESSAGE_END, messageId });
+            emit({ type: EventType.RUN_FINISHED, threadId: input.threadId, runId: input.runId });
+            subscriber.complete();
+            return;
+          }
+        }
+
         const config = { configurable: { thread_id: input.threadId } };
         // With a checkpointer the thread already holds the history; resending it would duplicate messages.
         const snapshot = (await this.agent.getState(config)) as {
           values?: { messages?: unknown[] };
         };
         const hasState = (snapshot.values?.messages?.length ?? 0) > 0;
-        const messages = toLangChainMessages(input);
+        const messages = hasState ? incoming : dropGuardedTurns(incoming);
         const agentInput = input.resume?.length
           ? toResumeCommand(input.resume)
           : { messages: hasState ? trimToNewMessages(messages) : messages };
@@ -259,10 +291,13 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
   }
 
   clone(): ReleaseNotesAguiAgent {
-    return new ReleaseNotesAguiAgent(this.agent, this.scheduleTitle);
+    return new ReleaseNotesAguiAgent(this.agent, this.scheduleTitle, this.guard);
   }
 }
 
 /** Wraps a LangChain `createAgent` agent as an AG-UI agent (factory over singleton). */
-export const createAguiAgent = (agent: BaseAgent, scheduleTitle?: ThreadTitleScheduler) =>
-  new ReleaseNotesAguiAgent(agent, scheduleTitle);
+export const createAguiAgent = (
+  agent: BaseAgent,
+  scheduleTitle?: ThreadTitleScheduler,
+  guard?: PromptInjectionGuard,
+) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard);

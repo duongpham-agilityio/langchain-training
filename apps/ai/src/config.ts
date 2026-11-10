@@ -1,6 +1,7 @@
 import {
   DEFAULT_CORS_ORIGIN,
   DEFAULT_FALLBACK_MODEL,
+  DEFAULT_GUARD_MODEL,
   DEFAULT_MODEL,
   DEFAULT_PORT,
   RUNTIME_BASE_PATH,
@@ -20,6 +21,7 @@ export const config = {
   corsOrigin: (process.env.AI_CORS_ORIGIN ?? DEFAULT_CORS_ORIGIN).split(","),
   model: process.env.AI_MODEL ?? DEFAULT_MODEL,
   fallbackModel: process.env.AI_FALLBACK_MODEL ?? DEFAULT_FALLBACK_MODEL,
+  guardModel: process.env.AI_GUARD_MODEL ?? DEFAULT_GUARD_MODEL,
   openaiApiKey: requireEnv("OPENAI_API_KEY"),
   supabase: {
     url: requireEnv("SUPABASE_URL"),

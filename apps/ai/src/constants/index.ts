@@ -1,4 +1,5 @@
 export * from "./database";
+export * from "./guardrails";
 export * from "./memory";
 export * from "./model";
 export * from "./prompts";
