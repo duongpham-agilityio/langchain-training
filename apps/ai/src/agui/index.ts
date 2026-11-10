@@ -22,6 +22,9 @@ import type { BaseAgent } from "@/agent";
 // Constants
 import { APPROVAL_INTERRUPT_REASON, APPROVAL_REJECT_MESSAGE } from "@/constants";
 
+// Utils
+import type { ThreadTitleScheduler } from "@/utils";
+
 /** Flattens AG-UI user content (string or multimodal parts) to plain text. */
 const toText = (content: unknown): string => {
   if (typeof content === "string") return content;
@@ -104,7 +107,10 @@ type ApprovalRequest = {
  * emit a tool result event, hence this small custom agent.
  */
 export class ReleaseNotesAguiAgent extends AbstractAgent {
-  constructor(private readonly agent: BaseAgent) {
+  constructor(
+    private readonly agent: BaseAgent,
+    private readonly scheduleTitle?: ThreadTitleScheduler,
+  ) {
     super();
   }
 
@@ -142,6 +148,8 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         const idByIndex = new Map<number, string>();
         const openCalls = new Set<string>();
         let textId: string | null = null;
+        // A turn stopped by a guard streams no reply; it must leave no thread row, so no title.
+        let producedReply = false;
 
         const closeText = () => {
           if (!textId) return;
@@ -174,6 +182,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
             continue;
           }
           if (!AIMessageChunk.isInstance(chunk)) continue;
+          if (chunk.text !== "" || chunk.tool_call_chunks?.length) producedReply = true;
 
           for (const part of chunk.tool_call_chunks ?? []) {
             const index = part.index ?? 0;
@@ -224,6 +233,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           runId: input.runId,
           ...(interrupts.length ? { outcome: { type: "interrupt", interrupts } } : {}),
         });
+        // Title generation is fire-and-forget, after RUN_FINISHED, and only for a completed turn.
+        const firstUserMessage = messages.find((message) => HumanMessage.isInstance(message));
+        if (producedReply && !interrupts.length && firstUserMessage) {
+          this.scheduleTitle?.({ threadId: input.threadId, userMessage: firstUserMessage.text });
+        }
         subscriber.complete();
       };
 
@@ -235,10 +249,10 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
   }
 
   clone(): ReleaseNotesAguiAgent {
-    return new ReleaseNotesAguiAgent(this.agent);
+    return new ReleaseNotesAguiAgent(this.agent, this.scheduleTitle);
   }
 }
 
 /** Wraps a LangChain `createAgent` agent as an AG-UI agent (factory over singleton). */
-export const createAguiAgent = (agent: BaseAgent) =>
-  new ReleaseNotesAguiAgent(agent);
+export const createAguiAgent = (agent: BaseAgent, scheduleTitle?: ThreadTitleScheduler) =>
+  new ReleaseNotesAguiAgent(agent, scheduleTitle);
