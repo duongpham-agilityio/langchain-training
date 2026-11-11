@@ -27,6 +27,7 @@ import {
 import { type AuthEnv, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import { createReleaseHistoryRoutes, createSlackRoute, createThreadsRoute } from "@/routes";
 import {
+  configureTracing,
   createAnswerEvaluationScheduler,
   createPromptInjectionGuard,
   createThreadTitleScheduler,
@@ -39,7 +40,11 @@ const pgPool = createPgPool();
 const checkpointer = await createCheckpointer(pgPool);
 await ensureThreadsTable(pgPool);
 
-// No key, no client: the evaluation scheduler is then a no-op (tracing stays off).
+// Tracing follows the key: set = traces (tagged with thread and user id), empty = off.
+const tracingEnabled = configureTracing(config.langsmith);
+console.log(`[ai] LangSmith tracing ${tracingEnabled ? "on" : "off"}`);
+
+// No key, no client: the evaluation scheduler is then a no-op.
 const langsmithClient = config.langsmith.apiKey
   ? new Client({ apiKey: config.langsmith.apiKey })
   : undefined;

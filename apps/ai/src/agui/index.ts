@@ -25,13 +25,17 @@ import {
   APPROVAL_REJECT_MESSAGE,
   GUARD_REPLIES,
   TOOL_NAMES,
+  TRACE_METADATA_KEYS,
+  TRACE_RUN_NAME,
+  TRACE_TAG,
 } from "@/constants";
 
 // Utils
-import type {
-  AnswerEvaluationScheduler,
-  PromptInjectionGuard,
-  ThreadTitleScheduler,
+import {
+  userContext,
+  type AnswerEvaluationScheduler,
+  type PromptInjectionGuard,
+  type ThreadTitleScheduler,
 } from "@/utils";
 
 // Evaluators
@@ -184,7 +188,17 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
 
         // Our own id for the graph run, so the answer-quality scores can be attached to it in LangSmith.
         const langsmithRunId = randomUUID();
-        const config = { runId: langsmithRunId, configurable: { thread_id: input.threadId } };
+        const config = {
+          runId: langsmithRunId,
+          runName: TRACE_RUN_NAME,
+          // Find a trace by conversation or owner; ignored by LangSmith when tracing is off.
+          tags: [TRACE_TAG],
+          metadata: {
+            [TRACE_METADATA_KEYS.threadId]: input.threadId,
+            [TRACE_METADATA_KEYS.userId]: userContext.getStore()?.userId,
+          },
+          configurable: { thread_id: input.threadId },
+        };
         // With a checkpointer the thread already holds the history; resending it would duplicate messages.
         const snapshot = (await this.agent.getState(config)) as {
           values?: { messages?: unknown[] };
