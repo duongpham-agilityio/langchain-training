@@ -1,5 +1,6 @@
 import {
   DEFAULT_CORS_ORIGIN,
+  DEFAULT_EMAIL_FROM,
   DEFAULT_FALLBACK_MODEL,
   DEFAULT_GUARD_MODEL,
   DEFAULT_MODEL,
@@ -30,6 +31,9 @@ export const config = {
   },
   databaseUrl: requireEnv("DATABASE_URL"),
   slackWebhookUrl: process.env.SLACK_WEBHOOK_URL,
+  // Optional: empty string counts as unset, so the server starts without email.
+  resendApiKey: process.env.RESEND_API_KEY || undefined,
+  emailFrom: process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM,
   langsmith: {
     apiKey: process.env.LANGSMITH_API_KEY,
     project: process.env.LANGSMITH_PROJECT,

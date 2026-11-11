@@ -75,8 +75,12 @@ app.use(API_PATH_PATTERN, userContextMiddleware);
 // The web client calls History at /release-history (no /api prefix), so it needs its own guard.
 app.use(RELEASE_HISTORY_PATH, requireAuth);
 app.use(RELEASE_HISTORY_PATH_PATTERN, requireAuth);
+// Outside /api too, so the default release date follows the browser zone on these routes.
+app.use(RELEASE_HISTORY_PATH, userContextMiddleware);
+app.use(RELEASE_HISTORY_PATH_PATTERN, userContextMiddleware);
 app.route("/", createReleaseHistoryRoutes(pgPool));
 app.use(SLACK_PATH_PATTERN, requireAuth);
+app.use(SLACK_PATH_PATTERN, userContextMiddleware);
 app.route("/", createSlackRoute());
 app.route("/", createThreadsRoute(pgPool));
 
