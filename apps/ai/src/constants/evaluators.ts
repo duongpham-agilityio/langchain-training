@@ -11,9 +11,8 @@ export const EVALUATOR_FEEDBACK_SOURCE = "answer-quality-evaluators";
 /** A score below this is logged server-side as a failing check (never shown to the user). */
 export const EVALUATOR_PASS_THRESHOLD = 0.8;
 
-/** Count classes in `release-reporting` order; the summary lists a class only when it is not 0. */
+/** Type lines in `release-reporting` order; the summary lists a type only when it is not 0. */
 export const COUNT_SUMMARY_CLASSES = [
-  "Breaking",
   "Features",
   "Fixes",
   "Performance",
@@ -22,6 +21,8 @@ export const COUNT_SUMMARY_CLASSES = [
   "Other",
 ] as const;
 export const COUNT_SUMMARY_TOTAL_LABEL = "Total";
+/** Flag line outside the Total; shown only when above 0. */
+export const COUNT_SUMMARY_BREAKING_LABEL = "Breaking";
 
 /** A pasted git log / PR list spans several lines; shorter input is not a summary turn. */
 export const COUNT_SUMMARY_MIN_INPUT_LINES = 2;
