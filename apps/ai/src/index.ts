@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server";
 import { ChatOpenAI } from "@langchain/openai";
+import { Client } from "langsmith";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -25,7 +26,11 @@ import {
 } from "@/db";
 import { type AuthEnv, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import { createReleaseHistoryRoutes, createSlackRoute, createThreadsRoute } from "@/routes";
-import { createPromptInjectionGuard, createThreadTitleScheduler } from "@/utils";
+import {
+  createAnswerEvaluationScheduler,
+  createPromptInjectionGuard,
+  createThreadTitleScheduler,
+} from "@/utils";
 
 // The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
 const pgPool = createPgPool();
@@ -34,12 +39,18 @@ const pgPool = createPgPool();
 const checkpointer = await createCheckpointer(pgPool);
 await ensureThreadsTable(pgPool);
 
+// No key, no client: the evaluation scheduler is then a no-op (tracing stays off).
+const langsmithClient = config.langsmith.apiKey
+  ? new Client({ apiKey: config.langsmith.apiKey })
+  : undefined;
+
 const runtime = new CopilotRuntime({
   agents: {
     [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(
       createBaseAgent({ checkpointer }),
       createThreadTitleScheduler(pgPool, new ChatOpenAI({ model: config.model })),
       createPromptInjectionGuard(new ChatOpenAI({ model: config.guardModel, temperature: 0 })),
+      createAnswerEvaluationScheduler(langsmithClient),
     ),
   },
   runner: new InMemoryAgentRunner(),

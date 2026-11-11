@@ -24,10 +24,18 @@ import {
   APPROVAL_INTERRUPT_REASON,
   APPROVAL_REJECT_MESSAGE,
   GUARD_REPLIES,
+  TOOL_NAMES,
 } from "@/constants";
 
 // Utils
-import type { PromptInjectionGuard, ThreadTitleScheduler } from "@/utils";
+import type {
+  AnswerEvaluationScheduler,
+  PromptInjectionGuard,
+  ThreadTitleScheduler,
+} from "@/utils";
+
+// Evaluators
+import type { AnswerTurn } from "@/evaluators";
 
 /** Flattens AG-UI user content (string or multimodal parts) to plain text. */
 const toText = (content: unknown): string => {
@@ -136,6 +144,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
     private readonly agent: BaseAgent,
     private readonly scheduleTitle?: ThreadTitleScheduler,
     private readonly guard?: PromptInjectionGuard,
+    private readonly scheduleEvaluation?: AnswerEvaluationScheduler,
   ) {
     super();
   }
@@ -173,7 +182,9 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           }
         }
 
-        const config = { configurable: { thread_id: input.threadId } };
+        // Our own id for the graph run, so the answer-quality scores can be attached to it in LangSmith.
+        const langsmithRunId = randomUUID();
+        const config = { runId: langsmithRunId, configurable: { thread_id: input.threadId } };
         // With a checkpointer the thread already holds the history; resending it would duplicate messages.
         const snapshot = (await this.agent.getState(config)) as {
           values?: { messages?: unknown[] };
@@ -196,6 +207,9 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         let textId: string | null = null;
         // A turn stopped by a guard streams no reply; it must leave no thread row, so no title.
         let producedReply = false;
+        // What the answer-quality evaluators look at: streamed text and the rendered draft.
+        let answer = "";
+        let draft: AnswerTurn["draft"];
 
         const closeText = () => {
           if (!textId) return;
@@ -211,6 +225,13 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           }
           const [chunk] = data;
           if (ToolMessage.isInstance(chunk)) {
+            if (chunk.name === TOOL_NAMES.renderReleaseNotesPreview) {
+              try {
+                draft = JSON.parse(String(chunk.content));
+              } catch {
+                // An unparsable result only means this turn gets no draft checks.
+              }
+            }
             closeText();
             if (openCalls.delete(chunk.tool_call_id)) {
               emit({
@@ -263,6 +284,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
               role: "assistant",
             });
           }
+          answer += text;
           emit({
             type: EventType.TEXT_MESSAGE_CONTENT,
             messageId: textId,
@@ -284,6 +306,18 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         if (producedReply && !interrupts.length && firstUserMessage) {
           this.scheduleTitle?.({ threadId: input.threadId, userMessage: firstUserMessage.text });
         }
+        // Answer-quality checks are fire-and-forget too; guard-blocked and interrupted turns are skipped.
+        if (producedReply && !interrupts.length) {
+          this.scheduleEvaluation?.({
+            runId: langsmithRunId,
+            userInput: messages
+              .filter((message) => HumanMessage.isInstance(message))
+              .map((message) => message.text)
+              .join("\n"),
+            answer,
+            draft,
+          });
+        }
         subscriber.complete();
       };
 
@@ -295,7 +329,12 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
   }
 
   clone(): ReleaseNotesAguiAgent {
-    return new ReleaseNotesAguiAgent(this.agent, this.scheduleTitle, this.guard);
+    return new ReleaseNotesAguiAgent(
+      this.agent,
+      this.scheduleTitle,
+      this.guard,
+      this.scheduleEvaluation,
+    );
   }
 }
 
@@ -304,4 +343,5 @@ export const createAguiAgent = (
   agent: BaseAgent,
   scheduleTitle?: ThreadTitleScheduler,
   guard?: PromptInjectionGuard,
-) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard);
+  scheduleEvaluation?: AnswerEvaluationScheduler,
+) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation);
