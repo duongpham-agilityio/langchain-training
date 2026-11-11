@@ -157,7 +157,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         const incoming = toLangChainMessages(input);
         const latest = incoming.at(-1);
         if (this.guard && !input.resume?.length && latest && HumanMessage.isInstance(latest)) {
-          const reply = await this.guard(latest.text);
+          // Context for short follow-ups; guard replies are not real assistant turns.
+          const previousAssistant = incoming
+            .slice(0, -1)
+            .findLast((m) => AIMessage.isInstance(m) && m.text !== "" && !GUARD_REPLIES.includes(m.text));
+          const reply = await this.guard(latest.text, previousAssistant?.text);
           if (reply !== null) {
             const messageId = randomUUID();
             emit({ type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" });

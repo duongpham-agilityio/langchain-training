@@ -1,7 +1,7 @@
 import type { Pool } from "pg";
 
 // Constants
-import { THREADS_TABLE } from "@/constants";
+import { DB_SCHEMA, THREADS_TABLE } from "@/constants";
 
 // Schemas
 import type { ThreadSummary } from "@/schemas";
@@ -54,4 +54,29 @@ export const createThread = async (
      on conflict (id) do nothing`,
     [id, ownerId, title],
   );
+};
+
+/**
+ * Creates the schema and `threads` table when missing, like the checkpointer's `setup()`: no manual migration.
+ * Safe on every start. Never throws: with the database down the server still starts (see `/health`).
+ */
+export const ensureThreadsTable = async (pool: Pool): Promise<void> => {
+  try {
+    await pool.query(`create schema if not exists "${DB_SCHEMA}"`);
+    await pool.query(
+      `create table if not exists ${THREADS_TABLE} (
+         id         text primary key check (length(id) > 0),
+         owner_id   uuid not null references auth.users (id) on delete cascade,
+         title      text not null default '',
+         created_at timestamptz not null default now(),
+         updated_at timestamptz not null default now()
+       )`,
+    );
+    await pool.query(
+      `create index if not exists threads_owner_updated_idx
+         on ${THREADS_TABLE} (owner_id, updated_at desc, id desc)`,
+    );
+  } catch (error) {
+    console.error(`[ai] threads table setup failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
 };

@@ -12,8 +12,14 @@ import { PromptInjectionVerdictSchema } from "@/schemas";
 
 type ClassifierModel = Pick<ChatOpenAI, "withStructuredOutput">;
 
-/** Returns the reply to send instead of running the agent, or `null` when the text may go on. */
-export type PromptInjectionGuard = (text: string) => Promise<string | null>;
+/**
+ * Returns the reply to send instead of running the agent, or `null` when the text may go on.
+ * `previousAssistantText` is context only: a short answer such as "Slack please." cannot be judged alone.
+ */
+export type PromptInjectionGuard = (
+  text: string,
+  previousAssistantText?: string,
+) => Promise<string | null>;
 
 /**
  * Pre-graph prompt-injection check. A small classifier model (`AI_GUARD_MODEL`) returns a
@@ -30,11 +36,16 @@ export type PromptInjectionGuard = (text: string) => Promise<string | null>;
  */
 export const createPromptInjectionGuard = (model: ClassifierModel): PromptInjectionGuard => {
   const classifier = model.withStructuredOutput(PromptInjectionVerdictSchema);
-  return async (text) => {
+  return async (text, previousAssistantText) => {
     try {
       const { verdict } = await classifier.invoke([
         { role: "system", content: PROMPT_INJECTION_CLASSIFIER_PROMPT },
-        { role: "user", content: text },
+        {
+          role: "user",
+          content: previousAssistantText
+            ? `Assistant's previous message:\n${previousAssistantText}\n\nLatest user message:\n${text}`
+            : `Latest user message:\n${text}`,
+        },
       ]);
       return verdict === "injection" ? PROMPT_INJECTION_REFUSAL : null;
     } catch (error) {
