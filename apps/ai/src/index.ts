@@ -16,7 +16,13 @@ import {
   RELEASE_COPILOT_AGENT_ID,
   SLACK_PATH_PATTERN,
 } from "@/constants";
-import { checkDatabase, createCheckpointer, createPgPool, createSupabaseAdminClient } from "@/db";
+import {
+  checkDatabase,
+  createCheckpointer,
+  createPgPool,
+  createSupabaseAdminClient,
+  ensureThreadsTable,
+} from "@/db";
 import { type AuthEnv, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import { createReleaseHistoryRoutes, createSlackRoute, createThreadsRoute } from "@/routes";
 import { createPromptInjectionGuard, createThreadTitleScheduler } from "@/utils";
@@ -26,6 +32,7 @@ const pgPool = createPgPool();
 
 // Threads and pending approvals live in Postgres, so they survive a restart. The runner below only replays events.
 const checkpointer = await createCheckpointer(pgPool);
+await ensureThreadsTable(pgPool);
 
 const runtime = new CopilotRuntime({
   agents: {
