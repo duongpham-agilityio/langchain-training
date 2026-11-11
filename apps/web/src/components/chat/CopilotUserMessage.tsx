@@ -3,13 +3,16 @@ import {
   CopilotChatUserMessage,
   type CopilotChatUserMessageProps,
 } from '@copilotkit/react-core/v2';
+import { ChatErrorKind } from '@/lib/chat-error.ts';
 import { useChatSendFailure } from '@/hooks/use-chat-send-failure.ts';
 
 // Passed as CopilotChat's `messageView.userMessage` slot: the built-in user
 // message, plus an inline "failed to send" notice with Retry under the message
 // whose run failed (see useChatSendFailureListener).
 const CopilotUserMessage = (props: CopilotChatUserMessageProps) => {
-  const { failure, retry } = useChatSendFailure(props.message.id);
+  const { failure, retry, signInAgain } = useChatSendFailure(props.message.id);
+
+  const isUnauthorized = failure?.kind === ChatErrorKind.Unauthorized;
 
   return (
     <div>
@@ -28,11 +31,11 @@ const CopilotUserMessage = (props: CopilotChatUserMessageProps) => {
           </span>
           <button
             type="button"
-            onClick={retry}
+            onClick={isUnauthorized ? signInAgain : retry}
             className="text-primary flex cursor-pointer items-center gap-1 font-semibold hover:underline"
           >
             <RotateCcw className="size-3.5" aria-hidden="true" />
-            Retry
+            {isUnauthorized ? 'Sign in again' : 'Retry'}
           </button>
           <span className="text-label-sm text-on-surface-variant/70 w-full wrap-break-word">
             {failure.detail}
