@@ -7,3 +7,4 @@ export * from "./schedule-thread-title";
 export * from "./prompt-injection-guard";
 export * from "./pii";
 export * from "./schedule-answer-evaluation";
+export * from "./configure-tracing";

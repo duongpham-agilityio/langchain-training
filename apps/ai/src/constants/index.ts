@@ -12,3 +12,4 @@ export * from "./slack";
 export * from "./threads";
 export * from "./pii";
 export * from "./evaluators";
+export * from "./tracing";
