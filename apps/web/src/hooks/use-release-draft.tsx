@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { z } from 'zod';
 import { useRenderTool } from '@copilotkit/react-core/v2';
 import { useReleaseWorkspaceStore } from '@/store/release-workspace-store.ts';
 import type { SelectedDraft } from '@/store/draft-slice.ts';
@@ -12,10 +13,9 @@ import ToolErrorCard from '@/components/chat/ToolErrorCard.tsx';
 import ReleaseDraftCard from '@/components/release-notes/ReleaseDraftCard.tsx';
 import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id.ts';
 import { RENDER_RELEASE_NOTES_PREVIEW_TOOL_NAME } from '@/constants/agent-tools/tools-name.ts';
-import {
-  ReleaseNotesDraftSchema,
-  type ReleaseNotesDraft,
-} from '@/types/release-notes-draft.ts';
+import ToolRefusalCard from '@/components/chat/ToolRefusalCard.tsx';
+import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
+import { parseReleasePreviewResult } from '@/types/release-preview-result.ts';
 
 interface DraftToolCallProps {
   toolCallId: string;
@@ -58,7 +58,9 @@ const DraftToolCall = ({
       title={
         draft.version ? `Release notes · v${draft.version}` : 'Release notes'
       }
-      subtitle={draft.label}
+      subtitle={
+        draft.subject ? `${draft.label} · ${draft.subject}` : draft.label
+      }
       isGenerating={false}
       isViewing={isShown && isPreviewOpen}
       onOpen={() => onOpen(isLatest ? null : { toolCallId, draft })}
@@ -92,7 +94,9 @@ export const useReleaseDraft = ({
 
   useRenderTool({
     name: RENDER_RELEASE_NOTES_PREVIEW_TOOL_NAME,
-    parameters: ReleaseNotesDraftSchema,
+    // The call's arguments (release input) are not shown; the card is built
+    // from the tool's result.
+    parameters: z.object({}).loose(),
     agentId: RELEASE_COPILOT_AGENT_ID,
     render: (props) => {
       // The preview must never stream: show nothing until the tool call has
@@ -101,25 +105,29 @@ export const useReleaseDraft = ({
         return <></>;
       }
 
-      const result = ReleaseNotesDraftSchema.safeParse(props.parameters);
+      const outcome = parseReleasePreviewResult(props.result);
 
-      if (!result.success) {
+      if (outcome.kind === 'invalid') {
         console.warn(
-          '[useReleaseDraft] received invalid parameters',
-          result.error,
+          '[useReleaseDraft] received invalid result',
+          outcome.detail,
         );
         return (
           <ToolErrorCard
             toolName={RENDER_RELEASE_NOTES_PREVIEW_TOOL_NAME}
-            detail={result.error.message}
+            detail={outcome.detail}
           />
         );
+      }
+
+      if (outcome.kind === 'refused') {
+        return <ToolRefusalCard message={outcome.message} />;
       }
 
       return (
         <DraftToolCall
           toolCallId={props.toolCallId}
-          draft={result.data}
+          draft={outcome.draft}
           isPreviewOpen={isPreviewOpen}
           onSync={(draft) => setDraft(threadIdRef.current, draft)}
           onOpen={(selected) => {

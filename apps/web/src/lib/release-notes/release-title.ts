@@ -1,5 +1,4 @@
 import { RELEASE_NOTES_DEFAULT_TIME_ZONE } from '../../constants/config/time-zone';
-import { RELEASE_NOTES_TITLE_PREFIX } from '../../constants/config/lib-config';
 import type { ReleaseNotesDraft } from '../../types/release-notes-draft';
 import type { ReleaseHistoryItem } from '../../types/release';
 
@@ -56,18 +55,6 @@ export const formatReleaseMonthDisplay = (
   timeZone: string = RELEASE_NOTES_DEFAULT_TIME_ZONE,
 ): string =>
   formatParsedReleaseDate(releaseDate, { year: 'numeric', month: 'long' }, timeZone);
-
-export const buildReleaseTitle = (
-  { releaseDate, titleOverride }: ReleaseNotesDraft,
-  now?: Date,
-): string =>
-  titleOverride ??
-  `${RELEASE_NOTES_TITLE_PREFIX}${releaseDate ?? formatReleaseDate(now)}`;
-
-export const composeReleaseContent = (
-  draft: ReleaseNotesDraft,
-  now?: Date,
-): string => `${buildReleaseTitle(draft, now)}\n\n${draft.content}`;
 
 const DEFAULT_RELEASE_NOTES_FILE_NAME = 'RELEASE_NOTES.md';
 
