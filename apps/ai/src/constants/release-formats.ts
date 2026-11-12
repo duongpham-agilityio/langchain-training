@@ -10,6 +10,7 @@ export const RELEASE_FORMATS = [
   "app-store",
   "google-play",
   "json",
+  "html-email",
 ] as const;
 
 export type ReleaseFormat = (typeof RELEASE_FORMATS)[number];
@@ -20,9 +21,10 @@ export const RELEASE_FORMAT_LABELS: Record<ReleaseFormat, string> = {
   "app-store": "App Store",
   "google-play": "Google Play",
   json: "JSON",
+  "html-email": "HTML email",
 };
 
-/** Character limit per format. Formats without an entry (Markdown, JSON) have no limit. */
+/** Character limit per format. Formats without an entry (Markdown, JSON, HTML email) have no limit. */
 export const RELEASE_FORMAT_LIMITS: Partial<Record<ReleaseFormat, number>> = {
   slack: SLACK_MAX_CONTENT_LENGTH,
   "app-store": STORE_LIMITS.appStore,

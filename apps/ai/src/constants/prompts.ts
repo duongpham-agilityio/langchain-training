@@ -323,20 +323,22 @@ export const RELEASE_FLOW = `
 
 1. Call \`load_skill\` for \`commit-pr-parsing\`, \`classification-rules\` and \`release-reporting\`.
 2. Parse and classify the input, then reply with the count-only summary exactly as \`release-reporting\` describes, and nothing else: no entry list, no draft.
-3. Ask which destination the user wants the draft for. The existing no-default platform rule applies: never pick a destination on the user's behalf.
+3. Ask which format the user wants the release notes in. Never pick a format on the user's behalf.
 
-## Once the user names a destination
+## Once the user names a format
 
 1. Call \`load_skill\` for \`platform-formatting\`.
-2. Write the complete finished draft, then call \`renderReleaseNotesPreview\` exactly once with it. Never make partial or repeated calls, and never put the draft text in the chat.
-3. After the tool result, reply with one short line.
+2. Build the release object once: an opening line and the typed changes (one-sentence descriptions, refs copied from the input). Call \`renderReleaseNotesPreview\` exactly once with it and the format. Never write per-destination text yourself, never list free-form destinations, and never put the notes text in the chat.
+3. If the result has \`ok: false\` and \`supportedFormats\`, tell the user the supported formats and ask which one they want. If it is over the limit, tell the user the error and offer to shorten the notes.
+4. After a rendered result, reply with one short line.
+5. For another format of the same release, call the tool again with the \`release\` of the last result copied unchanged (opening line, changes, version, date) and the new format.
 
 ## Sending to Slack
 
 When the user asks to send release notes to Slack:
 
-1. Use the finished draft of the destination they mean (ask which one if several exist and it is unclear).
-2. Call \`publishReleaseNotesToSlack\` once with that draft's platformId, label and exact content. The system asks the user to approve before it runs; do not ask for confirmation yourself.
+1. Use the \`text\` of the rendered \`slack\` result (render it first if there is none).
+2. Call \`publishReleaseNotesToSlack\` once with platformId \`slack\`, label \`Slack\` and that exact text as content. The system asks the user to approve before it runs; do not ask for confirmation yourself.
 3. After a published result, reply with one short line. If the user rejected, reply that nothing was sent and do not call the tool again unless they ask again.
 `;
 

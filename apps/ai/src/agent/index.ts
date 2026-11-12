@@ -16,7 +16,9 @@ import {
 } from "@/middlewares";
 
 // Tools
-import { tools } from "@/tools";
+import { createTools } from "@/tools";
+
+import type { Pool } from "pg";
 
 type CreateAgentParams = Parameters<typeof createAgent>[0];
 
@@ -26,14 +28,17 @@ export type CreateBaseAgentOptions = {
   systemPrompt?: string;
 };
 
-export const createBaseAgent = ({
+export const createBaseAgent = (
+  pool: Pool,
+  {
   middleware,
   checkpointer,
   systemPrompt = SYSTEM_PROMPT,
-}: CreateBaseAgentOptions = {}) =>
+}: CreateBaseAgentOptions = {},
+) =>
   createAgent({
     model: new ChatOpenAI({ model: config.model }),
-    tools,
+    tools: createTools(pool),
     systemPrompt,
     // Skills and Slack approval always on; callers add more (e.g. guards) after it.
     middleware: [

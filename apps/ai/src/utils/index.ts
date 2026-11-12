@@ -13,3 +13,4 @@ export * from "./version-bump";
 export * from "./escape-html";
 export * from "./render-release-email";
 export * from "./render-release";
+export * from "./hash-release";
