@@ -36,14 +36,16 @@ const isReleaseFormat = (format: string): format is ReleaseFormat =>
 export const createRenderReleaseNotesPreview = (pool: Pool) =>
   tool(
     async (input) => {
-      if (!isReleaseFormat(input.format)) {
+      // The model copies the format from the user's words ("Slack"), so match ignoring case.
+      const requestedFormat = input.format.trim().toLowerCase();
+      if (!isReleaseFormat(requestedFormat)) {
         return JSON.stringify({
           ok: false,
           error: `Unsupported format "${input.format}".`,
           supportedFormats: RELEASE_FORMATS,
         });
       }
-      const format = input.format;
+      const format = requestedFormat;
 
       const userId = userContext.getStore()?.userId;
       const previousVersion = userId ? await getLatestReleaseVersion(pool, userId) : null;
