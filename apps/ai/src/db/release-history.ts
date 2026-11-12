@@ -129,6 +129,21 @@ export const getReleaseHistory = async (
   return rows[0] ? toRecord(rows[0]) : null;
 };
 
+/** The owner's newest saved version (by created_at), or null when none is saved. */
+export const getLatestReleaseVersion = async (
+  pool: Pool,
+  ownerId: string,
+): Promise<string | null> => {
+  const { rows } = await pool.query<{ version: string }>(
+    `select version from ${RELEASE_HISTORY_TABLE}
+     where owner_id = $1
+     order by created_at desc, id desc
+     limit 1`,
+    [ownerId],
+  );
+  return rows[0]?.version ?? null;
+};
+
 /** Saving the same version again creates a new record, as the web expects. */
 export const saveReleaseHistory = async (
   pool: Pool,

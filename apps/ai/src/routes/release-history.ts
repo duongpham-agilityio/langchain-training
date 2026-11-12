@@ -3,10 +3,15 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 // Constants
-import { RELEASE_HISTORY_PATH } from "@/constants";
+import {
+  LATEST_RELEASE_VERSION_PATH,
+  NEXT_RELEASE_VERSION_PATH,
+  RELEASE_HISTORY_PATH,
+} from "@/constants";
 
 // DB
 import {
+  getLatestReleaseVersion,
   getReleaseHistory,
   InvalidCursorError,
   listReleaseHistory,
@@ -17,7 +22,14 @@ import {
 import type { AuthEnv } from "@/middlewares";
 
 // Schemas
-import { ListReleaseHistoryQuerySchema, SaveReleaseHistoryRequestSchema } from "@/schemas";
+import {
+  ListReleaseHistoryQuerySchema,
+  NextReleaseVersionRequestSchema,
+  SaveReleaseHistoryRequestSchema,
+} from "@/schemas";
+
+// Utils
+import { nextVersion } from "@/utils";
 
 /** Mounted behind `createRequireAuth`; every query is scoped to `c.get("userId")`. */
 export const createReleaseHistoryRoutes = (pool: Pool) => {
@@ -32,6 +44,18 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
       if (error instanceof InvalidCursorError) return c.json({ error: error.message }, 400);
       throw error;
     }
+  });
+
+  // Before `/:id`, or "latest-version" would be read as a record id and answer 404.
+  routes.get(LATEST_RELEASE_VERSION_PATH, async (c) => {
+    return c.json({ version: await getLatestReleaseVersion(pool, c.get("userId")) });
+  });
+
+  routes.post(NEXT_RELEASE_VERSION_PATH, async (c) => {
+    const body = NextReleaseVersionRequestSchema.safeParse(await c.req.json().catch(() => null));
+    if (!body.success) return c.json({ error: body.error.message }, 400);
+    const { previousVersion, changes, statedVersion } = body.data;
+    return c.json({ version: nextVersion(previousVersion, changes, statedVersion) });
   });
 
   routes.get(`${RELEASE_HISTORY_PATH}/:id`, async (c) => {

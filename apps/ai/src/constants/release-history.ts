@@ -1,5 +1,12 @@
 export const RELEASE_HISTORY_PATH = "/release-history";
 export const RELEASE_HISTORY_PATH_PATTERN = "/release-history/*";
+export const NEXT_RELEASE_VERSION_PATH = "/release-history/next-version";
+export const LATEST_RELEASE_VERSION_PATH = "/release-history/latest-version";
+
+// Version rules: a first release starts here; a MAJOR.MINOR.PATCH string is required for stored versions.
+export const FIRST_RELEASE_VERSION = "1.0.0";
+export const RELEASE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+export const RELEASE_CHANGE_TYPE_FEATURE = "feature";
 export const RELEASE_HISTORY_TABLE = "release_history";
 export const RELEASE_HISTORY_DEFAULT_PAGE_SIZE = 50;
 export const RELEASE_HISTORY_MAX_PAGE_SIZE = 100;

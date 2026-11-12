@@ -6,6 +6,7 @@ import {
   RELEASE_HISTORY_MAX_PAGE_SIZE,
   RELEASE_NOTES_DATE_PATTERN,
   RELEASE_STATUSES,
+  RELEASE_VERSION_PATTERN,
 } from "@/constants";
 
 // Mirrors apps/web `SaveReleaseHistoryRequestSchema`.
@@ -69,3 +70,16 @@ export const ListReleaseHistoryQuerySchema = z.object({
 });
 
 export type ListReleaseHistoryQuery = z.infer<typeof ListReleaseHistoryQuerySchema>;
+
+export const NextReleaseVersionRequestSchema = z.object({
+  previousVersion: z.string().regex(RELEASE_VERSION_PATTERN).nullish(),
+  changes: z.array(
+    z.object({
+      type: z.string().min(1),
+      breaking: z.boolean(),
+    }),
+  ),
+  statedVersion: z.string().min(1).nullish(),
+});
+
+export type NextReleaseVersionRequest = z.infer<typeof NextReleaseVersionRequestSchema>;
