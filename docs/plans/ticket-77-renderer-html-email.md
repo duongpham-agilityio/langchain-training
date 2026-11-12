@@ -37,3 +37,4 @@ A pure renderer turns a release object (`ReleaseSchema`) into an inline-styled H
 - Step 1: the test sets dummy values for the required env vars (`OPENAI_API_KEY`, `SUPABASE_*`, `DATABASE_URL`) and loads `@/routes` with a dynamic import, because the `@/routes` barrel imports `config.ts`, which throws when they are missing. Nothing connects to those services.
 - Step 1: the `test` script quotes its glob (`tsx --test "src/**/*.test.ts"`) so Node expands it, not the shell.
 - Done check: the root `package.json` has no `test` script, so `pnpm test` was run as `pnpm --filter @training/ai test` (as the plan states). `pnpm install --frozen-lockfile` was run first because the worktree had no `node_modules` (no dependency added).
+- Step 1 and Done check: the endpoint test and the `test` script were removed afterwards, because the app does not use `.test` files. Steps 1 and the `pnpm --filter @training/ai test` check no longer apply; typecheck, lint and build remain.

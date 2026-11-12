@@ -7,8 +7,7 @@
     "dev": "tsx watch --env-file-if-exists=.env --env-file-if-exists=../web/.env src/index.ts",
     "start": "node --env-file-if-exists=.env --env-file-if-exists=../web/.env dist/index.js",
     "build": "tsup src/index.ts --format esm --target node22 --clean",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test \"src/**/*.test.ts\""
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.2",
