@@ -134,8 +134,9 @@ export const getLatestReleaseVersion = async (
   pool: Pool,
   ownerId: string,
 ): Promise<string | null> => {
-  const { rows } = await pool.query<{ version: string }>(
-    `select version from ${RELEASE_HISTORY_TABLE}
+  // The version lives inside the stored release object (F-06 dropped the `version` column).
+  const { rows } = await pool.query<{ version: string | null }>(
+    `select release->>'version' as version from ${RELEASE_HISTORY_TABLE}
      where owner_id = $1
      order by created_at desc, id desc
      limit 1`,
