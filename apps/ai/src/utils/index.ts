@@ -10,4 +10,6 @@ export * from "./pii";
 export * from "./schedule-answer-evaluation";
 export * from "./configure-tracing";
 export * from "./version-bump";
+export * from "./escape-html";
+export * from "./render-release-email";
 export * from "./render-release";
