@@ -1,7 +1,12 @@
+import type { Pool } from "pg";
+
 import { publishReleaseNotesToSlack } from "./publish-release-notes-to-slack";
-import { renderReleaseNotesPreview } from "./release-notes-preview";
+import { createRenderReleaseNotesPreview } from "./release-notes-preview";
 
 export * from "./publish-release-notes-to-slack";
 export * from "./release-notes-preview";
 
-export const tools = [renderReleaseNotesPreview, publishReleaseNotesToSlack];
+export const createTools = (pool: Pool) => [
+  createRenderReleaseNotesPreview(pool),
+  publishReleaseNotesToSlack,
+];

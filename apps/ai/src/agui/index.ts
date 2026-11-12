@@ -24,6 +24,8 @@ import {
   APPROVAL_INTERRUPT_REASON,
   APPROVAL_REJECT_MESSAGE,
   GUARD_REPLIES,
+  RELEASE_FORMAT_LABELS,
+  type ReleaseFormat,
   TOOL_NAMES,
   TRACE_METADATA_KEYS,
   TRACE_RUN_NAME,
@@ -241,7 +243,15 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           if (ToolMessage.isInstance(chunk)) {
             if (chunk.name === TOOL_NAMES.renderReleaseNotesPreview) {
               try {
-                draft = JSON.parse(String(chunk.content));
+                const result = JSON.parse(String(chunk.content));
+                // Only a rendered result is a draft; refusals and over-limit errors leave it unset.
+                if (result.ok === true) {
+                  draft = {
+                    platform: result.format,
+                    label: RELEASE_FORMAT_LABELS[result.format as ReleaseFormat],
+                    content: result.text,
+                  };
+                }
               } catch {
                 // An unparsable result only means this turn gets no draft checks.
               }

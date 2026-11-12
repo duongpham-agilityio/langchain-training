@@ -57,7 +57,7 @@ const langsmithClient = config.langsmith.apiKey
 const runtime = new CopilotRuntime({
   agents: {
     [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(
-      createBaseAgent({ checkpointer }),
+      createBaseAgent(pgPool, { checkpointer }),
       createThreadTitleScheduler(pgPool, new ChatOpenAI({ model: config.model })),
       createPromptInjectionGuard(new ChatOpenAI({ model: config.guardModel, temperature: 0 })),
       createAnswerEvaluationScheduler(langsmithClient),

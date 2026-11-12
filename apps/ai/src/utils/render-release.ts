@@ -11,6 +11,9 @@ import {
 // Schemas
 import type { Change, Release } from "@/schemas";
 
+// Utils
+import { renderReleaseEmail } from "./render-release-email";
+
 export type RenderReleaseResult =
   | { ok: true; text: string }
   | { ok: false; error: string };
@@ -83,6 +86,7 @@ const RENDERERS: Record<ReleaseFormat, (release: Release) => string> = {
   "app-store": renderPlainText,
   "google-play": renderPlainText,
   json: (release) => JSON.stringify(release),
+  "html-email": (release) => renderReleaseEmail(release).html,
 };
 
 /** Counts code points, so an emoji or accented letter counts as one character. */
