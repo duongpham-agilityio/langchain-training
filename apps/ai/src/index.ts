@@ -25,7 +25,12 @@ import {
   ensureThreadsTable,
 } from "@/db";
 import { type AuthEnv, createRequireAuth, userContextMiddleware } from "@/middlewares";
-import { createReleaseHistoryRoutes, createSlackRoute, createThreadsRoute } from "@/routes";
+import {
+  createReleaseEmailRoute,
+  createReleaseHistoryRoutes,
+  createSlackRoute,
+  createThreadsRoute,
+} from "@/routes";
 import {
   configureTracing,
   createAnswerEvaluationScheduler,
@@ -83,6 +88,7 @@ app.use(SLACK_PATH_PATTERN, requireAuth);
 app.use(SLACK_PATH_PATTERN, userContextMiddleware);
 app.route("/", createSlackRoute());
 app.route("/", createThreadsRoute(pgPool));
+app.route("/", createReleaseEmailRoute());
 
 app.get(HEALTH_PATH, async (c) => {
   const db = await checkDatabase(pgPool);
