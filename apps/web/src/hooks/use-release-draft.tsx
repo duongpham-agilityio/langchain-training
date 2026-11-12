@@ -107,6 +107,18 @@ export const useReleaseDraft = ({
 
       const outcome = parseReleasePreviewResult(props.result);
 
+      if (outcome.kind === 'pending') {
+        return <></>;
+      }
+
+      if (outcome.kind === 'failed') {
+        return (
+          <ToolRefusalCard
+            message={`Release notes could not be built. ${outcome.message}`}
+          />
+        );
+      }
+
       if (outcome.kind === 'invalid') {
         console.warn(
           '[useReleaseDraft] received invalid result',

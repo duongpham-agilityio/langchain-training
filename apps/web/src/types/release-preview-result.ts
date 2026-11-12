@@ -36,15 +36,22 @@ const ReleasePreviewResultSchema = z.union([
 export type ReleasePreviewResult = z.infer<typeof ReleasePreviewResultSchema>;
 
 export type ReleasePreviewOutcome =
+  // No result yet: render nothing.
+  | { kind: 'pending' }
   | { kind: 'draft'; draft: ReleaseNotesDraft }
   | { kind: 'refused'; message: string }
+  // The tool itself failed (e.g. a database error): its result is plain error
+  // text, not JSON.
+  | { kind: 'failed'; message: string }
   | { kind: 'invalid'; detail: string };
 
-const parseJson = (raw: string): unknown => {
+const MAX_FAILURE_LENGTH = 300;
+
+const parseJson = (raw: string): { value: unknown } | null => {
   try {
-    return JSON.parse(raw);
+    return { value: JSON.parse(raw) };
   } catch {
-    return undefined;
+    return null;
   }
 };
 
@@ -53,11 +60,19 @@ const parseJson = (raw: string): unknown => {
 export const parseReleasePreviewResult = (
   raw: unknown,
 ): ReleasePreviewOutcome => {
+  if (raw === undefined || raw === null || raw === '') {
+    return { kind: 'pending' };
+  }
   if (typeof raw !== 'string') {
-    return { kind: 'invalid', detail: 'The tool returned no result.' };
+    return { kind: 'invalid', detail: 'The tool returned an unexpected result.' };
   }
 
-  const parsed = ReleasePreviewResultSchema.safeParse(parseJson(raw));
+  const json = parseJson(raw);
+  if (!json) {
+    return { kind: 'failed', message: raw.trim().slice(0, MAX_FAILURE_LENGTH) };
+  }
+
+  const parsed = ReleasePreviewResultSchema.safeParse(json.value);
   if (!parsed.success) {
     return { kind: 'invalid', detail: parsed.error.message };
   }
