@@ -4,6 +4,7 @@ import {
   EventType,
   type BaseEvent,
   type Interrupt,
+  type Message,
   type RunAgentInput,
 } from "@ag-ui/client";
 import {
@@ -83,6 +84,36 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
       default:
         return [];
     }
+  });
+
+/**
+ * Checkpoint (LangChain) messages -> AG-UI messages, for replaying a thread after a restart.
+ * System messages are skipped (the server prompt owns them). A message without an id gets the
+ * stable id `<threadId>:<index>`, so the web keeps the same keys on every reconnect.
+ */
+export const toAguiMessages = (messages: BaseMessage[], threadId: string): Message[] =>
+  messages.flatMap((message, index): Message[] => {
+    const id = message.id || `${threadId}:${index}`;
+    if (HumanMessage.isInstance(message)) return [{ id, role: "user", content: message.text }];
+    if (AIMessage.isInstance(message)) {
+      const toolCalls = (message.tool_calls ?? []).map((call) => ({
+        id: call.id ?? `${id}:${call.name}`,
+        type: "function" as const,
+        function: { name: call.name, arguments: JSON.stringify(call.args) },
+      }));
+      return [
+        {
+          id,
+          role: "assistant",
+          content: message.text,
+          ...(toolCalls.length ? { toolCalls } : {}),
+        },
+      ];
+    }
+    if (ToolMessage.isInstance(message)) {
+      return [{ id, role: "tool", content: message.text, toolCallId: message.tool_call_id }];
+    }
+    return [];
   });
 
 /**
