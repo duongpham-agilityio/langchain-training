@@ -57,7 +57,9 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
   input.messages.flatMap((message): BaseMessage[] => {
     switch (message.role) {
       case "user":
-        return [new HumanMessage(toText(message.content))];
+        // Keep the AG-UI id: the messages reducer dedupes by id, so a retry (or a resent history)
+        // does not store the same user message twice. Empty id = no id, as before.
+        return [new HumanMessage({ content: toText(message.content), id: message.id || undefined })];
       case "assistant":
         return [
           new AIMessage({
@@ -82,9 +84,10 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
   });
 
 /**
- * With a checkpointer the thread already holds everything up to the last assistant reply, and the
- * bridge drops AG-UI message ids so the reducer cannot dedupe a resent history (spike C). Keep only
- * the user messages after the last assistant message.
+ * With a checkpointer the thread already holds everything up to the last assistant reply. User
+ * messages keep their AG-UI id (see `toLangChainMessages`), but assistant and tool messages do not,
+ * so the reducer cannot dedupe a resent history (spike C). Keep only the user messages after the
+ * last assistant message.
  */
 /**
  * Removes turns the guard stopped (a guard reply and the user message before it) from a client
