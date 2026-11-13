@@ -6,6 +6,7 @@ import {
   RELEASE_FORMAT_ALIASES,
   RELEASE_FORMATS,
   RELEASE_NOTES_PREVIEW_DESCRIPTION,
+  RELEASE_NOTES_VERSION_ERROR,
   type ReleaseFormat,
   TOOL_NAMES,
 } from "@/constants";
@@ -55,10 +56,18 @@ export const createRenderReleaseNotesPreview = (pool: Pool) =>
       const format = requestedFormat;
 
       const userId = userContext.getStore()?.userId;
-      const previousVersion = userId ? await getLatestReleaseVersion(pool, userId) : null;
+      // A failed read or a malformed stored version must not crash the turn or leak SQL text to the model.
+      let version: string;
+      try {
+        const previousVersion = userId ? await getLatestReleaseVersion(pool, userId) : null;
+        version = nextVersion(previousVersion, input.changes, input.version);
+      } catch (error) {
+        console.error("[ai] next release version failed:", error);
+        return JSON.stringify({ ok: false, error: RELEASE_NOTES_VERSION_ERROR });
+      }
 
       const release = ReleaseSchema.parse({
-        version: nextVersion(previousVersion, input.changes, input.version),
+        version,
         date: input.date ?? formatReleaseDate(),
         openingLine: input.openingLine,
         changes: input.changes,

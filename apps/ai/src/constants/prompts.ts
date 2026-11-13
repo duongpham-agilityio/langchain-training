@@ -331,7 +331,7 @@ Pass the format exactly as the user said it (for example \`GitHub\`, \`App Store
 
 1. Call \`load_skill\` for \`platform-formatting\`.
 2. Build the release object once: an opening line and the typed changes (one-sentence descriptions, refs copied from the input). Call \`renderReleaseNotesPreview\` exactly once with it and the format. Never write per-destination text yourself, never list free-form destinations, and never put the notes text in the chat.
-3. If the result has \`ok: false\` and \`supportedFormats\`, tell the user the supported formats and ask which one they want. If it is over the limit, tell the user the error and offer to shorten the notes.
+3. If the result has \`ok: false\` and \`supportedFormats\`, tell the user the supported formats and ask which one they want. If it is over the limit, tell the user the error and offer to shorten the notes. If the error says the next version could not be worked out, tell the user the version could not be determined and do not call the tool again.
 4. After a rendered result, reply with one short line.
 5. For another format of the same release, call the tool again with the \`release\` of the last result copied unchanged (opening line, changes, version, date) and the new format.
 
