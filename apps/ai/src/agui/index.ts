@@ -16,6 +16,9 @@ import {
 import { Command } from "@langchain/langgraph";
 import { Observable } from "rxjs";
 
+// Draft context
+import { findDraftContext } from "./draft-context";
+
 // Agents
 import type { BaseAgent } from "@/agent";
 
@@ -23,6 +26,7 @@ import type { BaseAgent } from "@/agent";
 import {
   APPROVAL_INTERRUPT_REASON,
   APPROVAL_REJECT_MESSAGE,
+  DRAFT_CONTEXT_CONFIG_KEY,
   GUARD_REPLIES,
   RELEASE_FORMAT_LABELS,
   type ReleaseFormat,
@@ -54,7 +58,11 @@ const toText = (content: unknown): string => {
     .join("");
 };
 
-/** AG-UI history -> LangChain messages. System/developer/context are owned by the server prompt. */
+/**
+ * AG-UI history -> LangChain messages. System/developer are owned by the server prompt. `input.context`
+ * is not converted here: the draft entry is read in `run` and reaches the model through
+ * `configurable` and the draft-context middleware, never as a stored message.
+ */
 export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
   input.messages.flatMap((message): BaseMessage[] => {
     switch (message.role) {
@@ -204,6 +212,9 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
         }
 
+        // The draft on screen for this turn only; see createDraftContextMiddleware.
+        const draftContext = findDraftContext(input.context);
+
         // Our own id for the graph run, so the answer-quality scores can be attached to it in LangSmith.
         const langsmithRunId = randomUUID();
         const config = {
@@ -215,7 +226,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
             [TRACE_METADATA_KEYS.threadId]: input.threadId,
             [TRACE_METADATA_KEYS.userId]: userContext.getStore()?.userId,
           },
-          configurable: { thread_id: input.threadId },
+          configurable: {
+            thread_id: input.threadId,
+            // Object value on purpose: primitives would be copied into checkpoint metadata and traces.
+            ...(draftContext ? { [DRAFT_CONTEXT_CONFIG_KEY]: draftContext } : {}),
+          },
         };
         // With a checkpointer the thread already holds the history; resending it would duplicate messages.
         const snapshot = (await this.agent.getState(config)) as {
@@ -389,3 +404,5 @@ export const createAguiAgent = (
   scheduleEvaluation?: AnswerEvaluationScheduler,
   threads?: ThreadGate,
 ) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation, threads);
+
+export * from "./draft-context";
