@@ -3,6 +3,7 @@ import type { Pool } from "pg";
 
 // Constants
 import {
+  RELEASE_FORMAT_ALIASES,
   RELEASE_FORMATS,
   RELEASE_NOTES_PREVIEW_DESCRIPTION,
   type ReleaseFormat,
@@ -28,6 +29,12 @@ import {
 const isReleaseFormat = (format: string): format is ReleaseFormat =>
   (RELEASE_FORMATS as readonly string[]).includes(format);
 
+/** "App Store" and "google_play" become "app-store" and "google-play"; known aliases map to a format. */
+const normalizeFormat = (format: string): string => {
+  const normalized = format.trim().toLowerCase().replace(/[\s_]+/g, "-");
+  return RELEASE_FORMAT_ALIASES[normalized] ?? normalized;
+};
+
 /**
  * Factory (not a singleton) because the previous version comes from the database.
  * Code computes the version and date and renders only the one format asked for; the
@@ -36,8 +43,8 @@ const isReleaseFormat = (format: string): format is ReleaseFormat =>
 export const createRenderReleaseNotesPreview = (pool: Pool) =>
   tool(
     async (input) => {
-      // The model copies the format from the user's words ("Slack"), so match ignoring case.
-      const requestedFormat = input.format.trim().toLowerCase();
+      // The model copies the format from the user's words ("GitHub", "App Store"), so normalize first.
+      const requestedFormat = normalizeFormat(input.format);
       if (!isReleaseFormat(requestedFormat)) {
         return JSON.stringify({
           ok: false,
