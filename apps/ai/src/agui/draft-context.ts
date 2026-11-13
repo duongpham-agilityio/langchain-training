@@ -1,21 +1,8 @@
 import type { RunAgentInput } from "@ag-ui/client";
-import { z } from "zod";
-
-// Schemas
-import { ReleaseSchema } from "@/schemas";
+import { DraftContextSchema, type DraftContext } from "@training/contracts";
 
 // Constants
 import { DRAFT_BLOCK_END, DRAFT_BLOCK_INTRO, DRAFT_BLOCK_START } from "@/constants";
-
-/** The draft the web shows in the Live Preview: the last `renderReleaseNotesPreview` result it holds. */
-export const DraftContextSchema = z.object({
-  release: ReleaseSchema,
-  format: z.string().min(1),
-  text: z.string().min(1),
-  hash: z.string(),
-});
-
-export type DraftContext = z.infer<typeof DraftContextSchema>;
 
 /**
  * Picks the draft out of the AG-UI context entries. CopilotKit sends other entries too, and `null`
@@ -44,3 +31,5 @@ export const buildDraftBlock = (draft: DraftContext): string =>
     JSON.stringify({ release: draft.release, format: draft.format, text: draft.text }),
     DRAFT_BLOCK_END,
   ].join("\n");
+
+export { DraftContextSchema, type DraftContext };

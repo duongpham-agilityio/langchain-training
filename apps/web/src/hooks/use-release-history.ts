@@ -10,7 +10,7 @@ import {
   formatReleaseVersion,
 } from '@/lib/release-notes/release-title.ts';
 import { groupReleaseHistoryByRecency } from '@/lib/release-notes/group-release-history-by-recency.ts';
-import type { ReleaseHistoryRecord } from '@/types/release-history-record.ts';
+import type { ReleaseHistoryRecord } from '@training/contracts';
 import {
   ReleaseHistoryFilter,
   ReleaseSendStatus,

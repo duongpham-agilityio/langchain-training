@@ -1,5 +1,7 @@
-import type { SlackPublishRequest } from '@/types/slack-publish-request.ts';
-import { SLACK_PUBLISH_ROUTE_PATH } from '@/constants/endpoints.ts';
+import {
+  SLACK_PUBLISH_PATH,
+  type SlackPublishRequest,
+} from '@training/contracts';
 import { HttpError } from '@/lib/http/http-client.ts';
 import { releaseCopilotHttpClient } from '@/services/http-client.ts';
 
@@ -15,7 +17,7 @@ export const publishToSlack = async ({
 }: SlackPublishRequest): Promise<PublishToSlackResult> => {
   try {
     await releaseCopilotHttpClient.post(
-      SLACK_PUBLISH_ROUTE_PATH,
+      SLACK_PUBLISH_PATH,
       { platformId, label, content },
       { target: 'the Slack publish route' },
     );

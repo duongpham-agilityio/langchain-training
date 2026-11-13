@@ -1,12 +1,8 @@
-export const COPILOTKIT_ROUTE_PATH = '/api/copilotkit';
+import { RELEASE_HISTORY_PATH } from '@training/contracts';
 
-export const SLACK_PUBLISH_ROUTE_PATH = '/slack/publish';
-
-export const MEMORY_THREADS_ROUTE_PATH = '/api/memory/threads';
-
-export const RELEASE_HISTORY_ROUTE_PATH = '/release-history';
-
+// The paths both apps use (runtime, Slack, threads, release history) live in
+// @training/contracts. Only this client-side router pattern is web-only.
 export const RELEASE_HISTORY_DETAIL_ROUTE_PATH = '/release-history/:id';
 
 export const buildReleaseHistoryDetailPath = (id: string): string =>
-  `${RELEASE_HISTORY_ROUTE_PATH}/${id}`;
+  `${RELEASE_HISTORY_PATH}/${id}`;

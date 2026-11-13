@@ -1,5 +1,5 @@
 import { NEW_CHAT_TITLE } from '@/constants/threads.ts';
-import type { ThreadSummary } from '@/types/thread.ts';
+import type { ThreadSummary } from '@training/contracts';
 
 // A title is a placeholder while the server has not generated one yet: either
 // empty (the thread gate creates the row before the title exists) or the

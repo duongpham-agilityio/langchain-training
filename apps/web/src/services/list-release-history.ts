@@ -1,14 +1,14 @@
-import { RELEASE_HISTORY_ROUTE_PATH } from '@/constants/endpoints.ts';
-import { releaseCopilotHttpClient } from '@/services/http-client.ts';
 import {
   ListReleaseHistoryResponseSchema,
+  RELEASE_HISTORY_PATH,
   type ListReleaseHistoryResponse,
-} from '@/types/release-history-record.ts';
+} from '@training/contracts';
+import { releaseCopilotHttpClient } from '@/services/http-client.ts';
 
 export const listReleaseHistory = async (
   queryParams: Record<string, string> = {},
 ): Promise<ListReleaseHistoryResponse> => {
-  const body = await releaseCopilotHttpClient.get(RELEASE_HISTORY_ROUTE_PATH, {
+  const body = await releaseCopilotHttpClient.get(RELEASE_HISTORY_PATH, {
     query: queryParams,
     target: 'the release history list',
   });

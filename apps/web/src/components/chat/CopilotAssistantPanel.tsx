@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { CopilotChat, useAgent } from '@copilotkit/react-core/v2';
-import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id';
+import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
 import { useChatSendFailureListener } from '@/hooks/use-chat-send-failure.ts';
 import { useDraftThreadRow } from '@/hooks/use-draft-thread-row.ts';
 import CopilotUserMessage from './CopilotUserMessage.tsx';

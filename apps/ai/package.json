@@ -21,6 +21,7 @@
     "@langchain/langgraph-checkpoint-postgres": "^1.1.2",
     "@langchain/openai": "^1.8.0",
     "@supabase/supabase-js": "^2.119.0",
+    "@training/contracts": "workspace:*",
     "hono": "^4.13.16",
     "langchain": "^1.6.2",
     "langsmith": "^0.11.8",

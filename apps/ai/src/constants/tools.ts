@@ -1,7 +1,4 @@
-export const TOOL_NAMES = {
-  renderReleaseNotesPreview: "renderReleaseNotesPreview",
-  publishReleaseNotesToSlack: "publishReleaseNotesToSlack",
-} as const;
+export { TOOL_NAMES } from "@training/contracts";
 
 export const PUBLISH_RELEASE_NOTES_TO_SLACK_DESCRIPTION =
   "Post release notes to Slack. The user is asked to approve every call before it runs; if they reject, nothing is posted.";

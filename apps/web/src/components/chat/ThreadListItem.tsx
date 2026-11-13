@@ -6,7 +6,7 @@
 // import { useComingSoon } from '@/hooks/use-coming-soon.ts';
 import { cn } from '@/lib/cn.ts';
 import { getThreadDisplayTitle } from '@/lib/thread-title.ts';
-import type { ThreadSummary } from '@/types/thread.ts';
+import type { ThreadSummary } from '@training/contracts';
 
 interface ThreadListItemProps {
   thread: ThreadSummary;

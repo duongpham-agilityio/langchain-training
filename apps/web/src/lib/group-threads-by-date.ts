@@ -1,4 +1,4 @@
-import type { ThreadSummary } from '@/types/thread.ts';
+import type { ThreadSummary } from '@training/contracts';
 
 export const enum ThreadDateBucket {
   Today = 'Today',

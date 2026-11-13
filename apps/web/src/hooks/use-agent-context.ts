@@ -1,4 +1,5 @@
 import { useAgentContext as useAgentContextLib } from '@copilotkit/react-core/v2';
+import type { DraftContext } from '@training/contracts';
 
 import { joinLines } from '@/lib/text';
 import { useReleaseDraftView } from './use-release-draft-view';
@@ -7,10 +8,10 @@ export const useAgentContext = () => {
   const view = useReleaseDraftView();
   const draft = view.draft;
 
-  // The same shape the server reads (apps/ai `DraftContextSchema`): the release object of the draft
+  // The same shape the server reads (`DraftContextSchema` in `@training/contracts`): the release object of the draft
   // on screen, so an edit request on a reopened draft is built from that draft, not the newest.
   // null while there is no draft, or for one saved before `release` was carried along.
-  const value =
+  const value: DraftContext | null =
     draft?.release && draft.hash
       ? {
           release: draft.release,
