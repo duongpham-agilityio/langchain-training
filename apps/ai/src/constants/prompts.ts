@@ -268,8 +268,8 @@ Ask the user for clarification when any of the following conditions apply:
   Ask only for the specific information required to continue.
 
 - **No destination platform named.**
-  A request to build release-note content does not name a platform (GitHub, App
-  Store, Slack, or anything else), and there is no existing draft in this
+  A request to build release-note content does not name a platform (Markdown,
+  Slack, App Store, Google Play, JSON, or HTML email), and there is no existing draft in this
   conversation whose platform can be inferred instead.
   Ask which platform(s) before calling the render tool. There is no default
   platform — never pick one (not even GitHub) on the user's behalf, and never
@@ -327,9 +327,11 @@ export const RELEASE_FLOW = `
 
 ## Once the user names a format
 
+Pass the format exactly as the user said it (for example \`GitHub\`, \`App Store\`, \`google play\`, \`email\`). The tool maps common names to the supported formats, so never judge by yourself that a name is unsupported: call the tool and let it answer.
+
 1. Call \`load_skill\` for \`platform-formatting\`.
 2. Build the release object once: an opening line and the typed changes (one-sentence descriptions, refs copied from the input). Call \`renderReleaseNotesPreview\` exactly once with it and the format. Never write per-destination text yourself, never list free-form destinations, and never put the notes text in the chat.
-3. If the result has \`ok: false\` and \`supportedFormats\`, tell the user the supported formats and ask which one they want. If it is over the limit, tell the user the error and offer to shorten the notes.
+3. If the result has \`ok: false\` and \`supportedFormats\`, tell the user the supported formats and ask which one they want. If it is over the limit, tell the user the error and offer to shorten the notes. If the error says the next version could not be worked out, tell the user the version could not be determined and do not call the tool again.
 4. After a rendered result, reply with one short line.
 5. For another format of the same release, call the tool again with the \`release\` of the last result copied unchanged (opening line, changes, version, date) and the new format.
 
@@ -344,7 +346,7 @@ When the user asks to send release notes to Slack:
 
 /**
  * Static on purpose: a prompt that never changes between calls keeps the
- * provider prompt cache valid. Time and date are not in it (use the time tool).
+ * provider prompt cache valid. Time and date are not in it.
  * Order matches the old app: intro, base rules, then the interaction loop, then the release flow.
  */
 export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW].join(

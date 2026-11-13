@@ -7,7 +7,7 @@ export const platformFormatting = {
 Code writes the text for every format; you never write per-destination markup. Your job is the release object and the format name. If the user names no format, ask; do not default silently.
 
 ## Supported formats
-\`markdown\` (GitHub Markdown), \`slack\`, \`app-store\`, \`google-play\`, \`json\`, \`html-email\`. Anything else (for example Discord) is refused by the tool with this list: tell the user the list and ask again. Limits: Slack 35000 characters, App Store 4000, Google Play 500. Over the limit the tool returns an error and no text: tell the user and offer to shorten.
+\`markdown\` (GitHub Markdown), \`slack\`, \`app-store\`, \`google-play\`, \`json\`, \`html-email\`. The tool also accepts the names users say (GitHub or gh for markdown, App Store, Google Play or play, HTML or email for html-email): pass the user's words as they are and never refuse a name yourself. Anything else (for example Discord) is refused by the tool with this list: tell the user the list and ask again. Limits: Slack 35000 characters, App Store 4000, Google Play 500. Over the limit the tool returns an error and no text: tell the user and offer to shorten.
 
 ## The release object
 - \`openingLine\`: one line summarising the release.

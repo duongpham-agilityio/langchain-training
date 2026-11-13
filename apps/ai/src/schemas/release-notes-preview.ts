@@ -19,7 +19,9 @@ export const ReleaseNotesPreviewInputSchema = z.object({
         '(e.g. "slack", "markdown", "app-store", "google-play", "json", "html-email").',
         "Never guess it and never default to a common one: when the user named",
         "none, do not call this tool, ask which format they want. An unsupported",
-        "name is refused by the tool with the supported list.",
+        "name is refused by the tool with the supported list. Common names",
+        '("GitHub", "App Store", "google play", "email") are mapped by the tool,',
+        "so pass the user's words as they said them.",
       ),
     ),
   openingLine: z

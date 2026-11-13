@@ -15,6 +15,20 @@ export const RELEASE_FORMATS = [
 
 export type ReleaseFormat = (typeof RELEASE_FORMATS)[number];
 
+/**
+ * Names users say that differ from the canonical format. Keys are already normalized
+ * (lower-case, separators as "-"), so "App Store" and "app_store" match without an entry.
+ */
+export const RELEASE_FORMAT_ALIASES: Readonly<Record<string, ReleaseFormat>> = {
+  github: "markdown",
+  gh: "markdown",
+  html: "html-email",
+  email: "html-email",
+  appstore: "app-store",
+  googleplay: "google-play",
+  play: "google-play",
+};
+
 export const RELEASE_FORMAT_LABELS: Record<ReleaseFormat, string> = {
   markdown: "GitHub Markdown",
   slack: "Slack",
