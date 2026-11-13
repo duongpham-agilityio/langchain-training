@@ -327,6 +327,8 @@ export const RELEASE_FLOW = `
 
 ## Once the user names a format
 
+Pass the format exactly as the user said it (for example \`GitHub\`, \`App Store\`, \`google play\`, \`email\`). The tool maps common names to the supported formats, so never judge by yourself that a name is unsupported: call the tool and let it answer.
+
 1. Call \`load_skill\` for \`platform-formatting\`.
 2. Build the release object once: an opening line and the typed changes (one-sentence descriptions, refs copied from the input). Call \`renderReleaseNotesPreview\` exactly once with it and the format. Never write per-destination text yourself, never list free-form destinations, and never put the notes text in the chat.
 3. If the result has \`ok: false\` and \`supportedFormats\`, tell the user the supported formats and ask which one they want. If it is over the limit, tell the user the error and offer to shorten the notes.
