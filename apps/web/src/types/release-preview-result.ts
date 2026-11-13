@@ -99,6 +99,8 @@ export const parseReleasePreviewResult = (
       platform: result.format,
       label: RELEASE_FORMAT_LABELS[result.format] ?? result.format,
       content: result.text,
+      release: result.release,
+      hash: result.hash,
     },
   };
 };
