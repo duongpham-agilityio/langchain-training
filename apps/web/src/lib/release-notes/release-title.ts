@@ -1,11 +1,11 @@
-import { RELEASE_NOTES_DEFAULT_TIME_ZONE } from '../../constants/config/time-zone';
+import { getBrowserTimeZone } from '@/lib/time-zone.ts';
 import { RELEASE_NOTES_TITLE_PREFIX } from '../../constants/config/lib-config';
 import type { ReleaseNotesDraft } from '../../types/release-notes-draft';
 import type { ReleaseHistoryItem } from '../../types/release';
 
 export const formatReleaseDate = (
   now: Date = new Date(),
-  timeZone: string = RELEASE_NOTES_DEFAULT_TIME_ZONE,
+  timeZone: string = getBrowserTimeZone(),
 ): string =>
   new Intl.DateTimeFormat('en-CA', {
     timeZone,
@@ -23,39 +23,38 @@ export const parseReleaseDate = (releaseDate: string): Date => {
   return new Date(Date.UTC(year, month - 1, day, 12));
 };
 
+// A stored `YYYYMMDD` is a calendar day, parsed as UTC noon, so it is shown in
+// UTC to read the same day for every viewer.
+const STORED_DATE_TIME_ZONE = 'UTC';
+
 const formatParsedReleaseDate = (
   releaseDate: string,
   options: Intl.DateTimeFormatOptions,
-  timeZone: string,
 ): string =>
-  new Intl.DateTimeFormat('en-US', { timeZone, ...options }).format(
+  new Intl.DateTimeFormat('en-US', { timeZone: STORED_DATE_TIME_ZONE, ...options }).format(
     parseReleaseDate(releaseDate),
   );
 
 // "Sep 2, 2026"
 export const formatReleaseDateDisplay = (
   releaseDate: string,
-  timeZone: string = RELEASE_NOTES_DEFAULT_TIME_ZONE,
 ): string =>
   formatParsedReleaseDate(
     releaseDate,
     { year: 'numeric', month: 'short', day: 'numeric' },
-    timeZone,
   );
 
 // "Sep 2"
 export const formatReleaseShortDateDisplay = (
   releaseDate: string,
-  timeZone: string = RELEASE_NOTES_DEFAULT_TIME_ZONE,
 ): string =>
-  formatParsedReleaseDate(releaseDate, { month: 'short', day: 'numeric' }, timeZone);
+  formatParsedReleaseDate(releaseDate, { month: 'short', day: 'numeric' });
 
 // "September 2026"
 export const formatReleaseMonthDisplay = (
   releaseDate: string,
-  timeZone: string = RELEASE_NOTES_DEFAULT_TIME_ZONE,
 ): string =>
-  formatParsedReleaseDate(releaseDate, { year: 'numeric', month: 'long' }, timeZone);
+  formatParsedReleaseDate(releaseDate, { year: 'numeric', month: 'long' });
 
 export const buildReleaseTitle = (
   { releaseDate, titleOverride }: ReleaseNotesDraft,
