@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { AbstractAgent } from '@copilotkit/react-core/v2';
 import type { ThreadSummary } from '@/types/thread.ts';
 import { THREADS_QUERY_KEY } from '@/constants/query-keys.ts';
+import { isPlaceholderTitle } from '@/lib/thread-title.ts';
 import { useDraftThreadStore } from '@/store/draft-thread-store.ts';
 import { useAuth } from './use-auth.ts';
 import { useThreadConfig } from './use-thread-config.ts';
@@ -37,7 +38,7 @@ export const useDraftThreadRow = ({
     const now = new Date().toISOString();
     setDraftThread({
       id: threadId,
-      title: threadId,
+      title: '',
       resourceId,
       createdAt: now,
       updatedAt: now,
@@ -45,18 +46,18 @@ export const useDraftThreadRow = ({
   }, [isDraftInProgress, threadId, resourceId, setDraftThread]);
 
   // A run ending is the earliest moment the server row can exist and the only
-  // moment a title can appear: the server generates a title once per thread,
-  // after it has persisted the response messages. So this opens a polling
-  // window instead of refetching once — the title is written in a promise
-  // the server does not await, so it usually lands a moment *after* RUN_FINISHED,
-  // and a single refetch here comes back with no title at all.
+  // moment a title can appear: the LangChain server generates a title once per
+  // thread, in a detached step after the turn (`schedule-thread-title`). So
+  // this opens a polling window instead of refetching once — the title is not
+  // part of the run, so it usually lands a moment *after* RUN_FINISHED, and a
+  // single refetch here comes back with no title at all.
   //
   // The gate is the row's title: nothing is polled for a thread that already
-  // carries a real one (anything other than the `title: threadId` placeholder
-  // written above). use-thread-session closes the window as soon as the title
+  // carries a real one (anything other than a placeholder title: empty, or the
+  // thread id). use-thread-session closes the window as soon as the title
   // arrives, and gives up on its own when no row shows up at all — which is
-  // what a guardrail-blocked turn looks like, since `tripwire` aborts the run
-  // before anything is persisted yet still ends in RUN_FINISHED.
+  // what a guard-blocked turn looks like, since it is refused before the thread
+  // row exists yet the client still sees RUN_FINISHED.
   //
   // No `isReady` guard: while the runtime is still connecting `useAgent`
   // returns a provisional agent that never runs, and the real one arrives as a
@@ -69,7 +70,7 @@ export const useDraftThreadRow = ({
           queryClient.getQueryData<ThreadSummary[]>(THREADS_QUERY_KEY);
         const row = threads?.find((thread) => thread.id === finishedThreadId);
 
-        if (row?.title && row.title !== finishedThreadId) return;
+        if (row && !isPlaceholderTitle(row.title, finishedThreadId)) return;
 
         markPendingTitle({ id: finishedThreadId, startedAt: Date.now() });
       },

@@ -1,12 +1,14 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { listThreads } from '@/services/list-threads.ts';
 import type { ThreadSummary } from '@/types/thread.ts';
 import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id';
 import { THREADS_QUERY_KEY } from '@/constants/query-keys.ts';
 import { buildThreadPath, ROUTE_DASHBOARD } from '@/constants/routings.ts';
+import { isPlaceholderTitle } from '@/lib/thread-title.ts';
 import {
+  THREAD_DRAFT_DROP_MS,
   THREAD_ROW_GRACE_MS,
   THREAD_TITLE_POLL_INTERVAL_MS,
   THREAD_TITLE_POLL_WINDOW_MS,
@@ -21,23 +23,23 @@ import { useThreadConfig } from './use-thread-config.ts';
 // Threads rarely change; avoid refetching every time the dropdown reopens.
 const THREADS_STALE_TIME_MS = 30_000;
 
-// A row counts as titled once it carries something other than the placeholder
-// use-draft-thread-row writes (`title: threadId`). A missing row, an empty
-// title and the placeholder all mean "still waiting on the server".
+// A row counts as titled once it carries something other than a placeholder
+// title (empty, or the thread id). A missing row and a placeholder title both
+// mean "still waiting on the server".
 const hasGeneratedTitle = (
   threads: ThreadSummary[] | undefined,
   pendingThreadId: string,
 ): boolean => {
   const row = threads?.find((thread) => thread.id === pendingThreadId);
-  if (!row?.title) return false;
+  if (!row) return false;
 
-  return row.title !== pendingThreadId;
+  return !isPlaceholderTitle(row.title, pendingThreadId);
 };
 
 // Three ways the wait ends: the title arrived, the window ran out, or no server
-// row appeared within the grace period. The last one is what a guardrail
-// (`tripwire`) turn looks like — RUN_FINISHED with nothing persisted, so the
-// row will never exist and the poll must not sit out the full window on it.
+// row appeared within the grace period. The last one is what a guard-blocked
+// turn looks like — refused before the thread row exists, yet the client still
+// sees RUN_FINISHED, so the row will never exist and the poll must not sit out the full window on it.
 const shouldKeepPollingTitle = (
   threads: ThreadSummary[] | undefined,
   pending: PendingTitleThread,
@@ -88,6 +90,10 @@ export const useThreadSession = (): UseThreadSessionResult => {
   const clearPendingTitle = useDraftThreadStore(
     (state) => state.clearPendingTitle,
   );
+  const clearDraftThread = useDraftThreadStore(
+    (state) => state.clearDraftThread,
+  );
+  const queryClient = useQueryClient();
 
   const {
     data: threads,
@@ -103,8 +109,8 @@ export const useThreadSession = (): UseThreadSessionResult => {
     staleTime: THREADS_STALE_TIME_MS,
     // The only polling this query ever does, and only inside the window
     // use-draft-thread-row opens after a run whose thread still has no
-    // generated title. The server writes that title in a promise it does not
-    // await, so a single refetch on RUN_FINISHED loses the race; an interval
+    // generated title. The server writes that title in a detached step after
+    // the turn (`schedule-thread-title`), so a single refetch on RUN_FINISHED loses the race; an interval
     // that turns itself off as soon as one of the three stop conditions holds
     // costs a request or two instead. `refetchInterval` ignores `staleTime`, so
     // the 30s above does not hold the poll back.
@@ -117,12 +123,41 @@ export const useThreadSession = (): UseThreadSessionResult => {
 
   // Closes the window once polling is done with it, so the store does not keep
   // a settled thread id around and reopen the poll on the next mount.
+  // While the server list still has no row for the thread the window stays open
+  // until the drop timeout below, which owns that case.
   useEffect(() => {
     if (!pendingTitleThread) return;
     if (shouldKeepPollingTitle(threads, pendingTitleThread)) return;
 
+    const hasRow = threads?.some(
+      (thread) => thread.id === pendingTitleThread.id,
+    );
+    if (!hasRow) return;
+
     clearPendingTitle();
   }, [threads, pendingTitleThread, clearPendingTitle]);
+
+  // A turn the server never persisted (blocked by the guard) leaves the
+  // client-side placeholder row with nothing to replace it. A timeout rather
+  // than a data-driven effect, because once polling stops the cached list no
+  // longer changes and nothing would re-run an effect. The cache is read inside
+  // the timer so a row that arrived in the meantime keeps the draft's slot.
+  useEffect(() => {
+    if (!pendingTitleThread) return;
+
+    const { id, startedAt } = pendingTitleThread;
+    const timeoutId = setTimeout(
+      () => {
+        const latest =
+          queryClient.getQueryData<ThreadSummary[]>(THREADS_QUERY_KEY);
+        if (!latest?.some((thread) => thread.id === id)) clearDraftThread(id);
+        clearPendingTitle();
+      },
+      Math.max(0, startedAt + THREAD_DRAFT_DROP_MS - Date.now()),
+    );
+
+    return () => clearTimeout(timeoutId);
+  }, [pendingTitleThread, queryClient, clearDraftThread, clearPendingTitle]);
 
   const draftThread = useDraftThreadStore((state) => state.draftThread);
 

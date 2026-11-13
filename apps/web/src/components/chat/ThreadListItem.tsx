@@ -5,6 +5,7 @@
 // import IconButton from '@/components/common/IconButton.tsx';
 // import { useComingSoon } from '@/hooks/use-coming-soon.ts';
 import { cn } from '@/lib/cn.ts';
+import { getThreadDisplayTitle } from '@/lib/thread-title.ts';
 import type { ThreadSummary } from '@/types/thread.ts';
 
 interface ThreadListItemProps {
@@ -17,7 +18,12 @@ interface ThreadListItemProps {
 // TODO(coming-soon): the whole per-thread actions menu (Rename / Pin thread /
 // Delete) is disabled until implemented (no rename/pin/delete endpoint on a
 // thread yet) — every item in it only opened the Coming soon dialog.
-const ThreadListItem = ({ thread, isActive, time, onSelect }: ThreadListItemProps) => {
+const ThreadListItem = ({
+  thread,
+  isActive,
+  time,
+  onSelect,
+}: ThreadListItemProps) => {
   // const [isMenuOpen, setIsMenuOpen] = useState(false);
   // const { showComingSoon } = useComingSoon();
   // const closeMenu = () => setIsMenuOpen(false);
@@ -47,7 +53,7 @@ const ThreadListItem = ({ thread, isActive, time, onSelect }: ThreadListItemProp
               : 'text-on-surface-variant group-hover/thread:text-on-surface',
           )}
         >
-          {thread.title || thread.id}
+          {getThreadDisplayTitle(thread)}
         </button>
 
         {/* The timestamp used to hide on hover to make room for the actions
