@@ -6,7 +6,7 @@ import { DB_SCHEMA, THREADS_TABLE } from "@/constants";
 // Schemas
 import type { ThreadSummary } from "@/schemas";
 
-// The one place that knows the `threads` column names (supabase/migrations/*_create_threads.sql).
+// The one place that knows the `threads` column names (`ensureThreadsTable` below creates the table).
 type ThreadRow = {
   id: string;
   owner_id: string;
