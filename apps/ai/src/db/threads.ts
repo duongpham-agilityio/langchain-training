@@ -34,16 +34,41 @@ export const listThreads = async (pool: Pool, ownerId: string): Promise<ThreadSu
   return rows.map(toSummary);
 };
 
-export const hasThread = async (pool: Pool, ownerId: string, id: string): Promise<boolean> => {
-  const { rowCount } = await pool.query(
-    `select 1 from ${THREADS_TABLE} where owner_id = $1 and id = $2`,
-    [ownerId, id],
+/** Owner of a thread row, or null when the id has no row yet. */
+export const getThreadOwner = async (pool: Pool, id: string): Promise<string | null> => {
+  const { rows } = await pool.query<Pick<ThreadRow, "owner_id">>(
+    `select owner_id from ${THREADS_TABLE} where id = $1`,
+    [id],
   );
-  return (rowCount ?? 0) > 0;
+  return rows[0]?.owner_id ?? null;
 };
 
-/** First writer wins: a racing second attempt (or a retry) leaves the stored title alone. */
-export const createThread = async (
+/**
+ * Creates the owner row with an empty title (the title step fills it later) and returns the row's owner.
+ * First writer wins: when the id already belongs to someone else, that owner comes back and nothing changes.
+ */
+export const claimThread = async (pool: Pool, ownerId: string, id: string): Promise<string | null> => {
+  await pool.query(
+    `insert into ${THREADS_TABLE} (id, owner_id) values ($1, $2)
+     on conflict (id) do nothing`,
+    [id, ownerId],
+  );
+  return getThreadOwner(pool, id);
+};
+
+/** Moves a thread the owner just used to the top of the list. A row of another owner is never touched. */
+export const touchThread = async (pool: Pool, ownerId: string, id: string): Promise<void> => {
+  await pool.query(
+    `update ${THREADS_TABLE} set updated_at = now() where owner_id = $1 and id = $2`,
+    [ownerId, id],
+  );
+};
+
+/**
+ * Fills the title of the owner's row only while it is still empty (inserts the row when it is missing),
+ * so a retry or a racing second attempt keeps the stored title and another owner's row is left alone.
+ */
+export const setThreadTitle = async (
   pool: Pool,
   ownerId: string,
   id: string,
@@ -51,9 +76,19 @@ export const createThread = async (
 ): Promise<void> => {
   await pool.query(
     `insert into ${THREADS_TABLE} (id, owner_id, title) values ($1, $2, $3)
-     on conflict (id) do nothing`,
+     on conflict (id) do update set title = excluded.title
+     where ${THREADS_TABLE}.title = '' and ${THREADS_TABLE}.owner_id = excluded.owner_id`,
     [id, ownerId, title],
   );
+};
+
+/** True once the owner's row has a real title; an empty-title row still needs the title step. */
+export const hasTitledThread = async (pool: Pool, ownerId: string, id: string): Promise<boolean> => {
+  const { rowCount } = await pool.query(
+    `select 1 from ${THREADS_TABLE} where owner_id = $1 and id = $2 and title <> ''`,
+    [ownerId, id],
+  );
+  return (rowCount ?? 0) > 0;
 };
 
 /**

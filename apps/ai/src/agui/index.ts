@@ -26,6 +26,7 @@ import {
   GUARD_REPLIES,
   RELEASE_FORMAT_LABELS,
   type ReleaseFormat,
+  THREAD_ACCESS_DENIED_MESSAGE,
   TOOL_NAMES,
   TRACE_METADATA_KEYS,
   TRACE_RUN_NAME,
@@ -37,6 +38,7 @@ import {
   userContext,
   type AnswerEvaluationScheduler,
   type PromptInjectionGuard,
+  type ThreadGate,
   type ThreadTitleScheduler,
 } from "@/utils";
 
@@ -151,6 +153,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
     private readonly scheduleTitle?: ThreadTitleScheduler,
     private readonly guard?: PromptInjectionGuard,
     private readonly scheduleEvaluation?: AnswerEvaluationScheduler,
+    private readonly threads?: ThreadGate,
   ) {
     super();
   }
@@ -167,6 +170,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           threadId: input.threadId,
           runId: input.runId,
         });
+
+        // Owner check first: a thread of someone else is refused before any state is read.
+        if (this.threads && !(await this.threads.canUse(input.threadId))) {
+          throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
+        }
 
         // Runs before the graph so a blocked turn is never checkpointed (see createPromptInjectionGuard).
         const incoming = toLangChainMessages(input);
@@ -186,6 +194,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
             subscriber.complete();
             return;
           }
+        }
+
+        // The guard passed: create the owner row now (empty title). Losing a first-turn race means not ours.
+        if (this.threads && !(await this.threads.claim(input.threadId))) {
+          throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
         }
 
         // Our own id for the graph run, so the answer-quality scores can be attached to it in LangSmith.
@@ -325,6 +338,8 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           runId: input.runId,
           ...(interrupts.length ? { outcome: { type: "interrupt", interrupts } } : {}),
         });
+        // A used turn (including one that ends in an approval) moves the thread up the list.
+        if (producedReply) void this.threads?.touch(input.threadId);
         // Title generation is fire-and-forget, after RUN_FINISHED, and only for a completed turn.
         const firstUserMessage = messages.find((message) => HumanMessage.isInstance(message));
         if (producedReply && !interrupts.length && firstUserMessage) {
@@ -358,6 +373,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
       this.scheduleTitle,
       this.guard,
       this.scheduleEvaluation,
+      this.threads,
     );
   }
 }
@@ -368,4 +384,5 @@ export const createAguiAgent = (
   scheduleTitle?: ThreadTitleScheduler,
   guard?: PromptInjectionGuard,
   scheduleEvaluation?: AnswerEvaluationScheduler,
-) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation);
+  threads?: ThreadGate,
+) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation, threads);
