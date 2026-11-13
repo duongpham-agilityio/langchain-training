@@ -1,4 +1,5 @@
-export const RELEASE_HISTORY_PATH = "/release-history";
+export { RELEASE_HISTORY_PATH, RELEASE_STATUSES } from "@training/contracts";
+
 export const RELEASE_HISTORY_PATH_PATTERN = "/release-history/*";
 export const NEXT_RELEASE_VERSION_PATH = "/release-history/next-version";
 export const LATEST_RELEASE_VERSION_PATH = "/release-history/latest-version";
@@ -12,7 +13,6 @@ export const RELEASE_HISTORY_DEFAULT_PAGE_SIZE = 50;
 export const RELEASE_HISTORY_MAX_PAGE_SIZE = 100;
 export const RELEASE_HISTORY_CURSOR_SEPARATOR = "|";
 
-export const RELEASE_STATUSES = ["draft", "published", "archived"] as const;
 export const RELEASE_STATUS_ARCHIVED = "archived";
 
 // Platforms that have their own column; any other platform goes to `platforms`.

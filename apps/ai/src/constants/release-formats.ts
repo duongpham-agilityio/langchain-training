@@ -1,19 +1,17 @@
+import {
+  CHANGE_TYPES,
+  RELEASE_FORMAT_LABELS,
+  RELEASE_FORMATS,
+  SLACK_MAX_CONTENT_LENGTH,
+  type ReleaseFormat,
+} from "@training/contracts";
+
 // Constants
-import { CHANGE_TYPES } from "./release-changes";
-import { SLACK_MAX_CONTENT_LENGTH } from "./slack";
 import { STORE_LIMITS } from "./store-limits";
 
-/** The one list of release formats, shared by the render tool and the UI. */
-export const RELEASE_FORMATS = [
-  "markdown",
-  "slack",
-  "app-store",
-  "google-play",
-  "json",
-  "html-email",
-] as const;
-
-export type ReleaseFormat = (typeof RELEASE_FORMATS)[number];
+// The format list and labels are shared with the web client.
+export { RELEASE_FORMAT_LABELS, RELEASE_FORMATS };
+export type { ReleaseFormat };
 
 /**
  * Names users say that differ from the canonical format. Keys are already normalized
@@ -27,15 +25,6 @@ export const RELEASE_FORMAT_ALIASES: Readonly<Record<string, ReleaseFormat>> = {
   appstore: "app-store",
   googleplay: "google-play",
   play: "google-play",
-};
-
-export const RELEASE_FORMAT_LABELS: Record<ReleaseFormat, string> = {
-  markdown: "GitHub Markdown",
-  slack: "Slack",
-  "app-store": "App Store",
-  "google-play": "Google Play",
-  json: "JSON",
-  "html-email": "HTML email",
 };
 
 /** Character limit per format. Formats without an entry (Markdown, JSON, HTML email) have no limit. */

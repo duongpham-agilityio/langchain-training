@@ -12,6 +12,7 @@ import { renderReleaseEmail } from "@/utils";
 export const createReleaseEmailRoute = () => {
   const route = new Hono();
 
+  // No web client calls this route.
   route.post(RELEASE_EMAIL_RENDER_PATH, async (c) => {
     // A non-JSON body is treated like any other invalid body.
     const body = await c.req.json().catch(() => undefined);

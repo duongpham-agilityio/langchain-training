@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Constants
-import { RELEASE_NOTES_DATE_PATTERN, RELEASE_VERSION_PATTERN } from "@/constants";
+import { RELEASE_DATE_PATTERN, RELEASE_VERSION_PATTERN } from "@/constants";
 
 // Utils
 import { joinLines } from "@/utils";
@@ -51,7 +51,7 @@ export const ReleaseNotesPreviewInputSchema = z.object({
     ),
   date: z
     .string()
-    .regex(RELEASE_NOTES_DATE_PATTERN)
+    .regex(RELEASE_DATE_PATTERN)
     .optional()
     .describe(
       joinLines(

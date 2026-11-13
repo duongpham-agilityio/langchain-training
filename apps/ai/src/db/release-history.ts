@@ -1,3 +1,4 @@
+import type { ReleaseEntry } from "@training/contracts";
 import type { Pool } from "pg";
 
 // Constants
@@ -35,7 +36,8 @@ type ReleaseHistoryRow = {
   app_store: string | null;
   google_play: string | null;
   platforms: PlatformSlot[] | null;
-  entries: unknown[] | null;
+  // Only ever written as `[]` (see `saveReleaseHistory`), so the shared entry shape holds.
+  entries: ReleaseEntry[] | null;
   feat_count: number | null;
   fix_count: number | null;
   created_at: Date | string;

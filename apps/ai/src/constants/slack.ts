@@ -1,8 +1,7 @@
-export const SLACK_PUBLISH_PATH = "/slack/publish";
+export { SLACK_MAX_CONTENT_LENGTH, SLACK_PUBLISH_PATH } from "@training/contracts";
+
 export const SLACK_PATH_PATTERN = "/slack/*";
 export const SLACK_WEBHOOK_TIMEOUT_MS = 10_000;
-// Slack truncates message text past roughly 40 000 characters; stay below it to leave room for the label line.
-export const SLACK_MAX_CONTENT_LENGTH = 35_000;
 
 export const SLACK_ERROR_MESSAGES = {
   MISSING_WEBHOOK_URL:

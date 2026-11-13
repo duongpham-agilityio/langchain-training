@@ -46,11 +46,13 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
     }
   });
 
+  // No web client calls this route.
   // Before `/:id`, or "latest-version" would be read as a record id and answer 404.
   routes.get(LATEST_RELEASE_VERSION_PATH, async (c) => {
     return c.json({ version: await getLatestReleaseVersion(pool, c.get("userId")) });
   });
 
+  // No web client calls this route.
   routes.post(NEXT_RELEASE_VERSION_PATH, async (c) => {
     const body = NextReleaseVersionRequestSchema.safeParse(await c.req.json().catch(() => null));
     if (!body.success) return c.json({ error: body.error.message }, 400);
