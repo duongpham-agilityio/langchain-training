@@ -15,7 +15,7 @@ pnpm --filter @training/ai start       # node dist/index.js
 pnpm --filter @training/ai typecheck   # tsc --noEmit
 ```
 
-Root shortcut: `pnpm dev:ai`. No test runner, no lint script in this app (root `pnpm lint` only covers apps that define one).
+Build inlines `@training/contracts` via `tsup.config.ts` (`noExternal`). Routes `GET /release-history/latest-version`, `POST /release-history/next-version` and `POST /api/release-email/render` have no web caller. Root shortcut: `pnpm dev:ai`. No test runner, no lint script in this app (root `pnpm lint` only covers apps that define one).
 
 
 ## Architecture
@@ -36,7 +36,7 @@ Root shortcut: `pnpm dev:ai`. No test runner, no lint script in this app (root `
 
 ## Cross-app wiring
 
-Web builds the runtime URL from `VITE_API_SERVER_URL` + `COPILOTKIT_ROUTE_PATH` (`/api/copilotkit`). Server default is `http://localhost:4000/api/copilotkit`; keep `AI_PORT` and `VITE_API_SERVER_URL` in step. The web asks for agent id `releaseCopilotAgent`. Every web request sends the browser IANA zone in `X-Time-Zone` (`TIME_ZONE_HEADER`, allowed in CORS); `userContextMiddleware` validates it with `resolveTimeZone` (invalid or missing = `DEFAULT_TIME_ZONE`).
+Web builds the runtime URL from `VITE_API_SERVER_URL` + `RUNTIME_BASE_PATH` (`/api/copilotkit`). Values both apps use (`RUNTIME_BASE_PATH`, `RELEASE_COPILOT_AGENT_ID`, `TIME_ZONE_HEADER`, `TOOL_NAMES`, route paths, change types, release formats and labels, Slack limit, shared schemas) live in `@training/contracts` (`packages/contracts`); `constants/` and `schemas/` here re-export or extend them, so edit the shared package, not a copy. Server default is `http://localhost:4000/api/copilotkit`; keep `AI_PORT` and `VITE_API_SERVER_URL` in step. The web asks for agent id `releaseCopilotAgent` (shared constant). Every web request sends the browser IANA zone in `X-Time-Zone` (`TIME_ZONE_HEADER`, allowed in CORS); `userContextMiddleware` validates it with `resolveTimeZone` (invalid or missing = `DEFAULT_TIME_ZONE`).
 
 ## Code style and structure
 
