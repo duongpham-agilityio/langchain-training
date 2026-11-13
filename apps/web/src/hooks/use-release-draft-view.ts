@@ -1,7 +1,6 @@
 import { useReleaseWorkspaceStore } from '@/store/release-workspace-store.ts';
 import { EMPTY_DRAFT_THREAD_STATE, toDraftKey } from '@/store/draft-slice.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
-import { composeReleaseContent } from '@/lib/release-notes/release-title.ts';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
 
 export interface ReleaseDraftView {
@@ -29,7 +28,7 @@ export const useReleaseDraftView = (): ReleaseDraftView => {
 
   return {
     draft,
-    content: draft ? composeReleaseContent(draft) : null,
+    content: draft?.content ?? null,
     selectedToolCallId: selected?.toolCallId ?? null,
     isArchived: draft ? archivedDraftKeys.includes(toDraftKey(draft)) : false,
   };

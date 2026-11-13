@@ -23,8 +23,8 @@ const labelFor = ({ releaseDate, monthLabel }: ReleaseHistoryItem, today: string
 
 // Items arrive newest first, so bucket labels are monotone: Today, then
 // Last 7 days, then one run per month. Consecutive runs of the same label are
-// exactly the sections — no re-sorting here. "Today" is read in the release
-// time zone (same one the stored dates use), not the browser's.
+// exactly the sections — no re-sorting here. "Today" is read in the browser
+// time zone, the same one the server stamps release dates in.
 export const groupReleaseHistoryByRecency = (
   items: ReleaseHistoryItem[],
   now: Date = new Date(),

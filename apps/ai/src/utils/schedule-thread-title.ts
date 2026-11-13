@@ -2,7 +2,7 @@ import type { BaseChatModel } from "@langchain/core/language_models/chat_models"
 import type { Pool } from "pg";
 
 // Db
-import { createThread, hasThread } from "@/db";
+import { hasTitledThread, setThreadTitle } from "@/db";
 
 // Utils
 import { generateThreadTitle } from "./thread-title";
@@ -14,7 +14,8 @@ export type ThreadTitleScheduler = (turn: { threadId: string; userMessage: strin
  * Builds the hook the AG-UI agent calls after a turn that produced a reply.
  * The work runs detached (never awaited) so RUN_FINISHED is not delayed, and it never
  * rejects: a failing model or database must not fail a run that already succeeded.
- * "No row yet" is the trigger rather than "first turn", so a failed attempt retries next turn.
+ * "No titled row yet" is the trigger rather than "first turn", so a failed attempt retries next turn;
+ * the row itself already exists from the run start (`claimThread`), the title only fills it.
  */
 export const createThreadTitleScheduler = (
   pool: Pool,
@@ -25,9 +26,9 @@ export const createThreadTitleScheduler = (
     if (!ownerId || !userMessage.trim()) return;
 
     void (async () => {
-      if (await hasThread(pool, ownerId, threadId)) return;
+      if (await hasTitledThread(pool, ownerId, threadId)) return;
       const title = await generateThreadTitle(model, userMessage);
-      if (title) await createThread(pool, ownerId, threadId, title);
+      if (title) await setThreadTitle(pool, ownerId, threadId, title);
     })().catch((error) => {
       console.error(`[ai] thread title failed for ${threadId}: ${String(error)}`);
     });

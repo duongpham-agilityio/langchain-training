@@ -24,7 +24,7 @@ import {
   createSupabaseAdminClient,
   ensureThreadsTable,
 } from "@/db";
-import { type AuthEnv, createRequireAuth, userContextMiddleware } from "@/middlewares";
+import { type AuthEnv, createIdentifyUser, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import {
   createReleaseEmailRoute,
   createReleaseHistoryRoutes,
@@ -35,6 +35,7 @@ import {
   configureTracing,
   createAnswerEvaluationScheduler,
   createPromptInjectionGuard,
+  createThreadGate,
   createThreadTitleScheduler,
 } from "@/utils";
 
@@ -54,6 +55,8 @@ const langsmithClient = config.langsmith.apiKey
   ? new Client({ apiKey: config.langsmith.apiKey })
   : undefined;
 
+export const supabaseAdmin = createSupabaseAdminClient();
+
 const runtime = new CopilotRuntime({
   agents: {
     [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(
@@ -61,12 +64,13 @@ const runtime = new CopilotRuntime({
       createThreadTitleScheduler(pgPool, new ChatOpenAI({ model: config.model })),
       createPromptInjectionGuard(new ChatOpenAI({ model: config.guardModel, temperature: 0 })),
       createAnswerEvaluationScheduler(langsmithClient),
+      createThreadGate(pgPool),
     ),
   },
+  // Scopes every runtime thread operation to the verified caller (a thread id alone is no longer enough).
+  identifyUser: createIdentifyUser(supabaseAdmin),
   runner: new InMemoryAgentRunner(),
 });
-
-export const supabaseAdmin = createSupabaseAdminClient();
 
 const app = new Hono<AuthEnv>();
 app.use(logger());

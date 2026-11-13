@@ -16,6 +16,7 @@ export interface PendingTitleThread {
 interface DraftThreadStoreState {
   draftThread: ThreadSummary | null;
   setDraftThread: (thread: ThreadSummary) => void;
+  clearDraftThread: (id: string) => void;
   pendingTitleThread: PendingTitleThread | null;
   markPendingTitle: (pending: PendingTitleThread) => void;
   clearPendingTitle: () => void;
@@ -27,6 +28,12 @@ export const useDraftThreadStore = create<DraftThreadStoreState>()(
     setDraftThread: (thread) =>
       set((state) =>
         state.draftThread?.id === thread.id ? state : { draftThread: thread },
+      ),
+    // Keyed by id so a late timeout for an old thread cannot wipe the draft of
+    // the chat the user has since started.
+    clearDraftThread: (id) =>
+      set((state) =>
+        state.draftThread?.id === id ? { draftThread: null } : state,
       ),
     pendingTitleThread: null,
     markPendingTitle: (pending) => set({ pendingTitleThread: pending }),
