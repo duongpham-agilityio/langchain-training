@@ -1,5 +1,4 @@
 import { getBrowserTimeZone } from '@/lib/time-zone.ts';
-import { RELEASE_NOTES_TITLE_PREFIX } from '../../constants/config/lib-config';
 import type { ReleaseNotesDraft } from '../../types/release-notes-draft';
 import type { ReleaseHistoryItem } from '../../types/release';
 
@@ -55,18 +54,6 @@ export const formatReleaseMonthDisplay = (
   releaseDate: string,
 ): string =>
   formatParsedReleaseDate(releaseDate, { year: 'numeric', month: 'long' });
-
-export const buildReleaseTitle = (
-  { releaseDate, titleOverride }: ReleaseNotesDraft,
-  now?: Date,
-): string =>
-  titleOverride ??
-  `${RELEASE_NOTES_TITLE_PREFIX}${releaseDate ?? formatReleaseDate(now)}`;
-
-export const composeReleaseContent = (
-  draft: ReleaseNotesDraft,
-  now?: Date,
-): string => `${buildReleaseTitle(draft, now)}\n\n${draft.content}`;
 
 const DEFAULT_RELEASE_NOTES_FILE_NAME = 'RELEASE_NOTES.md';
 
