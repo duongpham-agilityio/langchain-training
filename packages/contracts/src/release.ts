@@ -41,3 +41,16 @@ export const ReleaseEntrySchema = z.object({
 });
 
 export type ReleaseEntry = z.infer<typeof ReleaseEntrySchema>;
+
+/**
+ * The draft shown in the Live Preview, sent by the web as an AG-UI context entry and read by the
+ * server to build an edit request: the release object, the format, its rendered text and the hash.
+ */
+export const DraftContextSchema = z.object({
+  release: ReleaseSchema,
+  format: z.string().min(1),
+  text: z.string().min(1),
+  hash: z.string(),
+});
+
+export type DraftContext = z.infer<typeof DraftContextSchema>;

@@ -4,7 +4,7 @@ import { Client } from "langsmith";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { CopilotRuntime, createCopilotEndpoint, InMemoryAgentRunner } from "@copilotkit/runtime/v2";
+import { CopilotRuntime, createCopilotEndpoint } from "@copilotkit/runtime/v2";
 import { createBaseAgent } from "@/agent";
 import { createAguiAgent } from "@/agui";
 import { config } from "@/config";
@@ -25,6 +25,7 @@ import {
   ensureThreadsTable,
 } from "@/db";
 import { type AuthEnv, createIdentifyUser, createRequireAuth, userContextMiddleware } from "@/middlewares";
+import { createCheckpointAgentRunner } from "@/runner";
 import {
   createReleaseEmailRoute,
   createReleaseHistoryRoutes,
@@ -42,7 +43,7 @@ import {
 // The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
 const pgPool = createPgPool();
 
-// Threads and pending approvals live in Postgres, so they survive a restart. The runner below only replays events.
+// Threads and pending approvals live in Postgres, so they survive a restart. The runner below replays a thread from the checkpoint after a restart.
 const checkpointer = await createCheckpointer(pgPool);
 await ensureThreadsTable(pgPool);
 
@@ -57,10 +58,13 @@ const langsmithClient = config.langsmith.apiKey
 
 export const supabaseAdmin = createSupabaseAdminClient();
 
+// One agent for both: the AG-UI agent runs it, the runner reads its checkpoint to replay a thread after a restart.
+const baseAgent = createBaseAgent(pgPool, { checkpointer });
+
 const runtime = new CopilotRuntime({
   agents: {
     [RELEASE_COPILOT_AGENT_ID]: createAguiAgent(
-      createBaseAgent(pgPool, { checkpointer }),
+      baseAgent,
       createThreadTitleScheduler(pgPool, new ChatOpenAI({ model: config.model })),
       createPromptInjectionGuard(new ChatOpenAI({ model: config.guardModel, temperature: 0 })),
       createAnswerEvaluationScheduler(langsmithClient),
@@ -69,7 +73,7 @@ const runtime = new CopilotRuntime({
   },
   // Scopes every runtime thread operation to the verified caller (a thread id alone is no longer enough).
   identifyUser: createIdentifyUser(supabaseAdmin),
-  runner: new InMemoryAgentRunner(),
+  runner: createCheckpointAgentRunner(baseAgent, pgPool),
 });
 
 const app = new Hono<AuthEnv>();

@@ -4,6 +4,7 @@ import {
   EventType,
   type BaseEvent,
   type Interrupt,
+  type Message,
   type RunAgentInput,
 } from "@ag-ui/client";
 import {
@@ -16,6 +17,9 @@ import {
 import { Command } from "@langchain/langgraph";
 import { Observable } from "rxjs";
 
+// Draft context
+import { findDraftContext } from "./draft-context";
+
 // Agents
 import type { BaseAgent } from "@/agent";
 
@@ -23,6 +27,7 @@ import type { BaseAgent } from "@/agent";
 import {
   APPROVAL_INTERRUPT_REASON,
   APPROVAL_REJECT_MESSAGE,
+  DRAFT_CONTEXT_CONFIG_KEY,
   GUARD_REPLIES,
   RELEASE_FORMAT_LABELS,
   type ReleaseFormat,
@@ -54,7 +59,11 @@ const toText = (content: unknown): string => {
     .join("");
 };
 
-/** AG-UI history -> LangChain messages. System/developer/context are owned by the server prompt. */
+/**
+ * AG-UI history -> LangChain messages. System/developer are owned by the server prompt. `input.context`
+ * is not converted here: the draft entry is read in `run` and reaches the model through
+ * `configurable` and the draft-context middleware, never as a stored message.
+ */
 export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
   input.messages.flatMap((message): BaseMessage[] => {
     switch (message.role) {
@@ -83,6 +92,36 @@ export const toLangChainMessages = (input: RunAgentInput): BaseMessage[] =>
       default:
         return [];
     }
+  });
+
+/**
+ * Checkpoint (LangChain) messages -> AG-UI messages, for replaying a thread after a restart.
+ * System messages are skipped (the server prompt owns them). A message without an id gets the
+ * stable id `<threadId>:<index>`, so the web keeps the same keys on every reconnect.
+ */
+export const toAguiMessages = (messages: BaseMessage[], threadId: string): Message[] =>
+  messages.flatMap((message, index): Message[] => {
+    const id = message.id || `${threadId}:${index}`;
+    if (HumanMessage.isInstance(message)) return [{ id, role: "user", content: message.text }];
+    if (AIMessage.isInstance(message)) {
+      const toolCalls = (message.tool_calls ?? []).map((call) => ({
+        id: call.id ?? `${id}:${call.name}`,
+        type: "function" as const,
+        function: { name: call.name, arguments: JSON.stringify(call.args) },
+      }));
+      return [
+        {
+          id,
+          role: "assistant",
+          content: message.text,
+          ...(toolCalls.length ? { toolCalls } : {}),
+        },
+      ];
+    }
+    if (ToolMessage.isInstance(message)) {
+      return [{ id, role: "tool", content: message.text, toolCallId: message.tool_call_id }];
+    }
+    return [];
   });
 
 /**
@@ -204,6 +243,9 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
         }
 
+        // The draft on screen for this turn only; see createDraftContextMiddleware.
+        const draftContext = findDraftContext(input.context);
+
         // Our own id for the graph run, so the answer-quality scores can be attached to it in LangSmith.
         const langsmithRunId = randomUUID();
         const config = {
@@ -215,7 +257,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
             [TRACE_METADATA_KEYS.threadId]: input.threadId,
             [TRACE_METADATA_KEYS.userId]: userContext.getStore()?.userId,
           },
-          configurable: { thread_id: input.threadId },
+          configurable: {
+            thread_id: input.threadId,
+            // Object value on purpose: primitives would be copied into checkpoint metadata and traces.
+            ...(draftContext ? { [DRAFT_CONTEXT_CONFIG_KEY]: draftContext } : {}),
+          },
         };
         // With a checkpointer the thread already holds the history; resending it would duplicate messages.
         const snapshot = (await this.agent.getState(config)) as {
@@ -389,3 +435,5 @@ export const createAguiAgent = (
   scheduleEvaluation?: AnswerEvaluationScheduler,
   threads?: ThreadGate,
 ) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation, threads);
+
+export * from "./draft-context";

@@ -101,6 +101,8 @@ export const parseReleasePreviewResult = (
         (RELEASE_FORMAT_LABELS as Record<string, string>)[result.format] ??
         result.format,
       content: result.text,
+      release: result.release,
+      hash: result.hash,
     },
   };
 };

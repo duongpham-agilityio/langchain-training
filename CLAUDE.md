@@ -34,6 +34,11 @@ pnpm format:check
 
 Single app / script: `pnpm --filter @training/ai <script>` or `pnpm --filter release-copilot <script>`. No test runner is set up.
 
+## Database and repro scripts
+
+- `supabase/migrations/` holds the SQL migrations (currently `20261109000000_create_release_history.sql`: `release_history` and `release_sends`). The `threads` table is not one of them: the server creates it at start (see `apps/ai/CLAUDE.md`).
+- `docs/reports/repro/run.sh` is a local repro script and is not committed (the folder may be missing in a fresh clone).
+
 ## Tooling
 
 - Task management: GitHub Issues.

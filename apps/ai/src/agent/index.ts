@@ -9,6 +9,7 @@ import { SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constan
 
 // Middlewares
 import {
+  createDraftContextMiddleware,
   createModelFallbackMiddleware,
   createPiiMiddleware,
   memoryMiddleware,
@@ -48,6 +49,8 @@ export const createBaseAgent = (
       // Redacts email and phone in user input before the model sees it (and in stored messages).
       ...createPiiMiddleware(),
       memoryMiddleware,
+      // Adds the on-screen draft to the latest user message for the model call only (not stored).
+      createDraftContextMiddleware(),
       // Pauses the run (LangGraph interrupt) until the user approves or rejects a Slack publish.
       humanInTheLoopMiddleware({
         interruptOn: {
