@@ -1,14 +1,14 @@
-import { MEMORY_THREADS_ROUTE_PATH } from '@/constants/endpoints.ts';
-import { releaseCopilotHttpClient } from '@/services/http-client.ts';
 import {
   ListThreadsResponseSchema,
+  THREADS_PATH,
   type ThreadSummary,
-} from '@/types/thread.ts';
+} from '@training/contracts';
+import { releaseCopilotHttpClient } from '@/services/http-client.ts';
 
 export const listThreads = async (
   queryParams: Record<string, string> = {},
 ): Promise<ThreadSummary[]> => {
-  const body = await releaseCopilotHttpClient.get(MEMORY_THREADS_ROUTE_PATH, {
+  const body = await releaseCopilotHttpClient.get(THREADS_PATH, {
     query: queryParams,
     target: 'the threads list',
   });

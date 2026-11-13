@@ -11,7 +11,7 @@ import {
   classifyChatError,
 } from '@/lib/chat-error.ts';
 import { supabaseAuthService } from '@/lib/auth/supabase-auth-service.ts';
-import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id.ts';
+import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
 import {
   useChatSendFailureStore,
   type ChatSendFailure,

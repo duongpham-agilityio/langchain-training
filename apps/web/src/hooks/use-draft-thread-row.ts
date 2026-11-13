@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { AbstractAgent } from '@copilotkit/react-core/v2';
-import type { ThreadSummary } from '@/types/thread.ts';
+import type { ThreadSummary } from '@training/contracts';
 import { THREADS_QUERY_KEY } from '@/constants/query-keys.ts';
 import { isPlaceholderTitle } from '@/lib/thread-title.ts';
 import { useDraftThreadStore } from '@/store/draft-thread-store.ts';

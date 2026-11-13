@@ -1,8 +1,8 @@
 import { useInterrupt } from '@copilotkit/react-core/v2';
 import SlackPublishConfirmCard from '@/components/chat/SlackPublishConfirmCard.tsx';
-import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id.ts';
-import { PUBLISH_RELEASE_NOTES_TO_SLACK_TOOL_NAME } from '@/constants/agent-tools/tools-name.ts';
-import { SlackPublishRequestSchema } from '@/types/slack-publish-request.ts';
+import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
+import { TOOL_NAMES } from '@training/contracts';
+import { SlackPublishRequestSchema } from '@training/contracts';
 
 // The server pauses the run (LangChain humanInTheLoopMiddleware -> AG-UI
 // interrupt) before publishing to Slack. Approve resumes it with
@@ -14,7 +14,7 @@ export const useSlackPublishApproval = (): void => {
     agentId: RELEASE_COPILOT_AGENT_ID,
     enabled: (event) =>
       (event.value as { metadata?: { toolName?: string } } | undefined)?.metadata
-        ?.toolName === PUBLISH_RELEASE_NOTES_TO_SLACK_TOOL_NAME,
+        ?.toolName === TOOL_NAMES.publishReleaseNotesToSlack,
     render: ({ interrupt, resolve, cancel }) => {
       const args = SlackPublishRequestSchema.safeParse(
         (interrupt?.metadata as { args?: unknown } | undefined)?.args,

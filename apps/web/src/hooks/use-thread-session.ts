@@ -2,8 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { listThreads } from '@/services/list-threads.ts';
-import type { ThreadSummary } from '@/types/thread.ts';
-import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id';
+import type { ThreadSummary } from '@training/contracts';
 import { THREADS_QUERY_KEY } from '@/constants/query-keys.ts';
 import { buildThreadPath, ROUTE_DASHBOARD } from '@/constants/routings.ts';
 import { isPlaceholderTitle } from '@/lib/thread-title.ts';
@@ -17,7 +16,6 @@ import {
   useDraftThreadStore,
   type PendingTitleThread,
 } from '@/store/draft-thread-store.ts';
-import { useAuth } from './use-auth';
 import { useThreadConfig } from './use-thread-config.ts';
 
 // Threads rarely change; avoid refetching every time the dropdown reopens.
@@ -80,8 +78,6 @@ interface UseThreadSessionResult {
 export const useThreadSession = (): UseThreadSessionResult => {
   const { threadId, hasExplicitThreadId, setActiveThreadId, startNewThread } =
     useThreadConfig();
-  const { session } = useAuth();
-  const resourceId = session!.user.id;
   const navigate = useNavigate();
 
   const pendingTitleThread = useDraftThreadStore(
@@ -101,11 +97,8 @@ export const useThreadSession = (): UseThreadSessionResult => {
     isError: isThreadsError,
   } = useQuery({
     queryKey: THREADS_QUERY_KEY,
-    queryFn: () =>
-      listThreads({
-        agentId: RELEASE_COPILOT_AGENT_ID,
-        resourceId,
-      }),
+    // The server scopes the list by the signed-in user, so no filter params.
+    queryFn: () => listThreads(),
     staleTime: THREADS_STALE_TIME_MS,
     // The only polling this query ever does, and only inside the window
     // use-draft-thread-row opens after a run whose thread still has no

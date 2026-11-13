@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ThreadSummary } from '@/types/thread.ts';
+import type { ThreadSummary } from '@training/contracts';
 
 // The thread whose server row is still expected to gain a generated title, and
 // when the client started waiting. Kept here rather than in a ref because the

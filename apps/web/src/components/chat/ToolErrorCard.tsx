@@ -1,6 +1,6 @@
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { useCopilotKit } from '@copilotkit/react-core/v2';
-import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id.ts';
+import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
 import { createUUID } from '@/lib/uuid.ts';
 
 interface ToolErrorCardProps {

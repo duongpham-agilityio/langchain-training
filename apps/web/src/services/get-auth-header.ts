@@ -1,4 +1,4 @@
-import { TIME_ZONE_HEADER } from '@/constants/config/time-zone.ts';
+import { TIME_ZONE_HEADER } from '@training/contracts';
 import { getBrowserTimeZone } from '@/lib/time-zone.ts';
 import { useAuthStore } from '@/store/auth-store.ts';
 

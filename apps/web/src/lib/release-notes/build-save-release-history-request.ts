@@ -1,5 +1,5 @@
 import type { ReleaseNotesDraft } from '../../types/release-notes-draft';
-import type { SaveReleaseHistoryRequest } from '../../types/save-release-history-request';
+import type { SaveReleaseHistoryRequest } from '@training/contracts';
 
 // History lists a release by version + title, so a draft missing either can't
 // be archived yet (the draft schema tells the agent the same) — returns null.

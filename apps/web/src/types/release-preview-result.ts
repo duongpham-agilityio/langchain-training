@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { RELEASE_FORMAT_LABELS } from '@/constants/release-formats.ts';
-import { ReleaseSchema } from '@/types/release-object.ts';
+import { RELEASE_FORMAT_LABELS, ReleaseSchema } from '@training/contracts';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
 
 // What apps/ai `renderReleaseNotesPreview` returns, as a JSON string. Three shapes:
@@ -97,7 +96,10 @@ export const parseReleasePreviewResult = (
       title: result.release.openingLine,
       subject: result.subject,
       platform: result.format,
-      label: RELEASE_FORMAT_LABELS[result.format] ?? result.format,
+      // `format` is any string here: an unknown one falls back to its id.
+      label:
+        (RELEASE_FORMAT_LABELS as Record<string, string>)[result.format] ??
+        result.format,
       content: result.text,
     },
   };

@@ -1,5 +1,7 @@
-import type { SaveReleaseHistoryRequest } from '@/types/save-release-history-request.ts';
-import { RELEASE_HISTORY_ROUTE_PATH } from '@/constants/endpoints.ts';
+import {
+  RELEASE_HISTORY_PATH,
+  type SaveReleaseHistoryRequest,
+} from '@training/contracts';
 import { HttpError } from '@/lib/http/http-client.ts';
 import { releaseCopilotHttpClient } from '@/services/http-client.ts';
 
@@ -20,7 +22,7 @@ export const saveReleaseHistory = async (
 ): Promise<SaveReleaseHistoryResult> => {
   try {
     const body = await releaseCopilotHttpClient.post(
-      RELEASE_HISTORY_ROUTE_PATH,
+      RELEASE_HISTORY_PATH,
       payload,
       { target: 'the release history save route' },
     );

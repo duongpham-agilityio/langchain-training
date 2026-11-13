@@ -1,13 +1,10 @@
 import { z } from 'zod';
+import { PlatformSlotSchema } from '@training/contracts';
 
 // One rendered format of a release: the slot the Live Preview, History and
 // Slack all share. Built client-side from the renderReleaseNotesPreview result
 // (see release-preview-result.ts), no longer filled in by the model.
-export const PlatformDraftSchema = z.object({
-  platform: z.string().min(1),
-  label: z.string().min(1),
-  content: z.string().min(1),
-});
+export const PlatformDraftSchema = PlatformSlotSchema;
 
 export type PlatformDraft = z.infer<typeof PlatformDraftSchema>;
 

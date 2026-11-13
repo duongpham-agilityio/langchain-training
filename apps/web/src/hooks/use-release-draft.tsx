@@ -11,8 +11,8 @@ import { useThreadSession } from '@/hooks/use-thread-session.ts';
 import { useIsLatestToolCall } from '@/hooks/use-is-latest-tool-call.ts';
 import ToolErrorCard from '@/components/chat/ToolErrorCard.tsx';
 import ReleaseDraftCard from '@/components/release-notes/ReleaseDraftCard.tsx';
-import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id.ts';
-import { RENDER_RELEASE_NOTES_PREVIEW_TOOL_NAME } from '@/constants/agent-tools/tools-name.ts';
+import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
+import { TOOL_NAMES } from '@training/contracts';
 import ToolRefusalCard from '@/components/chat/ToolRefusalCard.tsx';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
 import { parseReleasePreviewResult } from '@/types/release-preview-result.ts';
@@ -38,7 +38,7 @@ const DraftToolCall = ({
   onOpen,
 }: DraftToolCallProps) => {
   const isLatest = useIsLatestToolCall(
-    RENDER_RELEASE_NOTES_PREVIEW_TOOL_NAME,
+    TOOL_NAMES.renderReleaseNotesPreview,
     toolCallId,
   );
   const { selectedToolCallId } = useReleaseDraftView();
@@ -93,7 +93,7 @@ export const useReleaseDraft = ({
   const selectDraft = useReleaseWorkspaceStore((state) => state.selectDraft);
 
   useRenderTool({
-    name: RENDER_RELEASE_NOTES_PREVIEW_TOOL_NAME,
+    name: TOOL_NAMES.renderReleaseNotesPreview,
     // The call's arguments (release input) are not shown; the card is built
     // from the tool's result.
     parameters: z.object({}).loose(),
@@ -126,7 +126,7 @@ export const useReleaseDraft = ({
         );
         return (
           <ToolErrorCard
-            toolName={RENDER_RELEASE_NOTES_PREVIEW_TOOL_NAME}
+            toolName={TOOL_NAMES.renderReleaseNotesPreview}
             detail={outcome.detail}
           />
         );

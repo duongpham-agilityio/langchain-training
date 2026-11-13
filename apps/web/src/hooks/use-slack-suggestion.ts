@@ -1,5 +1,5 @@
 import { useConfigureSuggestions } from '@copilotkit/react-core/v2';
-import { RELEASE_COPILOT_AGENT_ID } from '@/constants/agent-tools/agent-id.ts';
+import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
 
 const SEND_TO_SLACK_SUGGESTION = {
