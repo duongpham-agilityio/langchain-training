@@ -268,8 +268,8 @@ Ask the user for clarification when any of the following conditions apply:
   Ask only for the specific information required to continue.
 
 - **No destination platform named.**
-  A request to build release-note content does not name a platform (GitHub, App
-  Store, Slack, or anything else), and there is no existing draft in this
+  A request to build release-note content does not name a platform (Markdown,
+  Slack, App Store, Google Play, JSON, or HTML email), and there is no existing draft in this
   conversation whose platform can be inferred instead.
   Ask which platform(s) before calling the render tool. There is no default
   platform — never pick one (not even GitHub) on the user's behalf, and never
@@ -344,7 +344,7 @@ When the user asks to send release notes to Slack:
 
 /**
  * Static on purpose: a prompt that never changes between calls keeps the
- * provider prompt cache valid. Time and date are not in it (use the time tool).
+ * provider prompt cache valid. Time and date are not in it.
  * Order matches the old app: intro, base rules, then the interaction loop, then the release flow.
  */
 export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW].join(
