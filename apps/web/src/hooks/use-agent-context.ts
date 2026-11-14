@@ -12,7 +12,7 @@ export const useAgentContext = () => {
   // on screen, so an edit request on a reopened draft is built from that draft, not the newest.
   // null while there is no draft, or for one saved before `release` was carried along.
   const value: DraftContext | null =
-    draft?.release && draft.hash
+    draft?.release && draft.hash && !draft.renderError
       ? {
           release: draft.release,
           format: draft.platform,

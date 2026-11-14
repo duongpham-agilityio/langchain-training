@@ -22,6 +22,9 @@ export const ReleaseNotesDraftSchema = z.object({
   // edit request on a reopened draft is built from that draft. Optional: older stored drafts lack them.
   release: ReleaseSchema.optional(),
   hash: z.string().optional(),
+  // Set when the format could not be rendered (over its length limit): `content` is then empty and
+  // the Live Preview shows this instead of text.
+  renderError: z.string().min(1).optional(),
   ...PlatformDraftSchema.shape,
 });
 

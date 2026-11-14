@@ -9,15 +9,15 @@ interface ReleaseHistoryListItemProps {
   onSelect: (item: ReleaseHistoryItem) => void;
 }
 
-// The design's `.rel` row: version + date, title, then platform and send
-// status. Platform is text only — no platform brand icons.
+// The design's `.rel` row: version + date, title, then send
+// status. The format lives in the detail header.
 const ReleaseHistoryListItem = ({
   item,
   isLatest,
   isSelected,
   onSelect,
 }: ReleaseHistoryListItemProps) => {
-  const { version, title, shortDate, platformLabel, sendStatus } = item;
+  const { version, title, shortDate, formatLabel, sendStatus } = item;
   const isSent = sendStatus === ReleaseSendStatus.Sent;
 
   return (
@@ -43,7 +43,7 @@ const ReleaseHistoryListItem = ({
         {version}
       </div>
       <div className="text-label-xs text-on-surface-muted mt-px flex w-full items-center gap-1.5 font-normal">
-        <span>{platformLabel}</span>
+        <span>{formatLabel}</span>
         <span className="ml-auto flex items-center gap-1.25">
           <span
             className={cn(

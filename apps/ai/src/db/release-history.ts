@@ -1,9 +1,8 @@
-import type { ReleaseEntry } from "@training/contracts";
+import type { ReleaseFormat } from "@training/contracts";
 import type { Pool } from "pg";
 
 // Constants
 import {
-  PLATFORM_COLUMNS,
   RELEASE_HISTORY_CURSOR_SEPARATOR,
   RELEASE_HISTORY_TABLE,
   RELEASE_STATUS_ARCHIVED,
@@ -13,52 +12,16 @@ import {
 import type {
   ListReleaseHistoryQuery,
   ListReleaseHistoryResponse,
-  PlatformSlot,
   ReleaseHistoryRecord,
   SaveReleaseHistoryRequest,
 } from "@/schemas";
 
 // Utils
-import { formatReleaseDate } from "@/utils";
+import { toReleaseHistoryRecord, type ReleaseHistoryRow } from "@/utils";
 
-// The one place that knows the `release_history` column names (M-17 / issue #20).
-const COLUMNS = `id, version, title, release_date, title_override, status, github,
-  app_store, google_play, platforms, entries, feat_count, fix_count, created_at`;
-
-type ReleaseHistoryRow = {
-  id: string;
-  version: string;
-  title: string;
-  release_date: string;
-  title_override: string | null;
-  status: ReleaseHistoryRecord["status"];
-  github: string | null;
-  app_store: string | null;
-  google_play: string | null;
-  platforms: PlatformSlot[] | null;
-  // Only ever written as `[]` (see `saveReleaseHistory`), so the shared entry shape holds.
-  entries: ReleaseEntry[] | null;
-  feat_count: number | null;
-  fix_count: number | null;
-  created_at: Date | string;
-};
-
-const toRecord = (row: ReleaseHistoryRow): ReleaseHistoryRecord => ({
-  id: row.id,
-  version: row.version,
-  title: row.title,
-  releaseDate: row.release_date,
-  titleOverride: row.title_override,
-  status: row.status,
-  github: row.github ?? "",
-  appStore: row.app_store,
-  googlePlay: row.google_play,
-  platforms: row.platforms ?? [],
-  entries: row.entries ?? [],
-  featCount: row.feat_count ?? 0,
-  fixCount: row.fix_count ?? 0,
-  createdAt: new Date(row.created_at).toISOString(),
-});
+// The one place that knows the `release_history` column names (F-06): the version, date, title
+// and changes all live inside the `release` object.
+const COLUMNS = "id, release, status, created_at";
 
 const encodeCursor = (row: ReleaseHistoryRow): string =>
   Buffer.from(
@@ -81,14 +44,16 @@ export class InvalidCursorError extends Error {}
 export const listReleaseHistory = async (
   pool: Pool,
   ownerId: string,
-  { q, status, cursor, limit }: ListReleaseHistoryQuery,
+  { q, status, format, cursor, limit }: ListReleaseHistoryQuery,
 ): Promise<ListReleaseHistoryResponse> => {
   const params: unknown[] = [ownerId];
   const where = ["owner_id = $1"];
 
   if (q) {
     params.push(`%${escapeLike(q)}%`);
-    where.push(`(version ilike $${params.length} or title ilike $${params.length})`);
+    // Version and title (the opening line) both live in the release object.
+    const n = params.length;
+    where.push(`(release->>'version' ilike $${n} or release->>'openingLine' ilike $${n})`);
   }
   if (status) {
     params.push(status);
@@ -114,7 +79,7 @@ export const listReleaseHistory = async (
   const page = rows.slice(0, limit);
   const last = page.at(-1);
   return {
-    releases: page.map(toRecord),
+    releases: page.flatMap((row) => toReleaseHistoryRecord(row, format) ?? []),
     nextCursor: rows.length > limit && last ? encodeCursor(last) : null,
   };
 };
@@ -123,12 +88,13 @@ export const getReleaseHistory = async (
   pool: Pool,
   ownerId: string,
   id: string,
+  format: ReleaseFormat,
 ): Promise<ReleaseHistoryRecord | null> => {
   const { rows } = await pool.query<ReleaseHistoryRow>(
     `select ${COLUMNS} from ${RELEASE_HISTORY_TABLE} where owner_id = $1 and id = $2`,
     [ownerId, id],
   );
-  return rows[0] ? toRecord(rows[0]) : null;
+  return rows[0] ? toReleaseHistoryRecord(rows[0], format) : null;
 };
 
 /** The owner's newest saved version (by created_at), or null when none is saved. */
@@ -151,30 +117,13 @@ export const getLatestReleaseVersion = async (
 export const saveReleaseHistory = async (
   pool: Pool,
   ownerId: string,
-  request: SaveReleaseHistoryRequest,
+  { release }: SaveReleaseHistoryRequest,
 ): Promise<{ id: string }> => {
-  const { releaseDate, titleOverride, version, title, platform, label, content } = request;
-  const column = PLATFORM_COLUMNS[platform as keyof typeof PLATFORM_COLUMNS];
-  const extraPlatforms: PlatformSlot[] = column ? [] : [{ platform, label, content }];
-
   const { rows } = await pool.query<{ id: string }>(
-    `insert into ${RELEASE_HISTORY_TABLE}
-       (owner_id, version, title, release_date, title_override, status, github, app_store,
-        google_play, platforms, entries, feat_count, fix_count)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, '[]'::jsonb, 0, 0)
+    `insert into ${RELEASE_HISTORY_TABLE} (owner_id, status, release)
+     values ($1, $2, $3::jsonb)
      returning id`,
-    [
-      ownerId,
-      version,
-      title,
-      releaseDate ?? formatReleaseDate(),
-      titleOverride ?? null,
-      RELEASE_STATUS_ARCHIVED,
-      column === "github" ? content : "",
-      column === "app_store" ? content : null,
-      column === "google_play" ? content : null,
-      JSON.stringify(extraPlatforms),
-    ],
+    [ownerId, RELEASE_STATUS_ARCHIVED, JSON.stringify(release)],
   );
   return { id: rows[0].id };
 };

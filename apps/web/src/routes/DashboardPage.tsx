@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast.ts';
 import { ToastKind } from '@/store/toast-store.ts';
 import { copyText } from '@/lib/clipboard.ts';
 import { downloadTextFile } from '@/lib/download-text-file.ts';
+import { getFormatPresentation } from '@/lib/release-notes/format-presentation.ts';
 import { buildSaveReleaseHistoryRequest } from '@/lib/release-notes/build-save-release-history-request.ts';
 import {
   buildReleaseNotesFileName,
@@ -32,7 +33,7 @@ const DashboardPage = () => {
     open: openPreview,
     close: closePreview,
   } = usePreviewPanel();
-  const { draft, content, isArchived } = useReleaseDraft({
+  const { draft, content, renderError, isArchived } = useReleaseDraft({
     isPreviewOpen,
     onOpenPreview: openPreview,
   });
@@ -54,7 +55,7 @@ const DashboardPage = () => {
         ? {
             kind: ToastKind.Success,
             title: 'Copied to clipboard',
-            description: `Markdown for ${describeReleaseDraft(draft)}`,
+            description: describeReleaseDraft(draft),
           }
         : { kind: ToastKind.Error, title: 'Couldn’t copy release notes' },
     );
@@ -65,7 +66,11 @@ const DashboardPage = () => {
     if (!draft || !content) return;
 
     const fileName = buildReleaseNotesFileName(draft);
-    downloadTextFile(fileName, content);
+    downloadTextFile(
+      fileName,
+      content,
+      getFormatPresentation(draft.platform).mimeType,
+    );
     showToast({
       kind: ToastKind.Success,
       title: `Exported ${fileName}`,
@@ -92,7 +97,13 @@ const DashboardPage = () => {
           isPreviewOpen && (
             <ErrorBoundary title="Preview unavailable">
               <LivePreviewPanel
-                markdown={content}
+                content={content}
+                format={draft?.platform ?? null}
+                formatLabel={draft?.label ?? null}
+                fileName={
+                  draft && content ? buildReleaseNotesFileName(draft) : null
+                }
+                renderError={renderError}
                 onCopy={handleCopy}
                 onExport={handleExport}
                 onArchive={() => draft && archive(draft)}
@@ -100,6 +111,7 @@ const DashboardPage = () => {
                 isArchived={isArchived}
                 canArchive={
                   draft !== null &&
+                  !renderError &&
                   buildSaveReleaseHistoryRequest(draft) !== null
                 }
                 onClose={closePreview}

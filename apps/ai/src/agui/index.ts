@@ -38,6 +38,9 @@ import {
   TRACE_TAG,
 } from "@/constants";
 
+// Schemas
+import { ReleaseSchema } from "@/schemas";
+
 // Utils
 import {
   userContext,
@@ -307,11 +310,13 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
               try {
                 const result = JSON.parse(String(chunk.content));
                 // Only a rendered result is a draft; refusals and over-limit errors leave it unset.
-                if (result.ok === true) {
+                const release = ReleaseSchema.safeParse(result.release);
+                if (result.ok === true && release.success) {
                   draft = {
                     platform: result.format,
                     label: RELEASE_FORMAT_LABELS[result.format as ReleaseFormat],
                     content: result.text,
+                    release: release.data,
                   };
                 }
               } catch {

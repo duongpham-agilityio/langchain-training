@@ -1,3 +1,4 @@
+import { getFormatPresentation } from '@/lib/release-notes/format-presentation.ts';
 import { getBrowserTimeZone } from '@/lib/time-zone.ts';
 import type { ReleaseNotesDraft } from '../../types/release-notes-draft';
 import type { ReleaseHistoryItem } from '../../types/release';
@@ -55,14 +56,17 @@ export const formatReleaseMonthDisplay = (
 ): string =>
   formatParsedReleaseDate(releaseDate, { year: 'numeric', month: 'long' });
 
-const DEFAULT_RELEASE_NOTES_FILE_NAME = 'RELEASE_NOTES.md';
-
-// "v2.4.0-github.md"; drafts without a version fall back to RELEASE_NOTES.md.
+// "v2.4.0-markdown.md", "v2.4.0-json.json", "v2.4.0-html-email.html"; drafts without a
+// version fall back to RELEASE_NOTES.<ext>. The extension follows the format.
 export const buildReleaseNotesFileName = ({
   version,
   platform,
-}: ReleaseNotesDraft): string =>
-  version ? `v${version}-${platform}.md` : DEFAULT_RELEASE_NOTES_FILE_NAME;
+}: ReleaseNotesDraft): string => {
+  const { extension } = getFormatPresentation(platform);
+  return version
+    ? `v${version}-${platform}.${extension}`
+    : `RELEASE_NOTES.${extension}`;
+};
 
 // "v2.4.0 · GitHub", or just the label when the draft has no version.
 export const describeReleaseDraft = ({ version, label }: ReleaseNotesDraft): string =>
@@ -73,15 +77,22 @@ export const describeReleaseDraft = ({ version, label }: ReleaseNotesDraft): str
 export const formatReleaseVersion = (version: string): string =>
   version.startsWith('v') ? version : `v${version}`;
 
-// "v2.4.0-github.md" — the History twin of buildReleaseNotesFileName, whose
+const RELEASE_FORMAT_EXTENSIONS: Record<string, string> = {
+  markdown: '.md',
+  json: '.json',
+  'html-email': '.html',
+};
+
+// "v2.4.0-markdown.md" — the History twin of buildReleaseNotesFileName, whose
 // version is already display-formatted.
 export const buildReleaseHistoryFileName = ({
   version,
-  platformId,
-}: ReleaseHistoryItem): string => `${version}-${platformId}.md`;
+  formatId,
+}: ReleaseHistoryItem): string =>
+  `${version}-${formatId}${RELEASE_FORMAT_EXTENSIONS[formatId] ?? '.txt'}`;
 
 // "v2.4.0 · GitHub"
 export const describeReleaseHistoryItem = ({
   version,
-  platformLabel,
-}: ReleaseHistoryItem): string => `${version} · ${platformLabel}`;
+  formatLabel,
+}: ReleaseHistoryItem): string => `${version} · ${formatLabel}`;

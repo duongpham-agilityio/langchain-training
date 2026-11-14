@@ -7,7 +7,10 @@ export interface ReleaseDraftView {
   // The draft the Live Preview shows: the one the user reopened from an older
   // card, otherwise the thread's newest.
   draft: ReleaseNotesDraft | null;
+  // The rendered text; null when there is none (no draft, or the render failed).
   content: string | null;
+  // The limit error of a draft that could not be rendered, else null.
+  renderError: string | null;
   // Tool call of the reopened draft; null while showing the newest one.
   selectedToolCallId: string | null;
   isArchived: boolean;
@@ -28,7 +31,8 @@ export const useReleaseDraftView = (): ReleaseDraftView => {
 
   return {
     draft,
-    content: draft?.content ?? null,
+    content: draft?.content || null,
+    renderError: draft?.renderError ?? null,
     selectedToolCallId: selected?.toolCallId ?? null,
     isArchived: draft ? archivedDraftKeys.includes(toDraftKey(draft)) : false,
   };

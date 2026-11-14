@@ -59,7 +59,11 @@ const DraftToolCall = ({
         draft.version ? `Release notes · v${draft.version}` : 'Release notes'
       }
       subtitle={
-        draft.subject ? `${draft.label} · ${draft.subject}` : draft.label
+        draft.renderError
+          ? `${draft.label} · nothing to show`
+          : draft.subject
+            ? `${draft.label} · ${draft.subject}`
+            : draft.label
       }
       isGenerating={false}
       isViewing={isShown && isPreviewOpen}
