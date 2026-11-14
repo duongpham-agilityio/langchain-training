@@ -5,3 +5,4 @@ export * from "./threads";
 export * from "./prompt-injection";
 export * from "./release";
 export * from "./release-notes-preview";
+export * from "./user-memory";

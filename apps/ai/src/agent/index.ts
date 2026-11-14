@@ -26,6 +26,8 @@ type CreateAgentParams = Parameters<typeof createAgent>[0];
 export type CreateBaseAgentOptions = {
   middleware?: CreateAgentParams["middleware"];
   checkpointer?: CreateAgentParams["checkpointer"];
+  /** Long-term per-user memory (F-16); without it the memory tools are not registered. */
+  store?: CreateAgentParams["store"];
   systemPrompt?: string;
 };
 
@@ -34,12 +36,13 @@ export const createBaseAgent = (
   {
   middleware,
   checkpointer,
+  store,
   systemPrompt = SYSTEM_PROMPT,
 }: CreateBaseAgentOptions = {},
 ) =>
   createAgent({
     model: new ChatOpenAI({ model: config.model }),
-    tools: createTools(pool),
+    tools: createTools(pool, store),
     systemPrompt,
     // Skills and Slack approval always on; callers add more (e.g. guards) after it.
     middleware: [
@@ -63,6 +66,7 @@ export const createBaseAgent = (
       ...(middleware ?? []),
     ],
     checkpointer,
+    store,
   });
 
 export type BaseAgent = ReturnType<typeof createBaseAgent>;
