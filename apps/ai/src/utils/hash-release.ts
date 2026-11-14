@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
-// Schemas
-import { type Release, ReleaseSchema } from "@/schemas";
+// Shared schema directly: the `@/schemas` barrel pulls in `config` (env), which unit tests cannot load.
+import { type Release, ReleaseSchema } from "@training/contracts";
 
 /**
  * SHA-256 hex of the release object. Parsing first fixes the key order, so the same

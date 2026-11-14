@@ -12,4 +12,4 @@ export const SLACK_TOOL_MESSAGES = {
 
 /** Reasons/decisions exchanged with the AG-UI client for tool approval interrupts. */
 export const APPROVAL_INTERRUPT_REASON = "tool_approval";
-export const APPROVAL_REJECT_MESSAGE = "The user rejected publishing to Slack. Nothing was sent.";
+export const APPROVAL_REJECT_MESSAGE = "The user rejected this action. Nothing was changed or sent.";

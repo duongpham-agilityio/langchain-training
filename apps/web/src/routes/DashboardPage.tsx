@@ -6,6 +6,7 @@ import DashboardLayout from '@/layouts/DashboardLayout.tsx';
 import { useArchiveRelease } from '@/hooks/use-archive-release.ts';
 import { usePreviewPanel } from '@/hooks/use-preview-panel.ts';
 import { useReleaseDraft } from '@/hooks/use-release-draft.tsx';
+import { useEditApproval } from '@/hooks/use-edit-approval.tsx';
 import { useSlackPublishApproval } from '@/hooks/use-slack-publish-approval.tsx';
 import { useSlackSuggestion } from '@/hooks/use-slack-suggestion.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
@@ -38,6 +39,7 @@ const DashboardPage = () => {
     onOpenPreview: openPreview,
   });
   useSlackPublishApproval();
+  useEditApproval();
   useSlackSuggestion(draft);
   const { threadId, threads } = useThreadSession();
   const { showToast } = useToast();
