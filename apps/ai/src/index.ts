@@ -22,6 +22,7 @@ import {
   createCheckpointer,
   createPgPool,
   createSupabaseAdminClient,
+  createUserMemoryStore,
   ensureThreadsTable,
 } from "@/db";
 import { type AuthEnv, createIdentifyUser, createRequireAuth, userContextMiddleware } from "@/middlewares";
@@ -46,6 +47,8 @@ const pgPool = createPgPool();
 // Threads and pending approvals live in Postgres, so they survive a restart. The runner below replays a thread from the checkpoint after a restart.
 const checkpointer = await createCheckpointer(pgPool);
 await ensureThreadsTable(pgPool);
+// Per-user long-term memory (tone, style, opening line); created after the schema exists, survives restarts.
+const userMemoryStore = await createUserMemoryStore();
 
 // Tracing follows the key: set = traces (tagged with thread and user id), empty = off.
 const tracingEnabled = configureTracing(config.langsmith);
@@ -59,7 +62,7 @@ const langsmithClient = config.langsmith.apiKey
 export const supabaseAdmin = createSupabaseAdminClient();
 
 // One agent for both: the AG-UI agent runs it, the runner reads its checkpoint to replay a thread after a restart.
-const baseAgent = createBaseAgent(pgPool, { checkpointer });
+const baseAgent = createBaseAgent(pgPool, { checkpointer, store: userMemoryStore });
 
 const runtime = new CopilotRuntime({
   agents: {
