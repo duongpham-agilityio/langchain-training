@@ -121,3 +121,23 @@ export const failStuckScheduledSends = async (
   );
   return rows.map((r) => ({ id: r.id, ownerId: r.owner_id, releaseId: r.release_id }));
 };
+
+/**
+ * `pending` -> `cancelled` in one statement, scoped to the owner. The status guard makes it atomic with the
+ * poller's claim: a job already claimed (`sending`) or finished matches no row, so it is never cancelled.
+ * Returns `cancelled` on success; otherwise `not_found` (no such job for this user) or `not_pending`.
+ */
+export const cancelScheduledSend = async (
+  pool: Pool,
+  ownerId: string,
+  id: string,
+): Promise<"cancelled" | "not_found" | "not_pending"> => {
+  const { rowCount } = await pool.query(
+    `update ${SCHEDULED_SENDS_TABLE} set status = 'cancelled'
+     where id = $1 and owner_id = $2 and status = 'pending'`,
+    [id, ownerId],
+  );
+  if (rowCount) return "cancelled";
+  const { rows } = await pool.query(`select 1 from ${SCHEDULED_SENDS_TABLE} where id = $1 and owner_id = $2`, [id, ownerId]);
+  return rows.length ? "not_pending" : "not_found";
+};

@@ -1,4 +1,4 @@
-export { RELEASE_HISTORY_PATH, RELEASE_STATUSES } from "@training/contracts";
+export { RELEASE_HISTORY_PATH, SCHEDULED_SENDS_PATH, RELEASE_STATUSES } from "@training/contracts";
 
 export const RELEASE_HISTORY_PATH_PATTERN = "/release-history/*";
 export const NEXT_RELEASE_VERSION_PATH = "/release-history/next-version";

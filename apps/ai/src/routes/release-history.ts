@@ -7,12 +7,15 @@ import {
   LATEST_RELEASE_VERSION_PATH,
   NEXT_RELEASE_VERSION_PATH,
   RELEASE_HISTORY_PATH,
+  SCHEDULED_SENDS_PATH,
 } from "@/constants";
 
 // DB
 import {
   getLatestReleaseVersion,
+  cancelScheduledSend,
   getReleaseHistory,
+  listReleaseSendRows,
   InvalidCursorError,
   listReleaseHistory,
   saveReleaseHistory,
@@ -30,7 +33,7 @@ import {
 } from "@/schemas";
 
 // Utils
-import { nextVersion } from "@/utils";
+import { buildReleaseSendEntries, nextVersion } from "@/utils";
 
 /** Mounted behind `createRequireAuth`; every query is scoped to `c.get("userId")`. */
 export const createReleaseHistoryRoutes = (pool: Pool) => {
@@ -69,6 +72,24 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
     if (!query.success) return c.json({ error: query.error.message }, 400);
     const record = await getReleaseHistory(pool, c.get("userId"), id, query.data.format);
     return record ? c.json(record) : c.json({ error: "Not found" }, 404);
+  });
+
+  routes.get(`${RELEASE_HISTORY_PATH}/:id/sends`, async (c) => {
+    const id = c.req.param("id");
+    if (!z.uuid().safeParse(id).success) return c.json({ error: "Not found" }, 404);
+    const { sends, jobs } = await listReleaseSendRows(pool, c.get("userId"), id);
+    return c.json({ sends: buildReleaseSendEntries(sends, jobs) });
+  });
+
+  routes.post(`${SCHEDULED_SENDS_PATH}/:id/cancel`, async (c) => {
+    const id = c.req.param("id");
+    if (!z.uuid().safeParse(id).success) return c.json({ error: "Not found" }, 404);
+    const result = await cancelScheduledSend(pool, c.get("userId"), id);
+    if (result === "not_found") return c.json({ error: "Not found" }, 404);
+    if (result === "not_pending") {
+      return c.json({ error: "Only a pending send can be cancelled. This one is already sending or finished." }, 409);
+    }
+    return c.json({ id, status: "cancelled" as const });
   });
 
   routes.post(RELEASE_HISTORY_PATH, async (c) => {

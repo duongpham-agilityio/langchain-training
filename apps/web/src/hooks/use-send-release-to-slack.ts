@@ -29,7 +29,10 @@ export const useSendReleaseToSlack = (): UseSendReleaseToSlackResult => {
       }
     },
     onSuccess: (_, item) => {
-      void queryClient.invalidateQueries({ queryKey: RELEASE_HISTORY_QUERY_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: RELEASE_HISTORY_QUERY_KEY,
+      });
+      void queryClient.invalidateQueries({ queryKey: ['release-sends'] });
       showToast({
         kind: ToastKind.Success,
         title: 'Sent to Slack',
