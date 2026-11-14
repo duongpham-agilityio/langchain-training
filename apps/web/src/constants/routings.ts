@@ -1,5 +1,6 @@
 export const ROUTE_DASHBOARD = '/';
 export const ROUTE_HISTORY = '/history';
+export const ROUTE_CHANGELOG = '/changelog';
 export const ROUTE_SIGN_IN = '/sign-in';
 
 // `/?thread=<threadId>` — keeps the open thread across reloads and makes it linkable.

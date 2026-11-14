@@ -42,6 +42,7 @@ export const TOOL_NAMES = {
   renderReleaseNotesPreview: "renderReleaseNotesPreview",
   publishReleaseNotesToSlack: "publishReleaseNotesToSlack",
   editReleaseItem: "editReleaseItem",
+  getChangelog: "getChangelog",
 } as const;
 
 export const RELEASE_COPILOT_AGENT_ID = "releaseCopilotAgent";
