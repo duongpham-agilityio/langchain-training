@@ -12,6 +12,7 @@ import {
   createDraftContextMiddleware,
   createModelFallbackMiddleware,
   createPiiMiddleware,
+  createUserTemplateMiddleware,
   memoryMiddleware,
   skillsMiddleware,
 } from "@/middlewares";
@@ -49,6 +50,8 @@ export const createBaseAgent = (
       // Outermost model wrapper: a failing primary call is retried on the fallback model.
       createModelFallbackMiddleware(),
       skillsMiddleware,
+      // Appends the user's saved template (F-16) after the static prompt on each model call.
+      ...(store ? [createUserTemplateMiddleware(store)] : []),
       // Redacts email and phone in user input before the model sees it (and in stored messages).
       ...createPiiMiddleware(),
       memoryMiddleware,

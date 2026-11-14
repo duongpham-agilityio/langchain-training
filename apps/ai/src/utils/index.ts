@@ -16,4 +16,5 @@ export * from "./render-release";
 export * from "./hash-release";
 export * from "./thread-gate";
 export * from "./schedule-time";
+export * from "./user-template";
 export * from "./release-history-record";

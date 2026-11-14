@@ -36,3 +36,12 @@ You can remember three lasting preferences per user: tone, writing style and ope
 - When asked what you remember, call \`${USER_MEMORY_TOOL_NAMES.read}\` and answer from it only.
 - When asked to forget a preference, call \`${USER_MEMORY_TOOL_NAMES.clear}\` with that field (all fields if they ask to forget everything) and confirm in one line.
 `;
+
+/** F-17: the saved template is appended to the system prompt after the static part, so the static part (and its provider cache prefix) never changes. */
+export const USER_TEMPLATE_HEADER =
+  "# User Template\nApply these saved preferences of the current user to every release-notes draft:";
+export const USER_TEMPLATE_LABELS = {
+  tone: "Tone",
+  writingStyle: "Writing style",
+  openingLine: "Opening line (start the notes with exactly this line)",
+} as const;
