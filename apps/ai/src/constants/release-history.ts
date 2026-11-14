@@ -11,13 +11,7 @@ export const RELEASE_CHANGE_TYPE_FEATURE = "feature";
 export const RELEASE_HISTORY_TABLE = "release_history";
 export const RELEASE_HISTORY_DEFAULT_PAGE_SIZE = 50;
 export const RELEASE_HISTORY_MAX_PAGE_SIZE = 100;
+export const RELEASE_HISTORY_DEFAULT_FORMAT = "markdown" as const;
 export const RELEASE_HISTORY_CURSOR_SEPARATOR = "|";
 
 export const RELEASE_STATUS_ARCHIVED = "archived";
-
-// Platforms that have their own column; any other platform goes to `platforms`.
-export const PLATFORM_COLUMNS = {
-  github: "github",
-  "app-store": "app_store",
-  "google-play": "google_play",
-} as const;

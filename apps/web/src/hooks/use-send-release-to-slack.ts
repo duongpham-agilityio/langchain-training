@@ -10,7 +10,7 @@ interface UseSendReleaseToSlackResult {
   isSending: boolean;
 }
 
-// Sends one archived (version, platform) row to Slack. Nothing is invalidated
+// Sends one archived release in the format on screen to Slack. Nothing is invalidated
 // afterwards: the backend stores no per-platform `sentAt`, so the "Sent to
 // Slack" badge still derives from the release status and won't flip here.
 export const useSendReleaseToSlack = (): UseSendReleaseToSlackResult => {
@@ -20,14 +20,16 @@ export const useSendReleaseToSlack = (): UseSendReleaseToSlackResult => {
     // publishToSlack resolves with { ok: false } instead of rejecting, so
     // rethrow to route failures into onError.
     mutationFn: async ({
-      platformId,
-      platformLabel,
-      markdown,
+      formatId,
+      formatLabel,
+      text,
     }: ReleaseHistoryItem): Promise<void> => {
+      if (!text) throw new Error('This release is too long for this format.');
+
       const result = await publishToSlack({
-        platformId,
-        label: platformLabel,
-        content: markdown,
+        platformId: formatId,
+        label: formatLabel,
+        content: text,
       });
 
       if (!result.ok) {

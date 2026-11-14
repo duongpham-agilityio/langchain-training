@@ -79,7 +79,7 @@ const ReleaseHistoryList = ({
           type="text"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search version, title or platform"
+          placeholder="Search version or title"
           icon={<Search className="text-on-surface-muted size-3.75" />}
           rightSlot={<Kbd className="mr-1.5">/</Kbd>}
           className="border-outline-strong placeholder:text-on-surface-muted focus:border-primary-fixed-dim focus:ring-primary-soft h-9 rounded-[9px] py-0 pr-10 pl-8.5 text-[13.5px] focus:ring-3"

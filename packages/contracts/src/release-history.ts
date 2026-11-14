@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { RELEASE_DATE_PATTERN, RELEASE_STATUSES } from "./constants";
-import { ReleaseEntrySchema } from "./release";
+import { RELEASE_FORMATS, RELEASE_STATUSES } from "./constants";
+import { ReleaseSchema } from "./release";
 
-/** One rendered format of a release: `{platform, label, content}`. */
+/** One rendered format of a release: `{platform, label, content}`. The draft slot the preview and Slack share. */
 export const PlatformSlotSchema = z.object({
   platform: z.string().min(1),
   label: z.string().min(1),
@@ -11,31 +11,23 @@ export const PlatformSlotSchema = z.object({
 
 export type PlatformSlot = z.infer<typeof PlatformSlotSchema>;
 
-// One archive = one platform slot. Archiving the same version again creates a new record.
+/** One archive = one release object. Archiving the same version again creates a new record. */
 export const SaveReleaseHistoryRequestSchema = z.object({
-  releaseDate: z.string().regex(RELEASE_DATE_PATTERN).nullish(),
-  titleOverride: z.string().min(1).nullish(),
-  version: z.string().min(1),
-  title: z.string().min(1),
-  ...PlatformSlotSchema.shape,
+  release: ReleaseSchema,
 });
 
 export type SaveReleaseHistoryRequest = z.infer<typeof SaveReleaseHistoryRequestSchema>;
 
+/**
+ * One stored release. `text` is rendered on read from `release` in `format`
+ * (null when the release is over that format's length limit); it is never stored.
+ */
 export const ReleaseHistoryRecordSchema = z.object({
   id: z.string().min(1),
-  version: z.string().min(1),
-  title: z.string().min(1),
-  releaseDate: z.string().regex(RELEASE_DATE_PATTERN),
-  titleOverride: z.string().nullable(),
+  release: ReleaseSchema,
   status: z.enum(RELEASE_STATUSES),
-  github: z.string(),
-  appStore: z.string().nullable(),
-  googlePlay: z.string().nullable(),
-  platforms: z.array(PlatformSlotSchema),
-  entries: z.array(ReleaseEntrySchema),
-  featCount: z.number().int(),
-  fixCount: z.number().int(),
+  format: z.enum(RELEASE_FORMATS),
+  text: z.string().nullable(),
   createdAt: z.string(),
 });
 

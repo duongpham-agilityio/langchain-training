@@ -73,15 +73,22 @@ export const describeReleaseDraft = ({ version, label }: ReleaseNotesDraft): str
 export const formatReleaseVersion = (version: string): string =>
   version.startsWith('v') ? version : `v${version}`;
 
-// "v2.4.0-github.md" — the History twin of buildReleaseNotesFileName, whose
+const RELEASE_FORMAT_EXTENSIONS: Record<string, string> = {
+  markdown: '.md',
+  json: '.json',
+  'html-email': '.html',
+};
+
+// "v2.4.0-markdown.md" — the History twin of buildReleaseNotesFileName, whose
 // version is already display-formatted.
 export const buildReleaseHistoryFileName = ({
   version,
-  platformId,
-}: ReleaseHistoryItem): string => `${version}-${platformId}.md`;
+  formatId,
+}: ReleaseHistoryItem): string =>
+  `${version}-${formatId}${RELEASE_FORMAT_EXTENSIONS[formatId] ?? '.txt'}`;
 
 // "v2.4.0 · GitHub"
 export const describeReleaseHistoryItem = ({
   version,
-  platformLabel,
-}: ReleaseHistoryItem): string => `${version} · ${platformLabel}`;
+  formatLabel,
+}: ReleaseHistoryItem): string => `${version} · ${formatLabel}`;
