@@ -46,6 +46,7 @@ export const TOOL_NAMES = {
   getCurrentDateTime: "getCurrentDateTime",
   editReleaseItem: "editReleaseItem",
   getChangelog: "getChangelog",
+  showChangelogAnswer: "showChangelogAnswer",
 } as const;
 
 export const RELEASE_COPILOT_AGENT_ID = "releaseCopilotAgent";

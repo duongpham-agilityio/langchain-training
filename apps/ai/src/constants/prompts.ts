@@ -1,6 +1,7 @@
 // Ported as-is from the old app (copilotkit-training/release-copilot, src/mastra/instructions/v2).
 // Only mechanical changes: quotes, identifier names, one file; the intro's "Right now" time block is dropped to keep the prompt static.
 
+import { CHANGELOG_QA_RULE } from "./changelog-qa";
 import { EDIT_RELEASE_ITEM_RULE } from "./edit-release-item";
 import { USER_MEMORY_RULE } from "./user-memory";
 
@@ -370,6 +371,6 @@ When the user asks to send release notes to Slack at a later time ("at 9 AM Mond
  * provider prompt cache valid. Time and date are not in it.
  * Order matches the old app: intro, base rules, then the interaction loop, then the release flow.
  */
-export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW, EDIT_RELEASE_ITEM_RULE, USER_MEMORY_RULE].join(
+export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW, EDIT_RELEASE_ITEM_RULE, CHANGELOG_QA_RULE, USER_MEMORY_RULE].join(
   PROMPT_SECTION_SEPARATOR,
 );
