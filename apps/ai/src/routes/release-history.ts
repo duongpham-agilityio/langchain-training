@@ -23,6 +23,7 @@ import type { AuthEnv } from "@/middlewares";
 
 // Schemas
 import {
+  GetReleaseHistoryQuerySchema,
   ListReleaseHistoryQuerySchema,
   NextReleaseVersionRequestSchema,
   SaveReleaseHistoryRequestSchema,
@@ -64,7 +65,9 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
     const id = c.req.param("id");
     // A non-uuid id would make Postgres throw on the cast; it can only be "not found".
     if (!z.uuid().safeParse(id).success) return c.json({ error: "Not found" }, 404);
-    const record = await getReleaseHistory(pool, c.get("userId"), id);
+    const query = GetReleaseHistoryQuerySchema.safeParse(c.req.query());
+    if (!query.success) return c.json({ error: query.error.message }, 400);
+    const record = await getReleaseHistory(pool, c.get("userId"), id, query.data.format);
     return record ? c.json(record) : c.json({ error: "Not found" }, 404);
   });
 

@@ -15,24 +15,22 @@ export const enum ReleaseHistoryFilter {
   NotSent = 'not-sent',
 }
 
-// One History row: a single (version, platform) pair, not a whole release —
-// the design lists "v2.4.0 · GitHub" and "v2.4.0 · App Store" separately.
+// One History row per archived release. Its text is rendered by the server in
+// the format picked on the page (`formatId`), not stored.
 export interface ReleaseHistoryItem {
-  // `${releaseId}:${platformId}` — React key and list selection only; every
-  // action needs the two ids on their own, so they are stored, not re-split.
   id: string;
-  releaseId: string;
   version: string;
   title: string;
-  platformId: string;
-  platformLabel: string;
+  formatId: string;
+  formatLabel: string;
   sendStatus: ReleaseSendStatus;
   // Raw `YYYYMMDD` — the display strings below can't be bucketed by recency.
   releaseDate: string;
   date: string;
   shortDate: string;
   monthLabel: string;
-  markdown: string;
+  // Null when the release is over the format's length limit.
+  text: string | null;
 }
 
 export interface ReleaseHistoryGroup {

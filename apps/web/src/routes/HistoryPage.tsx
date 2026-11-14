@@ -50,11 +50,13 @@ const HistoryPage = () => {
     filteredCount,
     query,
     filter,
+    format,
     isLoading,
     isError,
     selectItem,
     setQuery,
     setFilter,
+    setFormat,
     clearFilters,
     refetch,
   } = useReleaseHistory();
@@ -65,9 +67,9 @@ const HistoryPage = () => {
       : `${filteredCount} of ${totalCount} archived`;
 
   const handleCopy = async (): Promise<void> => {
-    if (!selectedItem) return;
+    if (!selectedItem?.text) return;
 
-    const isCopied = await copyText(selectedItem.markdown);
+    const isCopied = await copyText(selectedItem.text);
     showToast(
       isCopied
         ? {
@@ -80,10 +82,10 @@ const HistoryPage = () => {
   };
 
   const handleExport = () => {
-    if (!selectedItem) return;
+    if (!selectedItem?.text) return;
 
     const fileName = buildReleaseHistoryFileName(selectedItem);
-    downloadTextFile(fileName, selectedItem.markdown);
+    downloadTextFile(fileName, selectedItem.text);
     showToast({
       kind: ToastKind.Success,
       title: `Exported ${fileName}`,
@@ -94,9 +96,8 @@ const HistoryPage = () => {
   const handleCopyLink = async (): Promise<void> => {
     if (!selectedItem) return;
 
-    const { releaseId, platformId } = selectedItem;
     const isCopied = await copyText(
-      `${window.location.origin}${buildHistoryPath(releaseId, platformId)}`,
+      `${window.location.origin}${buildHistoryPath(selectedItem.id)}`,
     );
     showToast(
       isCopied
@@ -191,6 +192,8 @@ const HistoryPage = () => {
                 <>
                   <ReleaseDetailHeader
                     item={selectedItem}
+                    format={format}
+                    onFormatChange={setFormat}
                     onSendToSlack={() => sendToSlack(selectedItem)}
                     isSending={isSending}
                     onExport={handleExport}
@@ -200,7 +203,7 @@ const HistoryPage = () => {
                     onCopyLink={() => void handleCopyLink()}
                     // onRemove={() => showComingSoon('Remove from history')}
                   />
-                  <ReleaseDetailBody markdown={selectedItem.markdown} />
+                  <ReleaseDetailBody text={selectedItem.text} />
                 </>
               ) : (
                 !isLoading && (

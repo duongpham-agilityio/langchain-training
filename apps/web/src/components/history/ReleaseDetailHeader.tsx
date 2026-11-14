@@ -1,6 +1,7 @@
 import { useState } from 'react';
 // TODO(coming-soon): restore MessageCircle / Trash2 with the Open in new thread and
 // Remove from history items below.
+import { RELEASE_FORMATS, RELEASE_FORMAT_LABELS, type ReleaseFormat } from '@training/contracts';
 import { Copy, Download, Link2, MoreHorizontal, Send } from 'lucide-react';
 import Badge, { BadgeVariant } from '@/components/common/Badge.tsx';
 import Button, {
@@ -13,6 +14,8 @@ import { ReleaseSendStatus, type ReleaseHistoryItem } from '@/types/release.ts';
 
 interface ReleaseDetailHeaderProps {
   item: ReleaseHistoryItem;
+  format: ReleaseFormat;
+  onFormatChange: (format: ReleaseFormat) => void;
   onSendToSlack: () => void;
   // True while the Slack post is in flight — the button locks until it lands.
   isSending: boolean;
@@ -26,6 +29,8 @@ interface ReleaseDetailHeaderProps {
 
 const ReleaseDetailHeader = ({
   item,
+  format,
+  onFormatChange,
   onSendToSlack,
   isSending,
   onExport,
@@ -35,7 +40,7 @@ const ReleaseDetailHeader = ({
   // onRemove,
 }: ReleaseDetailHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { version, title, date, platformLabel, sendStatus } = item;
+  const { version, title, date, sendStatus, text } = item;
   const isSent = sendStatus === ReleaseSendStatus.Sent;
 
   const runMenuAction = (action: () => void) => () => {
@@ -51,9 +56,18 @@ const ReleaseDetailHeader = ({
             <h2 className="text-on-surface text-[26px] leading-8 font-bold tracking-[-0.02em] tabular-nums">
               {title}
             </h2>
-            <span className="border-outline-strong bg-surface-container-lowest text-on-surface-variant inline-flex h-5.5 items-center rounded-md border px-2 text-xs font-medium whitespace-nowrap">
-              {platformLabel}
-            </span>
+            <select
+              aria-label="Format"
+              value={format}
+              onChange={(event) => onFormatChange(event.target.value as ReleaseFormat)}
+              className="border-outline-strong bg-surface-container-lowest text-on-surface-variant h-5.5 rounded-md border px-1.5 text-xs font-medium"
+            >
+              {RELEASE_FORMATS.map((id) => (
+                <option key={id} value={id}>
+                  {RELEASE_FORMAT_LABELS[id]}
+                </option>
+              ))}
+            </select>
             <Badge variant={isSent ? BadgeVariant.Brand : BadgeVariant.Neutral}>
               {isSent ? 'Sent to Slack' : 'Not sent'}
             </Badge>
@@ -71,7 +85,7 @@ const ReleaseDetailHeader = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onClick={onSendToSlack}
-            disabled={isSending}
+            disabled={isSending || !text}
           >
             <Send className="size-3.5" />
             {isSending
@@ -84,6 +98,7 @@ const ReleaseDetailHeader = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onClick={onExport}
+            disabled={!text}
           >
             <Download className="size-3.5" />
             Export
@@ -92,6 +107,7 @@ const ReleaseDetailHeader = ({
             variant={ButtonVariant.Primary}
             size={ButtonSize.Sm}
             onClick={onCopy}
+            disabled={!text}
             className="shadow-sm"
           >
             <Copy className="size-3.5" />

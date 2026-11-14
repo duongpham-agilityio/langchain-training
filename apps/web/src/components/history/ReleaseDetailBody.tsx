@@ -3,7 +3,8 @@ import MarkdownPreview from '@/components/release-notes/MarkdownPreview.tsx';
 import { parseReleaseNoteSections } from '@/lib/release-notes/parse-release-note-sections.ts';
 
 interface ReleaseDetailBodyProps {
-  markdown: string;
+  // Null when the release is over the chosen format's length limit.
+  text: string | null;
 }
 
 // Section dot colours follow the design: fixes rose, performance amber,
@@ -21,14 +22,19 @@ const dotClassFor = (sectionTitle: string): string => {
   return 'bg-primary';
 };
 
-const ReleaseDetailBody = ({ markdown }: ReleaseDetailBodyProps) => {
-  const sections = parseReleaseNoteSections(markdown);
+// Sections only parse out of Markdown; every other format shows as plain text.
+const ReleaseDetailBody = ({ text }: ReleaseDetailBodyProps) => {
+  const sections = parseReleaseNoteSections(text ?? '');
 
   return (
     <article className="min-h-0 flex-1 overflow-y-auto px-8 pt-7 pb-8">
       <div className="flex max-w-170 flex-col gap-7">
-        {sections.length === 0 ? (
-          <MarkdownPreview markdown={markdown} />
+        {text === null ? (
+          <p className="text-on-surface-muted text-[14.5px]">
+            This release is too long for the chosen format. Pick another format.
+          </p>
+        ) : sections.length === 0 ? (
+          <MarkdownPreview markdown={text} />
         ) : (
           sections.map(({ title, items }, sectionIndex) => (
             <section key={`${title}-${sectionIndex}`}>
