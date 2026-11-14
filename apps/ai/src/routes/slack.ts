@@ -1,19 +1,21 @@
+import type { Pool } from "pg";
 import { Hono } from "hono";
-
-// Config
-import { config } from "@/config";
 
 // Constants
 import { SLACK_ERROR_MESSAGES, SLACK_PUBLISH_PATH } from "@/constants";
 
+// Middlewares
+import type { AuthEnv } from "@/middlewares";
+
 // Schemas
 import { SlackPublishRequestSchema } from "@/schemas";
 
-// Utils
-import { postToSlackWebhook, SlackWebhookError } from "@/utils";
+// Services
+import { sendReleaseToSlack } from "@/services";
 
-export const createSlackRoute = () => {
-  const route = new Hono();
+/** Mounted behind `createRequireAuth`. Sends the Slack rendering of one of the caller's stored releases. */
+export const createSlackRoute = (pool: Pool) => {
+  const route = new Hono<AuthEnv>();
 
   route.post(SLACK_PUBLISH_PATH, async (c) => {
     // A non-JSON body is treated like any other invalid body.
@@ -21,16 +23,8 @@ export const createSlackRoute = () => {
     const parsed = SlackPublishRequestSchema.safeParse(body);
     if (!parsed.success) return c.json({ error: SLACK_ERROR_MESSAGES.INVALID_REQUEST }, 400);
 
-    const webhookUrl = config.slackWebhookUrl;
-    if (!webhookUrl) return c.json({ error: SLACK_ERROR_MESSAGES.MISSING_WEBHOOK_URL }, 500);
-
-    try {
-      await postToSlackWebhook(webhookUrl, parsed.data);
-      return c.json({ ok: true });
-    } catch (error) {
-      if (error instanceof SlackWebhookError) return c.json({ error: error.message }, error.status);
-      throw error;
-    }
+    const result = await sendReleaseToSlack(pool, c.get("userId"), parsed.data.releaseId);
+    return result.ok ? c.json({ ok: true }) : c.json({ error: result.error }, result.status);
   });
 
   return route;

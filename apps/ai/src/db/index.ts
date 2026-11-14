@@ -5,4 +5,5 @@ export * from "./release-history";
 export * from "./threads";
 export * from "./checkpointer";
 export * from "./user-memory";
+export * from "./release-sends";
 export * from "./changelog";

@@ -1,7 +1,5 @@
 import { tool } from "langchain";
-
-// Configs
-import { config } from "@/config";
+import type { Pool } from "pg";
 
 // Constants
 import {
@@ -11,29 +9,39 @@ import {
   TOOL_NAMES,
 } from "@/constants";
 
+// Db
+import { findReleaseId, saveReleaseHistory } from "@/db";
+
 // Schemas
-import { SlackPublishRequestSchema } from "@/schemas";
+import { PublishReleaseNotesToSlackInputSchema } from "@/schemas";
+
+// Services
+import { sendReleaseToSlack } from "@/services";
 
 // Utils
-import { postToSlackWebhook, SlackWebhookError } from "@/utils";
+import { userContext } from "@/utils";
 
-/** Runs only after `humanInTheLoopMiddleware` got an approval; a rejection never reaches this body. */
-export const publishReleaseNotesToSlack = tool(
-  async (request) => {
-    const webhookUrl = config.slackWebhookUrl;
-    if (!webhookUrl) return SLACK_ERROR_MESSAGES.MISSING_WEBHOOK_URL;
+/**
+ * Factory because it saves to and records in the database. Runs only after `humanInTheLoopMiddleware`
+ * got an approval, so a rejection never reaches this body and saves nothing.
+ */
+export const createPublishReleaseNotesToSlack = (pool: Pool) =>
+  tool(
+    async ({ release }) => {
+      const userId = userContext.getStore()?.userId;
+      if (!userId) return SLACK_ERROR_MESSAGES.NOT_SIGNED_IN;
 
-    try {
-      await postToSlackWebhook(webhookUrl, request);
-      return SLACK_TOOL_MESSAGES.PUBLISHED;
-    } catch (error) {
-      if (error instanceof SlackWebhookError) return error.message;
-      throw error;
-    }
-  },
-  {
-    name: TOOL_NAMES.publishReleaseNotesToSlack,
-    description: PUBLISH_RELEASE_NOTES_TO_SLACK_DESCRIPTION,
-    schema: SlackPublishRequestSchema,
-  },
-);
+      // An unsaved draft is saved first, so the send always has a History record to attach to.
+      const releaseId =
+        (await findReleaseId(pool, userId, release)) ??
+        (await saveReleaseHistory(pool, userId, { release })).id;
+
+      const result = await sendReleaseToSlack(pool, userId, releaseId);
+      return result.ok ? SLACK_TOOL_MESSAGES.PUBLISHED : result.error;
+    },
+    {
+      name: TOOL_NAMES.publishReleaseNotesToSlack,
+      description: PUBLISH_RELEASE_NOTES_TO_SLACK_DESCRIPTION,
+      schema: PublishReleaseNotesToSlackInputSchema,
+    },
+  );

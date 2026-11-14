@@ -11,14 +11,12 @@ interface PublishToSlackResult {
 }
 
 export const publishToSlack = async ({
-  platformId,
-  label,
-  content,
+  releaseId,
 }: SlackPublishRequest): Promise<PublishToSlackResult> => {
   try {
     await releaseCopilotHttpClient.post(
       SLACK_PUBLISH_PATH,
-      { platformId, label, content },
+      { releaseId },
       { target: 'the Slack publish route' },
     );
     return { ok: true };

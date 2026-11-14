@@ -98,7 +98,7 @@ app.use(RELEASE_HISTORY_PATH_PATTERN, userContextMiddleware);
 app.route("/", createReleaseHistoryRoutes(pgPool));
 app.use(SLACK_PATH_PATTERN, requireAuth);
 app.use(SLACK_PATH_PATTERN, userContextMiddleware);
-app.route("/", createSlackRoute());
+app.route("/", createSlackRoute(pgPool));
 app.route("/", createThreadsRoute(pgPool));
 app.route("/", createChangelogRoute(pgPool));
 app.route("/", createReleaseEmailRoute());
