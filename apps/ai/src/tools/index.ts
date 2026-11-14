@@ -7,6 +7,7 @@ import { createPublishReleaseNotesToSlack } from "./publish-release-notes-to-sla
 import { createRenderReleaseNotesPreview } from "./release-notes-preview";
 import { createSendReleaseEmail } from "./send-release-email";
 import { createGetCurrentDateTime, createScheduleReleaseSend } from "./schedule-release-send";
+import { createShowChangelogAnswer } from "./show-changelog-answer";
 import { createUserMemoryTools } from "./user-memory";
 
 export * from "./edit-release-item";
@@ -15,6 +16,7 @@ export * from "./publish-release-notes-to-slack";
 export * from "./release-notes-preview";
 export * from "./send-release-email";
 export * from "./schedule-release-send";
+export * from "./show-changelog-answer";
 export * from "./user-memory";
 
 export const createTools = (pool: Pool, store?: BaseStore) => [
@@ -25,5 +27,6 @@ export const createTools = (pool: Pool, store?: BaseStore) => [
   createScheduleReleaseSend(pool),
   createEditReleaseItem(),
   createGetChangelog(pool),
+  createShowChangelogAnswer(),
   ...(store ? createUserMemoryTools(store) : []),
 ];

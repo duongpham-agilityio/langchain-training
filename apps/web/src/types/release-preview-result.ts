@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { RELEASE_FORMAT_LABELS, ReleaseSchema } from '@training/contracts';
+import {
+  ChangelogAnswerResultSchema,
+  RELEASE_FORMAT_LABELS,
+  ReleaseSchema,
+} from '@training/contracts';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
 
 // What apps/ai `renderReleaseNotesPreview` returns, as a JSON string. Three shapes:
@@ -142,4 +146,44 @@ export const parseEditReleaseItemResult = (
     return { kind: 'refused', message: refusal.data.error };
   }
   return parseReleasePreviewResult(raw);
+};
+
+const AnswerRefusalSchema = z.object({
+  ok: z.literal(false),
+  error: z.string(),
+});
+
+export const CHANGELOG_ANSWER_LABEL = 'Changelog answer';
+
+// What apps/ai `showChangelogAnswer` returns: a Markdown answer for the Live Preview. It is a draft
+// without `release`/`hash`/`version`, so it cannot be archived, edited or sent as release notes.
+export const parseChangelogAnswerResult = (
+  raw: unknown,
+): ReleasePreviewOutcome => {
+  if (raw === undefined || raw === null || raw === '') {
+    return { kind: 'pending' };
+  }
+  const json = typeof raw === 'string' ? parseJson(raw) : null;
+  if (!json) {
+    return typeof raw === 'string'
+      ? { kind: 'failed', message: raw.trim().slice(0, MAX_FAILURE_LENGTH) }
+      : { kind: 'invalid', detail: 'The tool returned an unexpected result.' };
+  }
+  const refusal = AnswerRefusalSchema.safeParse(json.value);
+  if (refusal.success) {
+    return { kind: 'refused', message: refusal.data.error };
+  }
+  const parsed = ChangelogAnswerResultSchema.safeParse(json.value);
+  if (!parsed.success) {
+    return { kind: 'invalid', detail: parsed.error.message };
+  }
+  return {
+    kind: 'draft',
+    draft: {
+      title: parsed.data.title,
+      platform: 'markdown',
+      label: CHANGELOG_ANSWER_LABEL,
+      content: parsed.data.markdown,
+    },
+  };
 };

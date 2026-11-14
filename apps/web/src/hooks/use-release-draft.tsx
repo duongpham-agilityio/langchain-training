@@ -16,6 +16,7 @@ import { TOOL_NAMES } from '@training/contracts';
 import ToolRefusalCard from '@/components/chat/ToolRefusalCard.tsx';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
 import {
+  parseChangelogAnswerResult,
   parseEditReleaseItemResult,
   parseReleasePreviewResult,
 } from '@/types/release-preview-result.ts';
@@ -23,6 +24,7 @@ import {
 const DRAFT_TOOL_NAMES = [
   TOOL_NAMES.renderReleaseNotesPreview,
   TOOL_NAMES.editReleaseItem,
+  TOOL_NAMES.showChangelogAnswer,
 ] as const;
 
 interface DraftToolCallProps {
@@ -62,7 +64,11 @@ const DraftToolCall = ({
   return (
     <ReleaseDraftCard
       title={
-        draft.version ? `Release notes · v${draft.version}` : 'Release notes'
+        draft.release
+          ? draft.version
+            ? `Release notes · v${draft.version}`
+            : 'Release notes'
+          : (draft.title ?? 'Changelog answer')
       }
       subtitle={
         draft.renderError
@@ -102,13 +108,12 @@ export const useReleaseDraft = ({
   const setDraft = useReleaseWorkspaceStore((state) => state.setDraft);
   const selectDraft = useReleaseWorkspaceStore((state) => state.selectDraft);
 
-  const renderEditResult = (props: {
-    status: string;
-    toolCallId: string;
-    result?: unknown;
-  }) => {
+  const renderEditResult = (
+    props: { status: string; toolCallId: string; result?: unknown },
+    parse: typeof parseEditReleaseItemResult = parseEditReleaseItemResult,
+  ) => {
     if (props.status !== 'complete') return <></>;
-    const outcome = parseEditReleaseItemResult(props.result);
+    const outcome = parse(props.result);
     if (outcome.kind === 'pending') return <></>;
     // A refused edit (outdated draft, unknown item) says so; nothing changed.
     if (outcome.kind === 'refused' || outcome.kind === 'failed') {
@@ -141,6 +146,15 @@ export const useReleaseDraft = ({
     parameters: z.object({}).loose(),
     agentId: RELEASE_COPILOT_AGENT_ID,
     render: renderEditResult,
+  });
+
+  // A changelog answer (F-29) is Markdown for the Live Preview, not a release draft; it reuses the
+  // edit result's card and sync (same outcome shapes).
+  useRenderTool({
+    name: TOOL_NAMES.showChangelogAnswer,
+    parameters: z.object({}).loose(),
+    agentId: RELEASE_COPILOT_AGENT_ID,
+    render: (props) => renderEditResult(props, parseChangelogAnswerResult),
   });
 
   useRenderTool({

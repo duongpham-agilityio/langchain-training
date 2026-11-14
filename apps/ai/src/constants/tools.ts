@@ -33,3 +33,11 @@ export const CHANGELOG_TOOL_MESSAGES = {
   NO_USER: "No signed-in user, so the changelog cannot be read.",
   INVALID_RANGE: "Invalid time range.",
 } as const;
+
+export const SHOW_CHANGELOG_ANSWER_DESCRIPTION =
+  "Show an answer about the user's changelog in the Live Preview panel as Markdown. Call it once, after `getChangelog`, with a short title and the Markdown answer built only from the releases that call returned. It reads and saves nothing.";
+
+export const CHANGELOG_ANSWER_MESSAGES = {
+  NOT_SIGNED_IN: "You need to be signed in to ask about the changelog.",
+  TOO_LONG: "The answer is too long to show. Ask for a shorter range or fewer details.",
+} as const;

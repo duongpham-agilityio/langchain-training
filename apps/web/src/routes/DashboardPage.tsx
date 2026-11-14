@@ -42,7 +42,8 @@ const DashboardPage = () => {
   useSlackPublishApproval();
   useEmailSendApproval();
   useEditApproval();
-  useSlackSuggestion(draft);
+  // Only release notes can be sent; a changelog answer has no release object.
+  useSlackSuggestion(draft?.release ? draft : null);
   const { threadId, threads } = useThreadSession();
   const { showToast } = useToast();
   const { archive, isArchiving } = useArchiveRelease();
