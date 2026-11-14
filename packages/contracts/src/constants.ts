@@ -43,6 +43,8 @@ export const TOOL_NAMES = {
   publishReleaseNotesToSlack: "publishReleaseNotesToSlack",
   scheduleReleaseSend: "scheduleReleaseSend",
   getCurrentDateTime: "getCurrentDateTime",
+  editReleaseItem: "editReleaseItem",
+  getChangelog: "getChangelog",
 } as const;
 
 export const RELEASE_COPILOT_AGENT_ID = "releaseCopilotAgent";

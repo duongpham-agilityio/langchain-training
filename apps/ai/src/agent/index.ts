@@ -6,6 +6,7 @@ import { config } from "@/config";
 
 // Constants
 import {
+  EDIT_APPROVAL_DESCRIPTION,
   SCHEDULE_APPROVAL_DESCRIPTION,
   SLACK_APPROVAL_DESCRIPTION,
   SYSTEM_PROMPT,
@@ -73,6 +74,11 @@ export const createBaseAgent = (
           [TOOL_NAMES.scheduleReleaseSend]: {
             allowedDecisions: ["approve", "reject"],
             description: SCHEDULE_APPROVAL_DESCRIPTION,
+          },
+          // Accept applies the edit, Reject changes nothing (the tool body never runs).
+          [TOOL_NAMES.editReleaseItem]: {
+            allowedDecisions: ["approve", "reject"],
+            description: EDIT_APPROVAL_DESCRIPTION,
           },
         },
       }),

@@ -3,11 +3,12 @@ import { Link } from 'react-router';
 import {
   Archive,
   ChevronRight,
+  History,
   Plus,
   SquareChevronLeft,
   SquareChevronRight,
 } from 'lucide-react';
-import { ROUTE_DASHBOARD, ROUTE_HISTORY } from '@/constants/routings.ts';
+import { ROUTE_CHANGELOG, ROUTE_DASHBOARD, ROUTE_HISTORY } from '@/constants/routings.ts';
 import WorkspaceSwitch from '@/components/common/WorkspaceSwitch.tsx';
 import AccountMenu from '@/components/common/AccountMenu.tsx';
 import Avatar, { AvatarSize } from '@/components/common/Avatar.tsx';
@@ -31,6 +32,7 @@ interface AppSidebarProps {
   avatarSrc?: string;
   onSignOut: () => Promise<void>;
   isHistoryActive: boolean;
+  isChangelogActive: boolean;
   children?: ReactNode;
 }
 
@@ -46,6 +48,7 @@ const AppSidebar = ({
   avatarSrc,
   onSignOut,
   isHistoryActive,
+  isChangelogActive,
   children,
 }: AppSidebarProps) => {
   // TODO(coming-soon): Search threads is disabled until it is implemented.
@@ -82,6 +85,18 @@ const AppSidebar = ({
         />
         */}
         <div className="flex-1" />
+        <Link
+          to={ROUTE_CHANGELOG}
+          aria-label="Changelog"
+          className={cn(
+            'flex size-9 items-center justify-center rounded-lg',
+            isChangelogActive
+              ? 'bg-surface-container text-on-surface'
+              : 'text-on-surface-muted hover:bg-surface-container hover:text-on-surface',
+          )}
+        >
+          <History className="size-4" />
+        </Link>
         <Link
           to={ROUTE_HISTORY}
           aria-label="Release history"
@@ -153,6 +168,19 @@ const AppSidebar = ({
           <Archive className="size-4" />
           <span className="flex-1">Release history</span>
           {!isHistoryActive && <ChevronRight className="size-3.5" />}
+        </Link>
+        <Link
+          to={ROUTE_CHANGELOG}
+          className={cn(
+            NAV_ITEM_CLASSES,
+            isChangelogActive
+              ? 'bg-surface-container text-on-surface font-semibold'
+              : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface',
+          )}
+        >
+          <History className="size-4" />
+          <span className="flex-1">Changelog</span>
+          {!isChangelogActive && <ChevronRight className="size-3.5" />}
         </Link>
         <AccountMenu
           userName={userName}

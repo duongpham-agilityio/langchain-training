@@ -1,7 +1,13 @@
 import { createBrowserRouter } from 'react-router';
 import App from '../App.tsx';
-import { ROUTE_DASHBOARD, ROUTE_HISTORY, ROUTE_SIGN_IN } from '@/constants/routings.ts';
+import {
+  ROUTE_CHANGELOG,
+  ROUTE_DASHBOARD,
+  ROUTE_HISTORY,
+  ROUTE_SIGN_IN,
+} from '@/constants/routings.ts';
 import AppBootstrap from './AppBootstrap.tsx';
+import ChangelogPage from './ChangelogPage.tsx';
 import DashboardPage from './DashboardPage.tsx';
 import HistoryPage from './HistoryPage.tsx';
 import RouteErrorPage from './RouteErrorPage.tsx';
@@ -19,6 +25,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, Component: DashboardPage },
           { path: ROUTE_HISTORY, Component: HistoryPage },
+          { path: ROUTE_CHANGELOG, Component: ChangelogPage },
         ],
       },
     ],
