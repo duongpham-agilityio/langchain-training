@@ -1,3 +1,5 @@
+import type { Release } from "@/schemas";
+
 /** Data of one completed chat turn that the evaluators look at. */
 export type AnswerTurn = {
   /** Id of the agent run in LangSmith; the score is attached to it. */
@@ -6,8 +8,8 @@ export type AnswerTurn = {
   userInput: string;
   /** Assistant text streamed in this turn. */
   answer: string;
-  /** Input of `renderReleaseNotesPreview`, when this turn rendered a draft. */
-  draft?: { platform: string; label: string; content: string };
+  /** Result of `renderReleaseNotesPreview` (release object and its rendered text), when this turn rendered a draft. */
+  draft?: { platform: string; label: string; content: string; release: Release };
 };
 
 export type EvaluatorResult = { key: string; score: number; comment: string };

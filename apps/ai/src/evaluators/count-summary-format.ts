@@ -11,7 +11,7 @@ import type { Evaluator } from "./types";
 
 const COUNT_LINE = /^\s*[-*•]\s*([A-Za-z ]+):\s*(\d+)\s*$/;
 
-/** Count-only summary: one `- Type: N` line per non-empty type, a Total equal to their sum, and `- Breaking: N` outside the sum only when N > 0. */
+/** Count-only summary (no release object exists on this turn, so the text is parsed): one `- Type: N` line per non-empty type, a Total equal to their sum, and `- Breaking: N` outside the sum only when N > 0. */
 export const countSummaryFormat: Evaluator = ({ userInput, answer, draft }) => {
   const inputLines = userInput.split("\n").filter((line) => line.trim()).length;
   if (draft || inputLines < COUNT_SUMMARY_MIN_INPUT_LINES) return null;
@@ -26,10 +26,13 @@ export const countSummaryFormat: Evaluator = ({ userInput, answer, draft }) => {
   const known = COUNT_SUMMARY_CLASSES.filter((name) => counts.has(name));
   const sum = known.reduce((acc, name) => acc + (counts.get(name) ?? 0), 0);
   const breaking = counts.get(COUNT_SUMMARY_BREAKING_LABEL);
+  const totalIncludesBreaking =
+    total !== undefined && breaking !== undefined && breaking > 0 && total === sum + breaking;
   const checks = [
     { ok: total !== undefined, problem: "no Total line" },
     { ok: known.length > 0, problem: "no class count lines" },
     { ok: total === undefined || total === sum, problem: `classes sum to ${sum}, Total is ${total}` },
+    { ok: !totalIncludesBreaking, problem: "Total includes the Breaking line, which is outside the sum" },
     { ok: breaking === undefined || breaking > 0, problem: "Breaking is listed with 0" },
     { ok: known.every((name) => counts.get(name) !== 0), problem: "a class with 0 is listed" },
   ];
