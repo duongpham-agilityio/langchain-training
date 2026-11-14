@@ -24,6 +24,8 @@ export interface ReleaseHistoryItem {
   formatId: string;
   formatLabel: string;
   sendStatus: ReleaseSendStatus;
+  // Recipients of successful email sends, empty when never emailed.
+  emailRecipients: string[];
   // Raw `YYYYMMDD` — the display strings below can't be bucketed by recency.
   releaseDate: string;
   date: string;

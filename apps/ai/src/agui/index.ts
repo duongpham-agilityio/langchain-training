@@ -14,8 +14,11 @@ import {
   ToolMessage,
   type BaseMessage,
 } from "@langchain/core/messages";
-import { Command } from "@langchain/langgraph";
 import { Observable } from "rxjs";
+
+// Resume
+import { findResumeRecipient, toResumeCommand } from "./resume";
+export { findResumeRecipient, toResumeCommand };
 
 // Draft context
 import { findDraftContext } from "./draft-context";
@@ -26,8 +29,8 @@ import type { BaseAgent } from "@/agent";
 // Constants
 import {
   APPROVAL_INTERRUPT_REASON,
-  APPROVAL_REJECT_MESSAGE,
   DRAFT_CONTEXT_CONFIG_KEY,
+  EMAIL_RECIPIENT_CONFIG_KEY,
   GUARD_REPLIES,
   RELEASE_FORMAT_LABELS,
   type ReleaseFormat,
@@ -149,24 +152,6 @@ export const trimToNewMessages = (messages: BaseMessage[]): BaseMessage[] => {
   return messages.slice(lastAssistant + 1).filter((message) => HumanMessage.isInstance(message));
 };
 
-type ApprovalDecision = { type: "approve" } | { type: "reject"; message: string };
-
-/**
- * AG-UI resume entries -> the decisions `humanInTheLoopMiddleware` expects.
- * Only an explicit `resolved` answer with `approve` approves; anything else rejects.
- */
-export const toResumeCommand = (resume: NonNullable<RunAgentInput["resume"]>) =>
-  new Command({
-    resume: {
-      decisions: resume.map(
-        (entry): ApprovalDecision =>
-          entry.status === "resolved" && entry.payload?.decision === "approve"
-            ? { type: "approve" }
-            : { type: "reject", message: APPROVAL_REJECT_MESSAGE },
-      ),
-    },
-  });
-
 /** LangGraph `__interrupt__` update -> AG-UI interrupts (one per pending approval). */
 const toInterrupts = (raw: unknown): Interrupt[] =>
   (Array.isArray(raw) ? raw : []).flatMap((item: { id?: string; value?: ApprovalRequest }) =>
@@ -248,6 +233,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
 
         // The draft on screen for this turn only; see createDraftContextMiddleware.
         const draftContext = findDraftContext(input.context);
+        const emailRecipient = input.resume?.length ? findResumeRecipient(input.resume) : undefined;
 
         // Our own id for the graph run, so the answer-quality scores can be attached to it in LangSmith.
         const langsmithRunId = randomUUID();
@@ -264,6 +250,8 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
             thread_id: input.threadId,
             // Object value on purpose: primitives would be copied into checkpoint metadata and traces.
             ...(draftContext ? { [DRAFT_CONTEXT_CONFIG_KEY]: draftContext } : {}),
+            // Recipient of an approved email send, for the tool only; an object for the same reason.
+            ...(emailRecipient ? { [EMAIL_RECIPIENT_CONFIG_KEY]: { address: emailRecipient } } : {}),
           },
         };
         // With a checkpointer the thread already holds the history; resending it would duplicate messages.

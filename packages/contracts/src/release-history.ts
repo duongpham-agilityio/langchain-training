@@ -29,6 +29,8 @@ export const ReleaseHistoryRecordSchema = z.object({
   format: z.enum(RELEASE_FORMATS),
   text: z.string().nullable(),
   createdAt: z.string(),
+  /** Recipients of successful email sends (F-13), sorted; empty when the release was never emailed. */
+  emailRecipients: z.array(z.string()).default([]),
 });
 
 export type ReleaseHistoryRecord = z.infer<typeof ReleaseHistoryRecordSchema>;

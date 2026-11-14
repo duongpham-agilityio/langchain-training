@@ -5,7 +5,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { config } from "@/config";
 
 // Constants
-import { SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
+import { EMAIL_APPROVAL_DESCRIPTION, SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
 
 // Middlewares
 import {
@@ -57,12 +57,16 @@ export const createBaseAgent = (
       memoryMiddleware,
       // Adds the on-screen draft to the latest user message for the model call only (not stored).
       createDraftContextMiddleware(),
-      // Pauses the run (LangGraph interrupt) until the user approves or rejects a Slack publish.
+      // Pauses the run (LangGraph interrupt) until the user approves or rejects a Slack publish or an email send.
       humanInTheLoopMiddleware({
         interruptOn: {
           [TOOL_NAMES.publishReleaseNotesToSlack]: {
             allowedDecisions: ["approve", "reject"],
             description: SLACK_APPROVAL_DESCRIPTION,
+          },
+          [TOOL_NAMES.sendReleaseEmail]: {
+            allowedDecisions: ["approve", "reject"],
+            description: EMAIL_APPROVAL_DESCRIPTION,
           },
         },
       }),

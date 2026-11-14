@@ -36,6 +36,7 @@ const mapRecordToItem = ({
   status,
   format,
   text,
+  emailRecipients,
 }: ReleaseHistoryRecord): ReleaseHistoryItem => ({
   id,
   version: formatReleaseVersion(release.version),
@@ -46,6 +47,7 @@ const mapRecordToItem = ({
     status === ReleaseStatus.Published
       ? ReleaseSendStatus.Sent
       : ReleaseSendStatus.NotSent,
+  emailRecipients,
   releaseDate: release.date,
   date: formatReleaseDateDisplay(release.date),
   shortDate: formatReleaseShortDateDisplay(release.date),

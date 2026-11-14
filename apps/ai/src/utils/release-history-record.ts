@@ -11,6 +11,8 @@ export type ReleaseHistoryRow = {
   release: unknown;
   status: ReleaseHistoryRecord["status"];
   created_at: Date | string;
+  /** Recipients of successful email sends; absent for rows from queries that do not select it. */
+  email_recipients?: string[] | null;
 };
 
 /**
@@ -32,5 +34,6 @@ export const toReleaseHistoryRecord = (
     format,
     text: rendered.ok ? rendered.text : null,
     createdAt: new Date(row.created_at).toISOString(),
+    emailRecipients: row.email_recipients ?? [],
   };
 };

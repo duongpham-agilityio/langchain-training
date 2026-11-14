@@ -345,6 +345,14 @@ When the user asks to send release notes to Slack:
 1. Use the \`release\` of the rendered result (render the release first if there is none; any format will do).
 2. Call \`publishReleaseNotesToSlack\` once with that \`release\` copied unchanged. Never pass text: the server renders the Slack message and saves the release to History if it is not saved yet. The system asks the user to approve before it runs; do not ask for confirmation yourself.
 3. After a published result, reply with one short line. If the user rejected, reply that nothing was sent and do not call the tool again unless they ask again.
+
+## Sending by email
+
+When the user asks to email release notes:
+
+1. Use the \`release\` of the rendered result (render the release first if there is none; any format will do).
+2. Call \`sendReleaseEmail\` once with that \`release\` copied unchanged. Never pass text or an email address: the user types the recipient on the approval card, the server renders the HTML email and saves the release to History if it is not saved yet. Addresses in chat appear redacted; do not ask for one or repeat one. The system asks the user to approve before it runs; do not ask for confirmation yourself.
+3. After a sent result, reply with one short line. If the user rejected, or the result is an error, tell them in one line that nothing was sent and do not call the tool again unless they ask again.
 `;
 
 /**

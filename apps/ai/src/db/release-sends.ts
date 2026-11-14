@@ -38,22 +38,28 @@ export const getStoredRelease = async (
   return rows[0]?.release ?? null;
 };
 
-/** Writes one Slack `release_sends` row; a successful send also marks the release `published`, in one transaction. */
-export const recordSlackSend = async (
+type SendChannel = "slack" | "email";
+
+/** Writes one `release_sends` row; a successful send also marks the release `published`, in one transaction. */
+const recordSend = async (
   pool: Pool,
   ownerId: string,
   releaseId: string,
+  channel: SendChannel,
+  recipient: string,
   outcome: ReleaseSendOutcome,
 ): Promise<void> => {
   const client = await pool.connect();
   try {
     await client.query("begin");
     await client.query(
-      `insert into ${RELEASE_SENDS_TABLE} (release_id, owner_id, channel, status, sent_at, error)
-       values ($1, $2, 'slack', $3, $4, $5)`,
+      `insert into ${RELEASE_SENDS_TABLE} (release_id, owner_id, channel, recipient, status, sent_at, error)
+       values ($1, $2, $3, $4, $5, $6, $7)`,
       [
         releaseId,
         ownerId,
+        channel,
+        recipient,
         outcome.status,
         outcome.status === "sent" ? new Date() : null,
         outcome.status === "failed" ? outcome.error : null,
@@ -73,3 +79,20 @@ export const recordSlackSend = async (
     client.release();
   }
 };
+
+/** One Slack send. */
+export const recordSlackSend = (
+  pool: Pool,
+  ownerId: string,
+  releaseId: string,
+  outcome: ReleaseSendOutcome,
+): Promise<void> => recordSend(pool, ownerId, releaseId, "slack", "", outcome);
+
+/** One email send, with its recipient (F-13). */
+export const recordEmailSend = (
+  pool: Pool,
+  ownerId: string,
+  releaseId: string,
+  recipient: string,
+  outcome: ReleaseSendOutcome,
+): Promise<void> => recordSend(pool, ownerId, releaseId, "email", recipient, outcome);

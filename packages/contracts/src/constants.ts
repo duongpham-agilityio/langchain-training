@@ -41,6 +41,7 @@ export const SLACK_MAX_CONTENT_LENGTH = 35_000;
 export const TOOL_NAMES = {
   renderReleaseNotesPreview: "renderReleaseNotesPreview",
   publishReleaseNotesToSlack: "publishReleaseNotesToSlack",
+  sendReleaseEmail: "sendReleaseEmail",
 } as const;
 
 export const RELEASE_COPILOT_AGENT_ID = "releaseCopilotAgent";
