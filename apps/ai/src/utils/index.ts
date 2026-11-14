@@ -18,3 +18,5 @@ export * from "./thread-gate";
 export * from "./schedule-time";
 export * from "./user-template";
 export * from "./release-history-record";
+export * from "./release-cursor";
+export * from "./changelog";

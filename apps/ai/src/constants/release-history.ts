@@ -15,3 +15,7 @@ export const RELEASE_HISTORY_DEFAULT_FORMAT = "markdown" as const;
 export const RELEASE_HISTORY_CURSOR_SEPARATOR = "|";
 
 export const RELEASE_STATUS_ARCHIVED = "archived";
+
+export const RELEASE_SENDS_TABLE = "release_sends";
+export const RELEASE_SEND_STATUS_SENT = "sent";
+export { CHANGELOG_PATH } from "@training/contracts";

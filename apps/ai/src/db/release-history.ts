@@ -3,7 +3,6 @@ import type { Pool } from "pg";
 
 // Constants
 import {
-  RELEASE_HISTORY_CURSOR_SEPARATOR,
   RELEASE_HISTORY_TABLE,
   RELEASE_STATUS_ARCHIVED,
 } from "@/constants";
@@ -17,24 +16,16 @@ import type {
 } from "@/schemas";
 
 // Utils
-import { toReleaseHistoryRecord, type ReleaseHistoryRow } from "@/utils";
+import {
+  decodeReleaseCursor,
+  encodeReleaseCursor,
+  toReleaseHistoryRecord,
+  type ReleaseHistoryRow,
+} from "@/utils";
 
 // The one place that knows the `release_history` column names (F-06): the version, date, title
 // and changes all live inside the `release` object.
 const COLUMNS = "id, release, status, created_at";
-
-const encodeCursor = (row: ReleaseHistoryRow): string =>
-  Buffer.from(
-    `${new Date(row.created_at).toISOString()}${RELEASE_HISTORY_CURSOR_SEPARATOR}${row.id}`,
-  ).toString("base64url");
-
-/** Returns null for a malformed cursor so the route can answer 400. */
-const decodeCursor = (cursor: string): [string, string] | null => {
-  const [createdAt, id] = Buffer.from(cursor, "base64url")
-    .toString()
-    .split(RELEASE_HISTORY_CURSOR_SEPARATOR);
-  return createdAt && id && !Number.isNaN(Date.parse(createdAt)) ? [createdAt, id] : null;
-};
 
 /** Escapes LIKE wildcards so a search for `100%` matches literally. */
 const escapeLike = (value: string): string => value.replace(/[\\%_]/g, "\\$&");
@@ -60,7 +51,7 @@ export const listReleaseHistory = async (
     where.push(`status = $${params.length}`);
   }
   if (cursor) {
-    const decoded = decodeCursor(cursor);
+    const decoded = decodeReleaseCursor(cursor);
     if (!decoded) throw new InvalidCursorError("Invalid cursor");
     params.push(decoded[0], decoded[1]);
     where.push(`(created_at, id) < ($${params.length - 1}::timestamptz, $${params.length}::uuid)`);
@@ -80,7 +71,7 @@ export const listReleaseHistory = async (
   const last = page.at(-1);
   return {
     releases: page.flatMap((row) => toReleaseHistoryRecord(row, format) ?? []),
-    nextCursor: rows.length > limit && last ? encodeCursor(last) : null,
+    nextCursor: rows.length > limit && last ? encodeReleaseCursor(last) : null,
   };
 };
 
