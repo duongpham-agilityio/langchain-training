@@ -7,6 +7,7 @@ import { useArchiveRelease } from '@/hooks/use-archive-release.ts';
 import { usePreviewPanel } from '@/hooks/use-preview-panel.ts';
 import { useReleaseDraft } from '@/hooks/use-release-draft.tsx';
 import { useEmailSendApproval } from '@/hooks/use-email-send-approval.tsx';
+import { useEditApproval } from '@/hooks/use-edit-approval.tsx';
 import { useSlackPublishApproval } from '@/hooks/use-slack-publish-approval.tsx';
 import { useSlackSuggestion } from '@/hooks/use-slack-suggestion.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
@@ -40,6 +41,7 @@ const DashboardPage = () => {
   });
   useSlackPublishApproval();
   useEmailSendApproval();
+  useEditApproval();
   useSlackSuggestion(draft);
   const { threadId, threads } = useThreadSession();
   const { showToast } = useToast();

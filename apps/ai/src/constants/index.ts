@@ -21,3 +21,4 @@ export * from "./release-email";
 export * from "./release-formats";
 export * from "./draft-context";
 export * from "./user-memory";
+export * from "./edit-release-item";

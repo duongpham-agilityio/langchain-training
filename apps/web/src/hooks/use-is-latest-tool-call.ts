@@ -8,7 +8,7 @@ import { findLatestToolCallId } from '@/lib/copilot/find-latest-tool-call-id.ts'
 // thread's latest entries/draft. Registers no CopilotKit primitive — safe to
 // call from any number of components.
 export const useIsLatestToolCall = (
-  toolName: string,
+  toolName: string | ReadonlyArray<string>,
   toolCallId: string,
 ): boolean => {
   const { agent } = useAgent({ agentId: RELEASE_COPILOT_AGENT_ID });

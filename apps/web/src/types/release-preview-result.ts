@@ -128,3 +128,18 @@ export const parseReleasePreviewResult = (
     },
   };
 };
+
+const EditRefusalSchema = z.object({ ok: z.literal(false), error: z.string() });
+
+// What apps/ai `editReleaseItem` returns after an Accept: the new draft in the same shape as the
+// preview tool, or `{ ok: false, error }` when the edit was refused (outdated draft, unknown item).
+export const parseEditReleaseItemResult = (
+  raw: unknown,
+): ReleasePreviewOutcome => {
+  const json = typeof raw === 'string' ? parseJson(raw) : null;
+  const refusal = EditRefusalSchema.safeParse(json?.value);
+  if (refusal.success && !('release' in (json?.value as object))) {
+    return { kind: 'refused', message: refusal.data.error };
+  }
+  return parseReleasePreviewResult(raw);
+};

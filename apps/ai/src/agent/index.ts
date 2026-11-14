@@ -5,13 +5,21 @@ import { ChatOpenAI } from "@langchain/openai";
 import { config } from "@/config";
 
 // Constants
-import { EMAIL_APPROVAL_DESCRIPTION, SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
+import {
+  EDIT_APPROVAL_DESCRIPTION,
+  EMAIL_APPROVAL_DESCRIPTION,
+  SCHEDULE_APPROVAL_DESCRIPTION,
+  SLACK_APPROVAL_DESCRIPTION,
+  SYSTEM_PROMPT,
+  TOOL_NAMES,
+} from "@/constants";
 
 // Middlewares
 import {
   createDraftContextMiddleware,
   createModelFallbackMiddleware,
   createPiiMiddleware,
+  createScheduleValidationMiddleware,
   createUserTemplateMiddleware,
   memoryMiddleware,
   skillsMiddleware,
@@ -68,8 +76,19 @@ export const createBaseAgent = (
             allowedDecisions: ["approve", "reject"],
             description: EMAIL_APPROVAL_DESCRIPTION,
           },
+          [TOOL_NAMES.scheduleReleaseSend]: {
+            allowedDecisions: ["approve", "reject"],
+            description: SCHEDULE_APPROVAL_DESCRIPTION,
+          },
+          // Accept applies the edit, Reject changes nothing (the tool body never runs).
+          [TOOL_NAMES.editReleaseItem]: {
+            allowedDecisions: ["approve", "reject"],
+            description: EDIT_APPROVAL_DESCRIPTION,
+          },
         },
       }),
+      // After the approval middleware on purpose (afterModel runs in reverse): bad times never reach the card.
+      createScheduleValidationMiddleware(),
       ...(middleware ?? []),
     ],
     checkpointer,

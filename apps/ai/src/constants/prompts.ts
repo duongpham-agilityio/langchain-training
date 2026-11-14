@@ -1,6 +1,7 @@
 // Ported as-is from the old app (copilotkit-training/release-copilot, src/mastra/instructions/v2).
 // Only mechanical changes: quotes, identifier names, one file; the intro's "Right now" time block is dropped to keep the prompt static.
 
+import { EDIT_RELEASE_ITEM_RULE } from "./edit-release-item";
 import { USER_MEMORY_RULE } from "./user-memory";
 
 export const PROMPT_SECTION_SEPARATOR = "\n\n---\n\n";
@@ -353,6 +354,15 @@ When the user asks to email release notes:
 1. Use the \`release\` of the rendered result (render the release first if there is none; any format will do).
 2. Call \`sendReleaseEmail\` once with that \`release\` copied unchanged. Never pass text or an email address: the user types the recipient on the approval card, the server renders the HTML email and saves the release to History if it is not saved yet. Addresses in chat appear redacted; do not ask for one or repeat one. The system asks the user to approve before it runs; do not ask for confirmation yourself.
 3. After a sent result, reply with one short line. If the user rejected, or the result is an error, tell them in one line that nothing was sent and do not call the tool again unless they ask again.
+
+## Scheduling a send
+
+When the user asks to send release notes to Slack at a later time ("at 9 AM Monday", "7pm today"):
+
+1. Use the \`release\` of the rendered result (render the release first if there is none).
+2. Call \`getCurrentDateTime\` to learn today's date and weekday in the user's time zone, then work out the user's LOCAL date-time as \`YYYY-MM-DDTHH:mm\`. Never convert time zones and never add an offset.
+3. Call \`scheduleReleaseSend\` once with the \`release\` copied unchanged and that \`localDateTime\`. The system asks the user to approve before it runs; do not ask for confirmation yourself.
+4. If the result says the time is in the past or does not exist, tell the user and ask for another time; do not guess one. After a scheduled result reply with one short line. If the user rejected, reply that nothing was scheduled and do not call the tool again unless they ask again.
 `;
 
 /**
@@ -360,6 +370,6 @@ When the user asks to email release notes:
  * provider prompt cache valid. Time and date are not in it.
  * Order matches the old app: intro, base rules, then the interaction loop, then the release flow.
  */
-export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW, USER_MEMORY_RULE].join(
+export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW, EDIT_RELEASE_ITEM_RULE, USER_MEMORY_RULE].join(
   PROMPT_SECTION_SEPARATOR,
 );
