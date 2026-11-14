@@ -7,6 +7,7 @@ export * from "./release";
 export * from "./release-notes-preview";
 export * from "./user-memory";
 export * from "./changelog";
+export * from "./send-release-email";
 export * from "./schedule-send";
 export * from "./edit-release-item";
 export * from "./changelog-tool";

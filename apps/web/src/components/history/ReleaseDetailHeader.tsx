@@ -40,7 +40,7 @@ const ReleaseDetailHeader = ({
   // onRemove,
 }: ReleaseDetailHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { version, title, date, sendStatus, text } = item;
+  const { version, title, date, sendStatus, text, emailRecipients } = item;
   const isSent = sendStatus === ReleaseSendStatus.Sent;
 
   const runMenuAction = (action: () => void) => () => {
@@ -78,6 +78,11 @@ const ReleaseDetailHeader = ({
           <div className="text-on-surface-muted mt-1 text-[12.5px]">
             Archived {date}
           </div>
+          {emailRecipients.length > 0 && (
+            <div className="text-on-surface-muted mt-1 text-[12.5px]">
+              Emailed to {emailRecipients.join(', ')}
+            </div>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">

@@ -4,6 +4,7 @@ import type { Pool } from "pg";
 // Constants
 import {
   RELEASE_HISTORY_TABLE,
+  RELEASE_SENDS_TABLE,
   RELEASE_STATUS_ARCHIVED,
 } from "@/constants";
 
@@ -25,7 +26,13 @@ import {
 
 // The one place that knows the `release_history` column names (F-06): the version, date, title
 // and changes all live inside the `release` object.
-const COLUMNS = "id, release, status, created_at";
+// `email_recipients` = distinct recipients of successful email sends (F-13), for the detail view.
+const COLUMNS = `id, release, status, created_at,
+  coalesce((
+    select array_agg(distinct s.recipient order by s.recipient)
+    from ${RELEASE_SENDS_TABLE} s
+    where s.release_id = ${RELEASE_HISTORY_TABLE}.id and s.channel = 'email' and s.status = 'sent'
+  ), '{}') as email_recipients`;
 
 /** Escapes LIKE wildcards so a search for `100%` matches literally. */
 const escapeLike = (value: string): string => value.replace(/[\\%_]/g, "\\$&");

@@ -23,6 +23,11 @@ describe("toRecord", () => {
     expect(record?.createdAt).toBe("2026-11-10T00:00:00.000Z");
   });
 
+  it("carries the email recipients, empty when none", () => {
+    expect(toRecord(row, "markdown")?.emailRecipients).toEqual([]);
+    expect(toRecord({ ...row, email_recipients: ["a@b.co"] }, "markdown")?.emailRecipients).toEqual(["a@b.co"]);
+  });
+
   it("renders the same release differently per format", () => {
     expect(toRecord(row, "slack")?.text).toContain("*1.2.0 (20261110)*");
   });
