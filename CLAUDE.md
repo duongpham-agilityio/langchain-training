@@ -26,13 +26,14 @@ pnpm dev            # all apps
 pnpm dev:web        # release-copilot only
 pnpm dev:ai         # @training/ai only
 pnpm build
+pnpm test          # vitest (apps/ai)
 pnpm typecheck     # contracts + ai (web is typechecked by `pnpm build`: tsc -b)
 pnpm lint
 pnpm format         # prettier --write (web)
 pnpm format:check
 ```
 
-Single app / script: `pnpm --filter @training/ai <script>` or `pnpm --filter release-copilot <script>`. No test runner is set up.
+Single app / script: `pnpm --filter @training/ai <script>` or `pnpm --filter release-copilot <script>`. Tests: Vitest in `apps/ai` (`*.test.ts` next to the source); `pnpm --filter @training/ai test`.
 
 ## Database and repro scripts
 
