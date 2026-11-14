@@ -19,3 +19,5 @@ export * from "./schedule-time";
 export * from "./user-template";
 export * from "./release-history-record";
 export * from "./slack-message";
+export * from "./release-cursor";
+export * from "./changelog";

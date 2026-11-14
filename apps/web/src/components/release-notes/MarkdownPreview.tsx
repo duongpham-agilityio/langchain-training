@@ -1,17 +1,33 @@
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/cn';
+import { PREVIEW_ITEM_ATTRIBUTE } from '@/constants/preview-edit';
 
 interface MarkdownPreviewProps {
   markdown: string | null;
   className?: string;
+  // Source line -> property id; lines listed here render with the item attribute so a selection
+  // inside them can be traced to its property.
+  itemIds?: Map<number, string>;
 }
 
-const MarkdownPreview = ({ markdown, className }: MarkdownPreviewProps) => {
+const itemAttribute = (
+  itemIds: Map<number, string>,
+  line: number | undefined,
+) => {
+  const id = line === undefined ? undefined : itemIds.get(line);
+  return id ? { [PREVIEW_ITEM_ATTRIBUTE]: id } : {};
+};
+
+const MarkdownPreview = ({
+  markdown,
+  className,
+  itemIds,
+}: MarkdownPreviewProps) => {
   if (!markdown) {
     return (
       <p className="text-body-md text-on-surface-variant">
-        No content yet — paste a git log or PR text in the chat and ask Release Builder
-        to draft release notes.
+        No content yet — paste a git log or PR text in the chat and ask Release
+        Builder to draft release notes.
       </p>
     );
   }
@@ -33,7 +49,26 @@ const MarkdownPreview = ({ markdown, className }: MarkdownPreviewProps) => {
         className,
       )}
     >
-      <ReactMarkdown>{markdown}</ReactMarkdown>
+      <ReactMarkdown
+        components={
+          itemIds && {
+            p: ({ node, ...props }) => (
+              <p
+                {...props}
+                {...itemAttribute(itemIds, node?.position?.start.line)}
+              />
+            ),
+            li: ({ node, ...props }) => (
+              <li
+                {...props}
+                {...itemAttribute(itemIds, node?.position?.start.line)}
+              />
+            ),
+          }
+        }
+      >
+        {markdown}
+      </ReactMarkdown>
     </div>
   );
 };

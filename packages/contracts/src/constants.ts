@@ -53,3 +53,4 @@ export const RUNTIME_BASE_PATH = "/api/copilotkit";
 export const SLACK_PUBLISH_PATH = "/slack/publish";
 export const THREADS_PATH = "/api/memory/threads";
 export const RELEASE_HISTORY_PATH = "/release-history";
+export const CHANGELOG_PATH = "/api/changelog";

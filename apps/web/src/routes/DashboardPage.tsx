@@ -104,6 +104,8 @@ const DashboardPage = () => {
                   draft && content ? buildReleaseNotesFileName(draft) : null
                 }
                 renderError={renderError}
+                release={draft?.release ?? null}
+                hash={draft?.hash ?? null}
                 onCopy={handleCopy}
                 onExport={handleExport}
                 onArchive={() => draft && archive(draft)}

@@ -28,6 +28,7 @@ import {
 import { type AuthEnv, createIdentifyUser, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import { createCheckpointAgentRunner } from "@/runner";
 import {
+  createChangelogRoute,
   createReleaseEmailRoute,
   createReleaseHistoryRoutes,
   createSlackRoute,
@@ -99,6 +100,7 @@ app.use(SLACK_PATH_PATTERN, requireAuth);
 app.use(SLACK_PATH_PATTERN, userContextMiddleware);
 app.route("/", createSlackRoute(pgPool));
 app.route("/", createThreadsRoute(pgPool));
+app.route("/", createChangelogRoute(pgPool));
 app.route("/", createReleaseEmailRoute());
 
 app.get(HEALTH_PATH, async (c) => {
