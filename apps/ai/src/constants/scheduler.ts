@@ -1,7 +1,15 @@
 export const SCHEDULER_POLL_INTERVAL_MS = 60_000;
 export const SCHEDULER_MAX_ATTEMPTS = 3;
-// A job still "running" after this long is treated as stuck and picked up again.
+// A job still "sending" after this long is marked failed and never sent again (it may have reached Slack).
 export const SCHEDULER_STUCK_JOB_TIMEOUT_MS = 10 * 60_000;
+// Wait before a failed attempt is tried again (times the attempt count).
+export const SCHEDULER_RETRY_DELAY_MS = 30_000;
+
+export const SCHEDULER_ERROR_MESSAGES = {
+  STUCK: "The send did not finish in time. It may or may not have reached Slack, so it was not retried.",
+  MISSING_WEBHOOK_URL: "Missing required env var: SLACK_WEBHOOK_URL.",
+  UNKNOWN: "The send failed for an unknown reason.",
+} as const;
 
 export const SCHEDULED_SENDS_TABLE = "scheduled_sends";
 
