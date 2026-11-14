@@ -5,13 +5,19 @@ import { ChatOpenAI } from "@langchain/openai";
 import { config } from "@/config";
 
 // Constants
-import { SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
+import {
+  SCHEDULE_APPROVAL_DESCRIPTION,
+  SLACK_APPROVAL_DESCRIPTION,
+  SYSTEM_PROMPT,
+  TOOL_NAMES,
+} from "@/constants";
 
 // Middlewares
 import {
   createDraftContextMiddleware,
   createModelFallbackMiddleware,
   createPiiMiddleware,
+  createScheduleValidationMiddleware,
   createUserTemplateMiddleware,
   memoryMiddleware,
   skillsMiddleware,
@@ -64,8 +70,14 @@ export const createBaseAgent = (
             allowedDecisions: ["approve", "reject"],
             description: SLACK_APPROVAL_DESCRIPTION,
           },
+          [TOOL_NAMES.scheduleReleaseSend]: {
+            allowedDecisions: ["approve", "reject"],
+            description: SCHEDULE_APPROVAL_DESCRIPTION,
+          },
         },
       }),
+      // After the approval middleware on purpose (afterModel runs in reverse): bad times never reach the card.
+      createScheduleValidationMiddleware(),
       ...(middleware ?? []),
     ],
     checkpointer,
