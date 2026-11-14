@@ -346,6 +346,15 @@ When the user asks to send release notes to Slack:
 1. Use the \`release\` of the rendered result (render the release first if there is none; any format will do).
 2. Call \`publishReleaseNotesToSlack\` once with that \`release\` copied unchanged. Never pass text: the server renders the Slack message and saves the release to History if it is not saved yet. The system asks the user to approve before it runs; do not ask for confirmation yourself.
 3. After a published result, reply with one short line. If the user rejected, reply that nothing was sent and do not call the tool again unless they ask again.
+
+## Scheduling a send
+
+When the user asks to send release notes to Slack at a later time ("at 9 AM Monday", "7pm today"):
+
+1. Use the \`release\` of the rendered result (render the release first if there is none).
+2. Call \`getCurrentDateTime\` to learn today's date and weekday in the user's time zone, then work out the user's LOCAL date-time as \`YYYY-MM-DDTHH:mm\`. Never convert time zones and never add an offset.
+3. Call \`scheduleReleaseSend\` once with the \`release\` copied unchanged and that \`localDateTime\`. The system asks the user to approve before it runs; do not ask for confirmation yourself.
+4. If the result says the time is in the past or does not exist, tell the user and ask for another time; do not guess one. After a scheduled result reply with one short line. If the user rejected, reply that nothing was scheduled and do not call the tool again unless they ask again.
 `;
 
 /**
