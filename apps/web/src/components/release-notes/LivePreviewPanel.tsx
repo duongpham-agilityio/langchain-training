@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type { Release } from '@training/contracts';
 import {
   AlertTriangle,
   Archive,
@@ -19,7 +20,11 @@ import {
   PreviewKind,
   getFormatPresentation,
 } from '@/lib/release-notes/format-presentation.ts';
+import { usePreviewSelection } from '@/hooks/use-preview-selection.ts';
+import { useSendEditRequest } from '@/hooks/use-send-edit-request.ts';
+import { mapMarkdownItemIds } from '@/lib/release-notes/map-markdown-item-ids.ts';
 import MarkdownPreview from './MarkdownPreview.tsx';
+import PreviewEditMenu from './PreviewEditMenu.tsx';
 import RawMarkdownView from './RawMarkdownView.tsx';
 
 const enum PreviewTab {
@@ -50,6 +55,10 @@ interface LivePreviewPanelProps {
   fileName: string | null;
   // The limit error of a draft that could not be rendered; shown instead of text.
   renderError: string | null;
+  // The release object and hash of the shown draft; with them the Markdown preview items carry
+  // their property id and a selection can send an edit request. null disables editing.
+  release: Release | null;
+  hash: string | null;
   onCopy: CopyHandler;
   onExport: () => void;
   onArchive: () => void;
@@ -66,6 +75,8 @@ const LivePreviewPanel = ({
   formatLabel,
   fileName,
   renderError,
+  release,
+  hash,
   onCopy,
   onExport,
   onArchive,
@@ -76,6 +87,38 @@ const LivePreviewPanel = ({
 }: LivePreviewPanelProps) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>(PreviewTab.Preview);
   const previewKind = getFormatPresentation(format ?? '').preview;
+  const previewRef = useRef<HTMLDivElement>(null);
+  const sendEditRequest = useSendEditRequest();
+
+  // Only the Markdown render is drawn by us, so only its items can carry ids. Other formats
+  // (text, sandboxed HTML) offer no edit menu.
+  const itemIds = useMemo(
+    () =>
+      content && release && previewKind === PreviewKind.Markdown
+        ? mapMarkdownItemIds(content, release)
+        : null,
+    [content, release, previewKind],
+  );
+  const canEdit = itemIds !== null && itemIds.size > 0 && hash !== null;
+  const { selection, capture, dismiss } = usePreviewSelection(
+    previewRef,
+    canEdit && activeTab === PreviewTab.Preview,
+  );
+
+  const handleEditSubmit = (request: string) => {
+    if (!selection || !release || !hash) return;
+    const isSent = sendEditRequest({
+      itemId: selection.itemId,
+      selectedText: selection.text,
+      release,
+      hash,
+      request,
+    });
+    if (isSent) {
+      window.getSelection()?.removeAllRanges();
+      dismiss();
+    }
+  };
 
   const renderPreview = () => {
     if (!content) {
@@ -83,7 +126,13 @@ const LivePreviewPanel = ({
     }
     switch (previewKind) {
       case PreviewKind.Markdown:
-        return <MarkdownPreview markdown={content} className="mt-1.5" />;
+        return (
+          <MarkdownPreview
+            markdown={content}
+            className="mt-1.5"
+            itemIds={itemIds ?? undefined}
+          />
+        );
       case PreviewKind.Html:
         // Sandboxed with no permissions: the email is model-generated HTML and
         // must not run scripts or reach the app's origin.
@@ -194,13 +243,28 @@ const LivePreviewPanel = ({
             <span className="text-body-md break-words">{renderError}</span>
           </div>
         ) : activeTab === PreviewTab.Preview ? (
-          <div className="px-8 py-7">
+          <div
+            ref={previewRef}
+            className="px-8 py-7"
+            onMouseUp={canEdit ? capture : undefined}
+            onKeyUp={canEdit ? capture : undefined}
+          >
             {fileName && (
               <div className="text-on-surface-muted font-mono text-[11px]">
                 {fileName}
               </div>
             )}
             {renderPreview()}
+            {canEdit && selection && (
+              <PreviewEditMenu
+                key={`${selection.itemId}:${selection.text}`}
+                x={selection.x}
+                y={selection.y}
+                selectedText={selection.text}
+                onSubmit={handleEditSubmit}
+                onClose={dismiss}
+              />
+            )}
           </div>
         ) : (
           <RawMarkdownView markdown={content} />
