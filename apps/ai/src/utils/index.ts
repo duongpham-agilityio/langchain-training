@@ -26,3 +26,4 @@ export * from "./schedule-request";
 export * from "./edit-release-item";
 export * from "./changelog-range";
 export * from "./scheduler-decision";
+export * from "./release-send-entries";

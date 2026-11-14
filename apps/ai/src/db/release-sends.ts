@@ -1,10 +1,14 @@
 import type { Pool } from "pg";
 
+// Utils
+import type { ReleaseSendRow, ScheduledSendRow } from "@/utils/release-send-entries";
+
 // Constants
 import {
   RELEASE_HISTORY_TABLE,
   RELEASE_SENDS_TABLE,
   RELEASE_STATUS_PUBLISHED,
+  SCHEDULED_SENDS_TABLE,
 } from "@/constants";
 
 export type ReleaseSendOutcome = { status: "sent" } | { status: "failed"; error: string };
@@ -96,3 +100,24 @@ export const recordEmailSend = (
   recipient: string,
   outcome: ReleaseSendOutcome,
 ): Promise<void> => recordSend(pool, ownerId, releaseId, "email", recipient, outcome);
+
+/** The owner's sends and scheduled jobs of one release (both scoped by `owner_id`). */
+export const listReleaseSendRows = async (
+  pool: Pool,
+  ownerId: string,
+  releaseId: string,
+): Promise<{ sends: ReleaseSendRow[]; jobs: ScheduledSendRow[] }> => {
+  const [sends, jobs] = await Promise.all([
+    pool.query<ReleaseSendRow>(
+      `select id, channel, recipient, status, sent_at, created_at, error from ${RELEASE_SENDS_TABLE}
+       where owner_id = $1 and release_id = $2`,
+      [ownerId, releaseId],
+    ),
+    pool.query<ScheduledSendRow>(
+      `select id, status, run_at, time_zone, error from ${SCHEDULED_SENDS_TABLE}
+       where owner_id = $1 and release_id = $2`,
+      [ownerId, releaseId],
+    ),
+  ]);
+  return { sends: sends.rows, jobs: jobs.rows };
+};

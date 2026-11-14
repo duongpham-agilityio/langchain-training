@@ -8,6 +8,8 @@ import EmptyState from '@/components/common/EmptyState.tsx';
 import ErrorBoundary from '@/components/common/ErrorBoundary.tsx';
 import ReleaseHistoryList from '@/components/history/ReleaseHistoryList.tsx';
 import ReleaseDetailHeader from '@/components/history/ReleaseDetailHeader.tsx';
+import ReleaseSendsList from '@/components/history/ReleaseSendsList.tsx';
+import { useReleaseSends } from '@/hooks/use-release-sends.ts';
 import ReleaseDetailBody from '@/components/history/ReleaseDetailBody.tsx';
 import { buildHistoryPath } from '@/constants/routings.ts';
 // import { useComingSoon } from '@/hooks/use-coming-soon.ts'; // TODO(coming-soon)
@@ -60,6 +62,9 @@ const HistoryPage = () => {
     clearFilters,
     refetch,
   } = useReleaseHistory();
+  const { sends, cancellingId, cancelJob } = useReleaseSends(
+    selectedItem?.id ?? '',
+  );
 
   const countLabel =
     filteredCount === totalCount
@@ -202,6 +207,11 @@ const HistoryPage = () => {
                     // onOpenInNewThread={() => showComingSoon('Open in new thread')}
                     onCopyLink={() => void handleCopyLink()}
                     // onRemove={() => showComingSoon('Remove from history')}
+                  />
+                  <ReleaseSendsList
+                    sends={sends}
+                    cancellingId={cancellingId}
+                    onCancel={cancelJob}
                   />
                   <ReleaseDetailBody text={selectedItem.text} />
                 </>
