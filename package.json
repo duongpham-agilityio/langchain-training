@@ -11,6 +11,7 @@
     "dev:ai": "turbo run dev --filter=@training/ai",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "lint": "turbo run lint",
     "format": "turbo run format",
     "format:check": "turbo run format:check",

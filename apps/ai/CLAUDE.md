@@ -15,7 +15,7 @@ pnpm --filter @training/ai start       # node dist/index.js
 pnpm --filter @training/ai typecheck   # tsc --noEmit
 ```
 
-Build inlines `@training/contracts` via `tsup.config.ts` (`noExternal`). Routes `GET /release-history/latest-version`, `POST /release-history/next-version` and `POST /api/release-email/render` have no web caller. Root shortcut: `pnpm dev:ai`. No test runner, no lint script in this app (root `pnpm lint` only covers apps that define one).
+Build inlines `@training/contracts` via `tsup.config.ts` (`noExternal`). Routes `GET /release-history/latest-version`, `POST /release-history/next-version` and `POST /api/release-email/render` have no web caller. Root shortcut: `pnpm dev:ai`. Tests run with Vitest (`pnpm test`, config in `vitest.config.ts`, `src/**/*.test.ts`). No lint script in this app (root `pnpm lint` only covers apps that define one).
 
 
 ## Architecture
