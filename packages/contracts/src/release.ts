@@ -54,3 +54,23 @@ export const DraftContextSchema = z.object({
 });
 
 export type DraftContext = z.infer<typeof DraftContextSchema>;
+
+/**
+ * Input of the chat tool that rewrites one item of a draft (F-19). The release and the hash are the
+ * ones the edit was requested against; the server refuses the edit when they are not the draft on screen.
+ */
+export const EditReleaseItemToolInputSchema = z.object({
+  itemId: z.string().min(1),
+  description: z
+    .string()
+    .trim()
+    .min(1)
+    .regex(/^[^\n\r]+$/, "description must be one line"),
+  release: ReleaseSchema,
+  hash: z.string().min(1),
+});
+
+export type EditReleaseItemToolInput = z.infer<typeof EditReleaseItemToolInputSchema>;
+
+/** Property id of the opening line as an item id; changes use their own `change.id`. */
+export const OPENING_LINE_ITEM_ID = "openingLine";

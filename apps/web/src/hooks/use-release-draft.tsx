@@ -15,7 +15,15 @@ import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
 import { TOOL_NAMES } from '@training/contracts';
 import ToolRefusalCard from '@/components/chat/ToolRefusalCard.tsx';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
-import { parseReleasePreviewResult } from '@/types/release-preview-result.ts';
+import {
+  parseEditReleaseItemResult,
+  parseReleasePreviewResult,
+} from '@/types/release-preview-result.ts';
+
+const DRAFT_TOOL_NAMES = [
+  TOOL_NAMES.renderReleaseNotesPreview,
+  TOOL_NAMES.editReleaseItem,
+] as const;
 
 interface DraftToolCallProps {
   toolCallId: string;
@@ -37,10 +45,8 @@ const DraftToolCall = ({
   onSync,
   onOpen,
 }: DraftToolCallProps) => {
-  const isLatest = useIsLatestToolCall(
-    TOOL_NAMES.renderReleaseNotesPreview,
-    toolCallId,
-  );
+  // An accepted edit (editReleaseItem) produces the next draft, so it counts as the latest too.
+  const isLatest = useIsLatestToolCall(DRAFT_TOOL_NAMES, toolCallId);
   const { selectedToolCallId } = useReleaseDraftView();
 
   useEffect(() => {
@@ -95,6 +101,47 @@ export const useReleaseDraft = ({
   const view = useReleaseDraftView();
   const setDraft = useReleaseWorkspaceStore((state) => state.setDraft);
   const selectDraft = useReleaseWorkspaceStore((state) => state.selectDraft);
+
+  const renderEditResult = (props: {
+    status: string;
+    toolCallId: string;
+    result?: unknown;
+  }) => {
+    if (props.status !== 'complete') return <></>;
+    const outcome = parseEditReleaseItemResult(props.result);
+    if (outcome.kind === 'pending') return <></>;
+    // A refused edit (outdated draft, unknown item) says so; nothing changed.
+    if (outcome.kind === 'refused' || outcome.kind === 'failed') {
+      return <ToolRefusalCard message={outcome.message} />;
+    }
+    if (outcome.kind === 'invalid') {
+      return (
+        <ToolErrorCard
+          toolName={TOOL_NAMES.editReleaseItem}
+          detail={outcome.detail}
+        />
+      );
+    }
+    return (
+      <DraftToolCall
+        toolCallId={props.toolCallId}
+        draft={outcome.draft}
+        isPreviewOpen={isPreviewOpen}
+        onSync={(draft) => setDraft(threadIdRef.current, draft)}
+        onOpen={(selected) => {
+          selectDraft(threadIdRef.current, selected);
+          onOpenPreview();
+        }}
+      />
+    );
+  };
+
+  useRenderTool({
+    name: TOOL_NAMES.editReleaseItem,
+    parameters: z.object({}).loose(),
+    agentId: RELEASE_COPILOT_AGENT_ID,
+    render: renderEditResult,
+  });
 
   useRenderTool({
     name: TOOL_NAMES.renderReleaseNotesPreview,

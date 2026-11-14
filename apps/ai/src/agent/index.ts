@@ -5,7 +5,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { config } from "@/config";
 
 // Constants
-import { SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
+import { EDIT_APPROVAL_DESCRIPTION, SLACK_APPROVAL_DESCRIPTION, SYSTEM_PROMPT, TOOL_NAMES } from "@/constants";
 
 // Middlewares
 import {
@@ -63,6 +63,11 @@ export const createBaseAgent = (
           [TOOL_NAMES.publishReleaseNotesToSlack]: {
             allowedDecisions: ["approve", "reject"],
             description: SLACK_APPROVAL_DESCRIPTION,
+          },
+          // Accept applies the edit, Reject changes nothing (the tool body never runs).
+          [TOOL_NAMES.editReleaseItem]: {
+            allowedDecisions: ["approve", "reject"],
+            description: EDIT_APPROVAL_DESCRIPTION,
           },
         },
       }),
