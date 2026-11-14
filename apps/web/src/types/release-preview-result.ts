@@ -3,7 +3,8 @@ import { RELEASE_FORMAT_LABELS, ReleaseSchema } from '@training/contracts';
 import type { ReleaseNotesDraft } from '@/types/release-notes-draft.ts';
 
 // What apps/ai `renderReleaseNotesPreview` returns, as a JSON string. Three shapes:
-// rendered, unknown format, over the format's length limit (no text at all).
+// rendered, unknown format (refused), over the format's length limit (a draft
+// with the error and no text).
 const RenderedSchema = z.object({
   ok: z.literal(true),
   release: ReleaseSchema,
@@ -44,6 +45,9 @@ export type ReleasePreviewOutcome =
   | { kind: 'failed'; message: string }
   | { kind: 'invalid'; detail: string };
 
+// The over-limit result names no format, so its draft has none either.
+export const OVER_LIMIT_PLATFORM = 'none';
+
 const MAX_FAILURE_LENGTH = 300;
 
 const parseJson = (raw: string): { value: unknown } | null => {
@@ -63,7 +67,10 @@ export const parseReleasePreviewResult = (
     return { kind: 'pending' };
   }
   if (typeof raw !== 'string') {
-    return { kind: 'invalid', detail: 'The tool returned an unexpected result.' };
+    return {
+      kind: 'invalid',
+      detail: 'The tool returned an unexpected result.',
+    };
   }
 
   const json = parseJson(raw);
@@ -77,13 +84,28 @@ export const parseReleasePreviewResult = (
   }
 
   const result = parsed.data;
+  if (!result.ok && 'release' in result) {
+    // Over the format's length limit: a draft with the error and no text, so
+    // the Live Preview shows the error and the card still opens it.
+    return {
+      kind: 'draft',
+      draft: {
+        releaseDate: result.release.date,
+        version: result.release.version,
+        title: result.release.openingLine,
+        platform: OVER_LIMIT_PLATFORM,
+        label: 'Over the length limit',
+        content: '',
+        renderError: result.error,
+        release: result.release,
+        hash: result.hash,
+      },
+    };
+  }
   if (!result.ok) {
     return {
       kind: 'refused',
-      message:
-        'supportedFormats' in result
-          ? `${result.error} Supported formats: ${result.supportedFormats.join(', ')}.`
-          : result.error,
+      message: `${result.error} Supported formats: ${result.supportedFormats.join(', ')}.`,
     };
   }
 

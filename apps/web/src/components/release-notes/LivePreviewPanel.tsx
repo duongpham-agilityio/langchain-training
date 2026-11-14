@@ -1,24 +1,55 @@
 import { useState } from 'react';
-import { Archive, Check, Code2, Download, Eye, Loader2, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  Archive,
+  Check,
+  Code2,
+  Download,
+  Eye,
+  Loader2,
+  X,
+} from 'lucide-react';
 import Button, { ButtonVariant } from '@/components/common/Button.tsx';
 import IconButton from '@/components/common/IconButton.tsx';
-import CopyButton, { type CopyHandler } from '@/components/common/CopyButton.tsx';
+import CopyButton, {
+  type CopyHandler,
+} from '@/components/common/CopyButton.tsx';
 import Tabs, { TabsVariant, type TabItem } from '@/components/common/Tabs.tsx';
+import {
+  PreviewKind,
+  getFormatPresentation,
+} from '@/lib/release-notes/format-presentation.ts';
 import MarkdownPreview from './MarkdownPreview.tsx';
 import RawMarkdownView from './RawMarkdownView.tsx';
 
 const enum PreviewTab {
   Preview = 'preview',
-  Markdown = 'markdown',
+  Source = 'source',
 }
 
 const TAB_ITEMS: TabItem[] = [
-  { value: PreviewTab.Preview, label: 'Preview', icon: <Eye className="size-3.25" /> },
-  { value: PreviewTab.Markdown, label: 'Markdown', icon: <Code2 className="size-3.25" /> },
+  {
+    value: PreviewTab.Preview,
+    label: 'Preview',
+    icon: <Eye className="size-3.25" />,
+  },
+  {
+    value: PreviewTab.Source,
+    label: 'Source',
+    icon: <Code2 className="size-3.25" />,
+  },
 ];
 
 interface LivePreviewPanelProps {
-  markdown: string | null;
+  // The rendered text of the shown draft's format; null when there is none.
+  content: string | null;
+  // Format id and display name; the format drives how the Preview tab draws the text.
+  format: string | null;
+  formatLabel: string | null;
+  // The draft's file name, shown above the preview.
+  fileName: string | null;
+  // The limit error of a draft that could not be rendered; shown instead of text.
+  renderError: string | null;
   onCopy: CopyHandler;
   onExport: () => void;
   onArchive: () => void;
@@ -30,7 +61,11 @@ interface LivePreviewPanelProps {
 }
 
 const LivePreviewPanel = ({
-  markdown,
+  content,
+  format,
+  formatLabel,
+  fileName,
+  renderError,
   onCopy,
   onExport,
   onArchive,
@@ -40,6 +75,34 @@ const LivePreviewPanel = ({
   onClose,
 }: LivePreviewPanelProps) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>(PreviewTab.Preview);
+  const previewKind = getFormatPresentation(format ?? '').preview;
+
+  const renderPreview = () => {
+    if (!content) {
+      return <MarkdownPreview markdown={null} />;
+    }
+    switch (previewKind) {
+      case PreviewKind.Markdown:
+        return <MarkdownPreview markdown={content} className="mt-1.5" />;
+      case PreviewKind.Html:
+        // Sandboxed with no permissions: the email is model-generated HTML and
+        // must not run scripts or reach the app's origin.
+        return (
+          <iframe
+            title="HTML email preview"
+            sandbox=""
+            srcDoc={content}
+            className="border-outline-subtle mt-1.5 h-[70vh] w-full rounded-lg border bg-white"
+          />
+        );
+      default:
+        return (
+          <pre className="text-on-surface mt-1.5 font-mono text-[12.5px] leading-[1.7] break-words whitespace-pre-wrap">
+            {content}
+          </pre>
+        );
+    }
+  };
 
   const renderArchiveContent = () => {
     if (isArchiving) {
@@ -72,7 +135,14 @@ const LivePreviewPanel = ({
       aria-label="Release notes preview"
     >
       <div className="flex h-13 shrink-0 items-center justify-between pr-3 pl-5">
-        <span className="text-body-md text-on-surface font-semibold">Release notes</span>
+        <span className="text-body-md text-on-surface font-semibold">
+          Release notes
+          {formatLabel && !renderError && (
+            <span className="text-on-surface-variant ml-2 font-normal">
+              {formatLabel}
+            </span>
+          )}
+        </span>
         <IconButton
           icon={<X className="size-4" />}
           aria-label="Close live preview"
@@ -88,17 +158,21 @@ const LivePreviewPanel = ({
           variant={TabsVariant.Segmented}
         />
         <div className="flex items-center gap-1">
-          <CopyButton isIconOnly onCopy={onCopy} disabled={!markdown} />
+          <CopyButton isIconOnly onCopy={onCopy} disabled={!content} />
           <IconButton
             icon={<Download className="size-4" />}
             aria-label="Export release notes"
-            disabled={!markdown}
+            disabled={!content}
             onClick={onExport}
           />
           <Button
             variant={ButtonVariant.Primary}
-            disabled={!markdown || !canArchive || isArchiving || isArchived}
-            title={canArchive ? undefined : 'Ask Release Builder for a version and title to archive'}
+            disabled={!content || !canArchive || isArchiving || isArchived}
+            title={
+              canArchive
+                ? undefined
+                : 'Ask Release Builder for a version and title to archive'
+            }
             onClick={onArchive}
             className="text-body-sm ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg px-3 py-0 font-semibold shadow-sm"
           >
@@ -108,15 +182,28 @@ const LivePreviewPanel = ({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {activeTab === PreviewTab.Preview ? (
+        {renderError ? (
+          <div
+            role="alert"
+            className="border-error text-error m-8 flex items-start gap-2 rounded-xl border px-4 py-3"
+          >
+            <AlertTriangle
+              className="mt-0.5 size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <span className="text-body-md break-words">{renderError}</span>
+          </div>
+        ) : activeTab === PreviewTab.Preview ? (
           <div className="px-8 py-7">
-            <div className="text-on-surface-muted font-mono text-[11px]">
-              RELEASE_NOTES.md
-            </div>
-            <MarkdownPreview markdown={markdown} className="mt-1.5" />
+            {fileName && (
+              <div className="text-on-surface-muted font-mono text-[11px]">
+                {fileName}
+              </div>
+            )}
+            {renderPreview()}
           </div>
         ) : (
-          <RawMarkdownView markdown={markdown} />
+          <RawMarkdownView markdown={content} />
         )}
       </div>
     </section>
