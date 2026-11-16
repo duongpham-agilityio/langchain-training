@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CHANGE_TYPES } from "@training/contracts";
 
 // Constants
 import {
@@ -16,12 +17,13 @@ export {
 
 const dateParam = z.string().regex(RELEASE_DATE_PATTERN, "must be YYYYMMDD");
 
-/** No change-type filter on purpose (F-25 scope). Dates are inclusive `YYYYMMDD`. */
+/** Dates are inclusive `YYYYMMDD`. `changeType` keeps releases with such a change and only those changes. */
 export const ChangelogQuerySchema = z
   .object({
     from: dateParam.optional(),
     to: dateParam.optional(),
     version: z.string().trim().min(1).optional(),
+    changeType: z.enum(CHANGE_TYPES).optional(),
     cursor: z.string().optional(),
     limit: z.coerce
       .number()

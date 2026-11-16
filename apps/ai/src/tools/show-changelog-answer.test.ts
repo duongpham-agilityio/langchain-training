@@ -1,3 +1,4 @@
+import type { Pool } from "pg";
 import { describe, expect, it } from "vitest";
 
 import { CHANGELOG_ANSWER_MAX_LENGTH } from "@training/contracts";
@@ -5,8 +6,10 @@ import { SYSTEM_PROMPT } from "@/constants/prompts";
 import { userContext } from "@/utils/user-context";
 import { createShowChangelogAnswer } from "./show-changelog-answer";
 
+const fakePool = { query: async () => ({ rows: [{ version: "1.2.0" }] }) } as unknown as Pool;
+
 const run = (input: { title: string; markdown: string }, userId?: string) => {
-  const tool = createShowChangelogAnswer();
+  const tool = createShowChangelogAnswer(fakePool);
   const call = () => tool.invoke(input);
   return userId ? userContext.run({ userId, timeZone: "UTC" }, call) : call();
 };
@@ -15,6 +18,12 @@ describe("showChangelogAnswer", () => {
   it("returns the Markdown answer for a signed-in user", async () => {
     const out = JSON.parse(await run({ title: " Fixes in September ", markdown: "## v1.2.0" }, "u1"));
     expect(out).toEqual({ ok: true, title: "Fixes in September", markdown: "## v1.2.0" });
+  });
+
+  it("refuses an answer that names a version the user never saved", async () => {
+    const out = JSON.parse(await run({ title: "t", markdown: "## v1.2.0\n## v9.9.9" }, "u1"));
+    expect(out.ok).toBe(false);
+    expect(out.error).toContain("9.9.9");
   });
 
   it("refuses without a signed-in user", async () => {

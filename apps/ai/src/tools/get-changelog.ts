@@ -28,12 +28,14 @@ export const createGetChangelog = (pool: Pool) =>
       const userId = userContext.getStore()?.userId;
       if (!userId) return JSON.stringify({ ok: false, error: CHANGELOG_TOOL_MESSAGES.NO_USER });
       try {
-        const range = resolveChangelogRange(input, new Date(), getUserTimeZone());
+        const { changeType, ...rangeInput } = input;
+        const range = resolveChangelogRange(rangeInput, new Date(), getUserTimeZone());
         const { releases, nextCursor } = await listChangelog(pool, userId, {
           ...range,
+          changeType,
           limit: CHANGELOG_TOOL_LIMIT,
         });
-        return JSON.stringify({ ok: true, range, releases, truncated: nextCursor !== null });
+        return JSON.stringify({ ok: true, range, changeType: changeType ?? null, releases, truncated: nextCursor !== null });
       } catch (error) {
         if (error instanceof ChangelogRangeError) {
           return JSON.stringify({ ok: false, error: error.message });
