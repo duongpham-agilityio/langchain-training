@@ -25,5 +25,6 @@ export * from "./send-email-with-resend";
 export * from "./schedule-request";
 export * from "./edit-release-item";
 export * from "./changelog-range";
+export * from "./changelog-answer";
 export * from "./scheduler-decision";
 export * from "./release-send-entries";

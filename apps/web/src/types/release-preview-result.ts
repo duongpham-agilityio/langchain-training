@@ -18,10 +18,12 @@ const RenderedSchema = z.object({
   subject: z.string().min(1).optional(),
 });
 
+// A refusal is `{ ok: false, error }`; an unknown format also lists the supported ones. A failed
+// version lookup (e.g. a database error) has no list, so it must still parse as a readable refusal.
 const UnsupportedFormatSchema = z.object({
   ok: z.literal(false),
   error: z.string(),
-  supportedFormats: z.array(z.string()),
+  supportedFormats: z.array(z.string()).optional(),
 });
 
 const OverLimitSchema = z.object({
@@ -109,7 +111,9 @@ export const parseReleasePreviewResult = (
   if (!result.ok) {
     return {
       kind: 'refused',
-      message: `${result.error} Supported formats: ${result.supportedFormats.join(', ')}.`,
+      message: result.supportedFormats?.length
+        ? `${result.error} Supported formats: ${result.supportedFormats.join(', ')}.`
+        : result.error,
     };
   }
 

@@ -28,6 +28,13 @@ describe("buildChangelogQuery", () => {
     expect(text).toContain("h.release->>'version' = $4");
   });
 
+  it("filters by change type on the changes array", () => {
+    const { text, params } = buildChangelogQuery(OWNER, { changeType: "fix", limit: 5 });
+    expect(params).toEqual([OWNER, "fix", "sent", 6]);
+    expect(text).toContain("jsonb_array_elements(h.release->'changes')");
+    expect(text).toContain("c->>'type' = $2");
+  });
+
   it("applies the cursor as a (created_at, id) keyset", () => {
     const cursor = encodeReleaseCursor({ created_at: "2026-11-10T00:00:00Z", id: "abc" });
     const { text, params } = buildChangelogQuery(OWNER, { cursor, limit: 5 });
@@ -63,6 +70,15 @@ describe("toChangelogEntry", () => {
       changes: release.changes,
       sent: true,
     });
+  });
+
+  it("keeps only the changes of the asked type", () => {
+    const mixed = {
+      ...release,
+      changes: [...release.changes, { id: "c2", type: "fix", breaking: false, description: "Fix crash" }],
+    };
+    const entry = toChangelogEntry({ id: "r1", release: mixed, created_at: "2026-11-10", sent: false }, "fix");
+    expect(entry?.changes.map((change) => change.id)).toEqual(["c2"]);
   });
 
   it("skips a row that is not a release", () => {

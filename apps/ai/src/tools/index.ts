@@ -28,6 +28,6 @@ export const createTools = (pool: Pool, store?: BaseStore) => [
   // createScheduleReleaseSend(pool),
   createEditReleaseItem(),
   createGetChangelog(pool),
-  createShowChangelogAnswer(),
+  createShowChangelogAnswer(pool),
   ...(store ? createUserMemoryTools(store) : []),
 ];

@@ -15,7 +15,7 @@ export const APPROVAL_INTERRUPT_REASON = "tool_approval";
 export const APPROVAL_REJECT_MESSAGE = "The user rejected this action. Nothing was changed or sent.";
 
 export const GET_CHANGELOG_DESCRIPTION =
-  "Read-only. List the user's saved releases (version, date, changes, sent flag) for a time range. Give exactly one of: `period` (relative to today in the user's time zone), `month` (YYYY-MM) or `from`/`to` (YYYY-MM-DD, inclusive). Use it to answer questions such as what shipped in September. It never changes anything and has no filter by change type.";
+  "Read-only. List the user's saved releases (version, date, changes, sent flag) for a time range. Give exactly one of: `period` (relative to today in the user's time zone), `month` (YYYY-MM, or MM when the user gave no year) or `from`/`to` (YYYY-MM-DD, inclusive). Optional `changeType` keeps only releases with that type of change and returns only those changes. Use it to answer questions such as what shipped in September. It never changes anything.";
 
 export const CHANGELOG_PERIODS = [
   "today",
@@ -40,4 +40,5 @@ export const SHOW_CHANGELOG_ANSWER_DESCRIPTION =
 export const CHANGELOG_ANSWER_MESSAGES = {
   NOT_SIGNED_IN: "You need to be signed in to ask about the changelog.",
   TOO_LONG: "The answer is too long to show. Ask for a shorter range or fewer details.",
+  UNKNOWN_VERSIONS: "The answer names versions that are not in the user's saved releases. Rebuild it only from the releases getChangelog returned. Unknown versions:",
 } as const;

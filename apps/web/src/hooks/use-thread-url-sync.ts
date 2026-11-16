@@ -1,6 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { useLocation, useSearchParams } from 'react-router';
-import { ROUTE_DASHBOARD, THREAD_SEARCH_PARAM } from '@/constants/routings.ts';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
+import { THREADS_QUERY_KEY } from '@/constants/query-keys.ts';
+import {
+  ROUTE_DASHBOARD,
+  THREAD_SEARCH_PARAM,
+  buildThreadPath,
+} from '@/constants/routings.ts';
+import { listThreads } from '@/services/list-threads.ts';
 import { useThreadConfig } from './use-thread-config.ts';
 
 // One-way sync, URL -> CopilotKit. Selecting a thread already sets the active
@@ -8,9 +15,11 @@ import { useThreadConfig } from './use-thread-config.ts';
 // the URL without going through it: a reload on `/?thread=<id>`, a pasted link,
 // and the browser Back/Forward buttons.
 //
-// The reverse direction (writing the active id back into the URL) is
-// deliberately absent: a draft thread has an id but no server-side thread, so
-// putting it in the URL would produce a link that resolves to nothing.
+// The reverse direction (active id -> URL) only happens once the server list
+// has a row for the thread: a draft thread has an id but no server-side thread,
+// so putting it in the URL earlier would produce a link that resolves to
+// nothing. After the first reply the row exists, and the URL is replaced so a
+// reload reopens the same thread.
 //
 // A dashboard URL *without* the param is left alone rather than reset to a new
 // thread. `/` is reached both by starting a new chat and by coming back from
@@ -34,6 +43,12 @@ export const useThreadUrlSync = (): void => {
   const [searchParams] = useSearchParams();
   const { threadId, setActiveThreadId } = useThreadConfig();
   const syncedUrlThreadIdRef = useRef<string | null>(null);
+  const navigate = useNavigate();
+  // Same key as useThreadSession: one cached list, read here only to learn which ids are on the server.
+  const { data: serverThreads } = useQuery({
+    queryKey: THREADS_QUERY_KEY,
+    queryFn: () => listThreads(),
+  });
 
   const urlThreadId = searchParams.get(THREAD_SEARCH_PARAM);
   const isDashboard = pathname === ROUTE_DASHBOARD;
@@ -53,4 +68,13 @@ export const useThreadUrlSync = (): void => {
 
     setActiveThreadId(urlThreadId, { explicit: true });
   }, [isDashboard, urlThreadId, threadId, setActiveThreadId]);
+
+  const hasServerRow =
+    serverThreads?.some((thread) => thread.id === threadId) ?? false;
+  useEffect(() => {
+    if (!isDashboard || urlThreadId || !hasServerRow) return;
+    // Mark it consumed so the URL -> thread effect does not treat it as a pasted link.
+    syncedUrlThreadIdRef.current = threadId;
+    navigate(buildThreadPath(threadId), { replace: true });
+  }, [isDashboard, urlThreadId, hasServerRow, threadId, navigate]);
 };

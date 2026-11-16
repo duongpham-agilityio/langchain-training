@@ -23,6 +23,8 @@ import {
 import { usePreviewSelection } from '@/hooks/use-preview-selection.ts';
 import { useSendEditRequest } from '@/hooks/use-send-edit-request.ts';
 import { mapMarkdownItemIds } from '@/lib/release-notes/map-markdown-item-ids.ts';
+import { mapTextItemIds } from '@/lib/release-notes/map-text-item-ids.ts';
+import { PREVIEW_ITEM_ATTRIBUTE } from '@/constants/preview-edit.ts';
 import MarkdownPreview from './MarkdownPreview.tsx';
 import PreviewEditMenu from './PreviewEditMenu.tsx';
 import RawMarkdownView from './RawMarkdownView.tsx';
@@ -90,15 +92,16 @@ const LivePreviewPanel = ({
   const previewRef = useRef<HTMLDivElement>(null);
   const sendEditRequest = useSendEditRequest();
 
-  // Only the Markdown render is drawn by us, so only its items can carry ids. Other formats
-  // (text, sandboxed HTML) offer no edit menu.
-  const itemIds = useMemo(
-    () =>
-      content && release && previewKind === PreviewKind.Markdown
-        ? mapMarkdownItemIds(content, release)
-        : null,
-    [content, release, previewKind],
-  );
+  // Markdown and plain-text renders are drawn by us, so their items can carry ids. The sandboxed
+  // HTML email is not, so it offers no edit menu (a hint says to ask in chat instead).
+  const itemIds = useMemo(() => {
+    if (!content || !release) return null;
+    if (previewKind === PreviewKind.Markdown)
+      return mapMarkdownItemIds(content, release);
+    if (previewKind === PreviewKind.Text)
+      return mapTextItemIds(content, release);
+    return null;
+  }, [content, release, previewKind]);
   const canEdit = itemIds !== null && itemIds.size > 0 && hash !== null;
   const { selection, capture, dismiss } = usePreviewSelection(
     previewRef,
@@ -137,17 +140,35 @@ const LivePreviewPanel = ({
         // Sandboxed with no permissions: the email is model-generated HTML and
         // must not run scripts or reach the app's origin.
         return (
-          <iframe
-            title="HTML email preview"
-            sandbox=""
-            srcDoc={content}
-            className="border-outline-subtle mt-1.5 h-[70vh] w-full rounded-lg border bg-white"
-          />
+          <>
+            <iframe
+              title="HTML email preview"
+              sandbox=""
+              srcDoc={content}
+              className="border-outline-subtle mt-1.5 h-[70vh] w-full rounded-lg border bg-white"
+            />
+            <p className="text-label-sm text-on-surface-variant mt-2">
+              To change a sentence in the HTML email, describe the change in
+              chat.
+            </p>
+          </>
         );
       default:
         return (
           <pre className="text-on-surface mt-1.5 font-mono text-[12.5px] leading-[1.7] break-words whitespace-pre-wrap">
-            {content}
+            {itemIds && itemIds.size > 0
+              ? content.split('\n').map((line, index) => {
+                  const itemId = itemIds.get(index + 1);
+                  return (
+                    <div
+                      key={index}
+                      {...(itemId ? { [PREVIEW_ITEM_ATTRIBUTE]: itemId } : {})}
+                    >
+                      {line || ' '}
+                    </div>
+                  );
+                })
+              : content}
           </pre>
         );
     }

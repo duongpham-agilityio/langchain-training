@@ -141,6 +141,15 @@ export const useReleaseDraft = ({
     );
   };
 
+  // `load_skill` is an internal step of the agent: render nothing, which also stops CopilotKit
+  // warning that no renderer is registered for it.
+  useRenderTool({
+    name: 'load_skill',
+    parameters: z.object({}).loose(),
+    agentId: RELEASE_COPILOT_AGENT_ID,
+    render: () => <></>,
+  });
+
   useRenderTool({
     name: TOOL_NAMES.editReleaseItem,
     parameters: z.object({}).loose(),

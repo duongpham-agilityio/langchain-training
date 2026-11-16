@@ -30,6 +30,14 @@ const monthRange = (first: Temporal.PlainDate): ChangelogRange => ({
   to: compact(first.add({ months: 1 }).subtract({ days: 1 })),
 });
 
+const todayIn = (now: Date, timeZone: string): Temporal.PlainDate => {
+  try {
+    return Temporal.Instant.fromEpochMilliseconds(now.getTime()).toZonedDateTimeISO(timeZone).toPlainDate();
+  } catch {
+    throw new ChangelogRangeError(`Unknown time zone "${timeZone}".`);
+  }
+};
+
 /**
  * Turns the tool input into inclusive `YYYYMMDD` bounds in the user's time zone. Release dates
  * are already local calendar days, so "September" is `20260901`..`20260930` whatever the
@@ -44,6 +52,13 @@ export const resolveChangelogRange = (
   const given = [period, month, from || to].filter(Boolean).length;
   if (given !== 1) {
     throw new ChangelogRangeError("Give exactly one of period, month, or from/to.");
+  }
+
+  // A month without a year ("09") means the most recent such month that is not in the future, in the user's zone.
+  if (month && /^(0[1-9]|1[0-2])$/.test(month)) {
+    const today = todayIn(now, timeZone);
+    const year = Number(month) > today.month ? today.year - 1 : today.year;
+    return monthRange(Temporal.PlainDate.from({ year, month: Number(month), day: 1 }));
   }
 
   if (month) {
@@ -62,14 +77,7 @@ export const resolveChangelogRange = (
     return { from: compact(start), to: compact(end) };
   }
 
-  let today: Temporal.PlainDate;
-  try {
-    today = Temporal.Instant.fromEpochMilliseconds(now.getTime())
-      .toZonedDateTimeISO(timeZone)
-      .toPlainDate();
-  } catch {
-    throw new ChangelogRangeError(`Unknown time zone "${timeZone}".`);
-  }
+  const today = todayIn(now, timeZone);
   // Weeks run Monday to Sunday.
   const monday = today.subtract({ days: today.dayOfWeek - 1 });
   switch (period) {

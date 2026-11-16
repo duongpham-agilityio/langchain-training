@@ -10,7 +10,12 @@ import { useAuth } from '@/hooks/use-auth.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
 import { useThreadUrlSync } from '@/hooks/use-thread-url-sync.ts';
 import { groupThreadsByRecency } from '@/lib/group-threads-by-date.ts';
-import { ROUTE_CHANGELOG, ROUTE_DASHBOARD, ROUTE_HISTORY } from '@/constants/routings.ts';
+import {
+  ROUTE_CHANGELOG,
+  ROUTE_DASHBOARD,
+  ROUTE_HISTORY,
+  ROUTE_PREFERENCES,
+} from '@/constants/routings.ts';
 import AppProviders from './providers/AppProviders';
 
 const WORKSPACE_NAME = 'Release Builder';
@@ -32,6 +37,7 @@ const AppContent = () => {
 
   const isHistoryActive = location.pathname === ROUTE_HISTORY;
   const isChangelogActive = location.pathname === ROUTE_CHANGELOG;
+  const isPreferencesActive = location.pathname === ROUTE_PREFERENCES;
   const isDashboardActive = location.pathname === ROUTE_DASHBOARD;
 
   return (
@@ -46,6 +52,7 @@ const AppContent = () => {
           onSignOut={signOut}
           isHistoryActive={isHistoryActive}
           isChangelogActive={isChangelogActive}
+          isPreferencesActive={isPreferencesActive}
         >
           <div className="flex flex-col px-3">
             {groupThreadsByRecency(threads ?? []).map((group) => (

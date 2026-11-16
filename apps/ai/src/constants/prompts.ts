@@ -3,6 +3,7 @@
 
 import { CHANGELOG_QA_RULE } from "./changelog-qa";
 import { EDIT_RELEASE_ITEM_RULE } from "./edit-release-item";
+import { PII_PLACEHOLDER_RULE } from "./pii";
 import { USER_MEMORY_RULE } from "./user-memory";
 
 export const PROMPT_SECTION_SEPARATOR = "\n\n---\n\n";
@@ -373,6 +374,6 @@ When the user asks to email release notes:
  * provider prompt cache valid. Time and date are not in it.
  * Order matches the old app: intro, base rules, then the interaction loop, then the release flow.
  */
-export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW, EDIT_RELEASE_ITEM_RULE, CHANGELOG_QA_RULE, USER_MEMORY_RULE].join(
+export const SYSTEM_PROMPT = [INTRO, ...BASE_INSTRUCTIONS, LOOP, RELEASE_FLOW, EDIT_RELEASE_ITEM_RULE, CHANGELOG_QA_RULE, PII_PLACEHOLDER_RULE, USER_MEMORY_RULE].join(
   PROMPT_SECTION_SEPARATOR,
 );

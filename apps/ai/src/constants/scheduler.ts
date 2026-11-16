@@ -1,3 +1,5 @@
+import { DB_SCHEMA } from "./database";
+
 export const SCHEDULER_POLL_INTERVAL_MS = 60_000;
 export const SCHEDULER_MAX_ATTEMPTS = 3;
 // A job still "sending" after this long is marked failed and never sent again (it may have reached Slack).
@@ -11,7 +13,7 @@ export const SCHEDULER_ERROR_MESSAGES = {
   UNKNOWN: "The send failed for an unknown reason.",
 } as const;
 
-export const SCHEDULED_SENDS_TABLE = "scheduled_sends";
+export const SCHEDULED_SENDS_TABLE = `"${DB_SCHEMA}".scheduled_sends`;
 
 export const SCHEDULE_APPROVAL_DESCRIPTION = "Schedule this Slack send?";
 

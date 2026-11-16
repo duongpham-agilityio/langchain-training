@@ -45,7 +45,11 @@ export const sendReleaseToSlack = async (
   };
 
   const webhookUrl = config.slackWebhookUrl;
-  if (!webhookUrl) return fail(SLACK_ERROR_MESSAGES.MISSING_WEBHOOK_URL, 500);
+  if (!webhookUrl) {
+    // Nothing left the server and nothing the user can fix: no `failed` row, and the env var name stays in the log.
+    console.error("[ai] Slack send skipped: SLACK_WEBHOOK_URL is not set.");
+    return { ok: false, error: SLACK_ERROR_MESSAGES.MISSING_WEBHOOK_URL, status: 500 };
+  }
 
   try {
     await postToSlackWebhook(webhookUrl, built.message);

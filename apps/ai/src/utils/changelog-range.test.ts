@@ -12,6 +12,12 @@ describe("resolveChangelogRange", () => {
     });
   });
 
+  it("resolves a bare month to the most recent such month that is not in the future", () => {
+    expect(resolveChangelogRange({ month: "11" }, now, HCM)).toEqual({ from: "20261101", to: "20261130" });
+    expect(resolveChangelogRange({ month: "09" }, now, HCM)).toEqual({ from: "20260901", to: "20260930" });
+    expect(resolveChangelogRange({ month: "12" }, now, HCM)).toEqual({ from: "20251201", to: "20251231" });
+  });
+
   it("includes a release on the 1st and excludes the 1st of the next month", () => {
     const { from, to } = resolveChangelogRange({ month: "2026-09" }, now, HCM);
     expect("20260901" >= from && "20260901" <= to).toBe(true);

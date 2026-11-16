@@ -1,9 +1,12 @@
 import { z } from "zod";
 
 // Constants
+import { USER_PREFERENCE_MAX_LENGTH } from "@training/contracts";
 import { USER_MEMORY_FIELDS } from "@/constants";
 
-const preferenceField = (what: string) => z.string().trim().min(1).max(500).describe(what);
+export { UpdateUserPreferencesRequestSchema } from "@training/contracts";
+
+const preferenceField = (what: string) => z.string().trim().min(1).max(USER_PREFERENCE_MAX_LENGTH).describe(what);
 
 export const UserPreferencesSchema = z.object({
   tone: preferenceField("Tone of the release notes, e.g. friendly, formal."),

@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/cn.ts';
 import MarkdownPreview from '@/components/release-notes/MarkdownPreview.tsx';
 import { parseReleaseNoteSections } from '@/lib/release-notes/parse-release-note-sections.ts';
@@ -51,10 +52,19 @@ const ReleaseDetailBody = ({ text }: ReleaseDetailBodyProps) => {
                     className="text-on-surface flex items-start gap-3 text-[14.5px] leading-[1.65]"
                   >
                     <span
-                      className={cn('mt-2.5 size-1.5 shrink-0 rounded-full', dotClassFor(title))}
+                      className={cn(
+                        'mt-2.5 size-1.5 shrink-0 rounded-full',
+                        dotClassFor(title),
+                      )}
                     />
                     <span>
-                      {text}
+                      {/* Bullets carry inline Markdown such as **Breaking:**; draw it, not the raw marks. */}
+                      <ReactMarkdown
+                        allowedElements={['strong', 'em', 'code', 'a']}
+                        unwrapDisallowed
+                      >
+                        {text}
+                      </ReactMarkdown>
                       {hash && (
                         <span className="text-on-surface-muted bg-surface-container ml-2 rounded-[5px] px-1.5 py-px font-mono text-[11.5px] whitespace-nowrap">
                           {hash}

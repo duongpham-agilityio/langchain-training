@@ -4,12 +4,14 @@ import {
   ROUTE_CHANGELOG,
   ROUTE_DASHBOARD,
   ROUTE_HISTORY,
+  ROUTE_PREFERENCES,
   ROUTE_SIGN_IN,
 } from '@/constants/routings.ts';
 import AppBootstrap from './AppBootstrap.tsx';
 import ChangelogPage from './ChangelogPage.tsx';
 import DashboardPage from './DashboardPage.tsx';
 import HistoryPage from './HistoryPage.tsx';
+import PreferencesPage from './PreferencesPage.tsx';
 import RouteErrorPage from './RouteErrorPage.tsx';
 import SignInPage from './SignInPage.tsx';
 
@@ -26,6 +28,7 @@ export const router = createBrowserRouter([
           { index: true, Component: DashboardPage },
           { path: ROUTE_HISTORY, Component: HistoryPage },
           { path: ROUTE_CHANGELOG, Component: ChangelogPage },
+          { path: ROUTE_PREFERENCES, Component: PreferencesPage },
         ],
       },
     ],

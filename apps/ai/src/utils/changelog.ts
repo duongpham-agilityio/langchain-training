@@ -1,4 +1,4 @@
-import { ReleaseSchema } from "@training/contracts";
+import { ReleaseSchema, type ChangeType } from "@training/contracts";
 
 // Constants
 import { RELEASE_HISTORY_TABLE, RELEASE_SENDS_TABLE, RELEASE_SEND_STATUS_SENT } from "@/constants";
@@ -13,6 +13,7 @@ export interface ChangelogFilters {
   from?: string;
   to?: string;
   version?: string;
+  changeType?: ChangeType;
   cursor?: string;
   limit: number;
 }
@@ -26,7 +27,7 @@ export class InvalidChangelogCursorError extends Error {}
  */
 export const buildChangelogQuery = (
   ownerId: string,
-  { from, to, version, cursor, limit }: ChangelogFilters,
+  { from, to, version, changeType, cursor, limit }: ChangelogFilters,
 ): { text: string; params: unknown[] } => {
   const params: unknown[] = [ownerId];
   const where = ["h.owner_id = $1"];
@@ -43,6 +44,12 @@ export const buildChangelogQuery = (
   if (version) {
     params.push(version);
     where.push(`h.release->>'version' = $${params.length}`);
+  }
+  if (changeType) {
+    params.push(changeType);
+    where.push(
+      `exists (select 1 from jsonb_array_elements(h.release->'changes') c where c->>'type' = $${params.length})`,
+    );
   }
   if (cursor) {
     const decoded = decodeReleaseCursor(cursor);
@@ -76,10 +83,17 @@ export type ChangelogRow = {
   sent: boolean;
 };
 
+/** With `changeType`, only changes of that type are kept (the SQL already dropped releases without one). */
 /** A row whose object no longer matches the schema returns null, so one bad row does not fail the page. */
-export const toChangelogEntry = (row: ChangelogRow): ChangelogEntry | null => {
+export const toChangelogEntry = (row: ChangelogRow, changeType?: ChangeType): ChangelogEntry | null => {
   const parsed = ReleaseSchema.safeParse(row.release);
   if (!parsed.success) return null;
   const { version, date, changes } = parsed.data;
-  return { id: row.id, version, date, changes, sent: row.sent };
+  return {
+    id: row.id,
+    version,
+    date,
+    changes: changeType ? changes.filter((change) => change.type === changeType) : changes,
+    sent: row.sent,
+  };
 };
