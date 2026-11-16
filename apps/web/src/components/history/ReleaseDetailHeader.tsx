@@ -1,7 +1,11 @@
 import { useState } from 'react';
 // TODO(coming-soon): restore MessageCircle / Trash2 with the Open in new thread and
 // Remove from history items below.
-import { RELEASE_FORMATS, RELEASE_FORMAT_LABELS, type ReleaseFormat } from '@training/contracts';
+import {
+  RELEASE_FORMATS,
+  RELEASE_FORMAT_LABELS,
+  type ReleaseFormat,
+} from '@training/contracts';
 import { Copy, Download, Link2, MoreHorizontal, Send } from 'lucide-react';
 import Badge, { BadgeVariant } from '@/components/common/Badge.tsx';
 import Button, {
@@ -53,13 +57,15 @@ const ReleaseDetailHeader = ({
       <div className="border-outline-subtle flex items-start justify-between gap-4 border-b pb-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
-            <h2 className="text-on-surface text-[26px] leading-8 font-bold tracking-[-0.02em] tabular-nums">
+            <h2 className="text-on-surface line-clamp-2 text-[20px] leading-7 font-bold tracking-[-0.01em]">
               {title}
             </h2>
             <select
               aria-label="Format"
               value={format}
-              onChange={(event) => onFormatChange(event.target.value as ReleaseFormat)}
+              onChange={(event) =>
+                onFormatChange(event.target.value as ReleaseFormat)
+              }
               className="border-outline-strong bg-surface-container-lowest text-on-surface-variant h-5.5 rounded-md border px-1.5 text-xs font-medium"
             >
               {RELEASE_FORMATS.map((id) => (
@@ -72,7 +78,7 @@ const ReleaseDetailHeader = ({
               {isSent ? 'Sent to Slack' : 'Not sent'}
             </Badge>
           </div>
-          <div className="text-on-surface-variant mt-1.5 truncate text-[15px]">
+          <div className="text-on-surface mt-1.5 truncate text-[17px] font-semibold tabular-nums">
             {version}
           </div>
           <div className="text-on-surface-muted mt-1 text-[12.5px]">

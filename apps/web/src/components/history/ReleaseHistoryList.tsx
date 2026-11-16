@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
-import Button, { ButtonSize, ButtonVariant } from '@/components/common/Button.tsx';
+import Button, {
+  ButtonSize,
+  ButtonVariant,
+} from '@/components/common/Button.tsx';
 import EmptyState from '@/components/common/EmptyState.tsx';
 import Input from '@/components/common/Input.tsx';
 import Kbd from '@/components/common/Kbd.tsx';
@@ -98,7 +101,11 @@ const ReleaseHistoryList = ({
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {isLoading ? (
-          <div role="status" aria-label="Loading releases" className="flex flex-col gap-0.5 pt-3.5">
+          <div
+            role="status"
+            aria-label="Loading releases"
+            className="flex flex-col gap-0.5 pt-3.5"
+          >
             <span className="bg-surface-container mx-2.5 mb-1.5 h-3 w-24 animate-pulse rounded" />
             {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
               <ReleaseHistoryListItemSkeleton key={index} />
