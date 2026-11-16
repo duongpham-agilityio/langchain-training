@@ -20,4 +20,4 @@ export const RELEASE_STATUS_ARCHIVED = "archived";
 export const RELEASE_STATUS_PUBLISHED = "published";
 export const RELEASE_SENDS_TABLE = `"${DB_SCHEMA}".release_sends`;
 export const RELEASE_SEND_STATUS_SENT = "sent";
-export { CHANGELOG_PATH } from "@training/contracts";
+export { CHANGELOG_PATH, PREFERENCES_PATH } from "@training/contracts";

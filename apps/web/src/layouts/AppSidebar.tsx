@@ -4,11 +4,17 @@ import {
   Archive,
   ChevronRight,
   History,
+  SlidersHorizontal,
   Plus,
   SquareChevronLeft,
   SquareChevronRight,
 } from 'lucide-react';
-import { ROUTE_CHANGELOG, ROUTE_DASHBOARD, ROUTE_HISTORY } from '@/constants/routings.ts';
+import {
+  ROUTE_CHANGELOG,
+  ROUTE_DASHBOARD,
+  ROUTE_HISTORY,
+  ROUTE_PREFERENCES,
+} from '@/constants/routings.ts';
 import WorkspaceSwitch from '@/components/common/WorkspaceSwitch.tsx';
 import AccountMenu from '@/components/common/AccountMenu.tsx';
 import Avatar, { AvatarSize } from '@/components/common/Avatar.tsx';
@@ -33,6 +39,7 @@ interface AppSidebarProps {
   onSignOut: () => Promise<void>;
   isHistoryActive: boolean;
   isChangelogActive: boolean;
+  isPreferencesActive: boolean;
   children?: ReactNode;
 }
 
@@ -49,6 +56,7 @@ const AppSidebar = ({
   onSignOut,
   isHistoryActive,
   isChangelogActive,
+  isPreferencesActive,
   children,
 }: AppSidebarProps) => {
   // TODO(coming-soon): Search threads is disabled until it is implemented.
@@ -108,6 +116,18 @@ const AppSidebar = ({
           )}
         >
           <Archive className="size-4" />
+        </Link>
+        <Link
+          to={ROUTE_PREFERENCES}
+          aria-label="My template"
+          className={cn(
+            'flex size-9 items-center justify-center rounded-lg',
+            isPreferencesActive
+              ? 'bg-surface-container text-on-surface'
+              : 'text-on-surface-muted hover:bg-surface-container hover:text-on-surface',
+          )}
+        >
+          <SlidersHorizontal className="size-4" />
         </Link>
         <Avatar
           name={userName}
@@ -181,6 +201,19 @@ const AppSidebar = ({
           <History className="size-4" />
           <span className="flex-1">Changelog</span>
           {!isChangelogActive && <ChevronRight className="size-3.5" />}
+        </Link>
+        <Link
+          to={ROUTE_PREFERENCES}
+          className={cn(
+            NAV_ITEM_CLASSES,
+            isPreferencesActive
+              ? 'bg-surface-container text-on-surface font-semibold'
+              : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface',
+          )}
+        >
+          <SlidersHorizontal className="size-4" />
+          <span className="flex-1">My template</span>
+          {!isPreferencesActive && <ChevronRight className="size-3.5" />}
         </Link>
         <AccountMenu
           userName={userName}

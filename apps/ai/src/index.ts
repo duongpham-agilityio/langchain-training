@@ -31,6 +31,7 @@ import { createCheckpointAgentRunner } from "@/runner";
 // import { startScheduler } from "@/services";
 import {
   createChangelogRoute,
+  createPreferencesRoute,
   createReleaseEmailRoute,
   createReleaseHistoryRoutes,
   createSlackRoute,
@@ -103,6 +104,7 @@ app.use(SLACK_PATH_PATTERN, userContextMiddleware);
 app.route("/", createSlackRoute(pgPool));
 app.route("/", createThreadsRoute(pgPool));
 app.route("/", createChangelogRoute(pgPool));
+app.route("/", createPreferencesRoute(userMemoryStore));
 app.route("/", createReleaseEmailRoute());
 
 app.get(HEALTH_PATH, async (c) => {

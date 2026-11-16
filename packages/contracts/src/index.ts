@@ -7,3 +7,4 @@ export * from "./schedule";
 export * from "./threads";
 export * from "./email";
 export * from "./release-sends";
+export * from "./preferences";
