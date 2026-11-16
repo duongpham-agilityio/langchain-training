@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import type { ChangelogEntry } from '@training/contracts';
+import type { ChangeType, ChangelogEntry } from '@training/contracts';
 import { listChangelog } from '@/services/list-changelog.ts';
 import { CHANGELOG_PAGE_SIZE } from '@/constants/changelog.ts';
 
@@ -11,12 +11,15 @@ export interface ChangelogFilters {
   from: string;
   to: string;
   version: string;
+  // A change type, or empty for all.
+  changeType: ChangeType | '';
 }
 
 export const EMPTY_CHANGELOG_FILTERS: ChangelogFilters = {
   from: '',
   to: '',
   version: '',
+  changeType: '',
 };
 
 // The server takes `YYYYMMDD`; date inputs give `YYYY-MM-DD`.
@@ -35,6 +38,7 @@ const buildQuery = (
   if (filters.to) query.to = toApiDate(filters.to);
   const version = toApiVersion(filters.version);
   if (version) query.version = version;
+  if (filters.changeType) query.changeType = filters.changeType;
   if (cursor) query.cursor = cursor;
   return query;
 };
@@ -56,7 +60,9 @@ interface UseChangelogResult {
 // Filters live in the query key so changing one starts a fresh list from the
 // first page; "load more" follows the server's `nextCursor`.
 export const useChangelog = (): UseChangelogResult => {
-  const [filters, setFilters] = useState<ChangelogFilters>(EMPTY_CHANGELOG_FILTERS);
+  const [filters, setFilters] = useState<ChangelogFilters>(
+    EMPTY_CHANGELOG_FILTERS,
+  );
 
   const query = useInfiniteQuery({
     queryKey: [...CHANGELOG_QUERY_KEY, filters],
@@ -68,7 +74,12 @@ export const useChangelog = (): UseChangelogResult => {
   return {
     entries: query.data?.pages.flatMap((page) => page.releases) ?? [],
     filters,
-    hasActiveFilters: Boolean(filters.from || filters.to || filters.version.trim()),
+    hasActiveFilters: Boolean(
+      filters.from ||
+      filters.to ||
+      filters.version.trim() ||
+      filters.changeType,
+    ),
     isLoading: query.isLoading,
     isError: query.isError,
     hasNextPage: query.hasNextPage,

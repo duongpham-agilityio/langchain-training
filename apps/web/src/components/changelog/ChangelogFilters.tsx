@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import Button, { ButtonSize, ButtonVariant } from '@/components/common/Button.tsx';
+import Button, {
+  ButtonSize,
+  ButtonVariant,
+} from '@/components/common/Button.tsx';
+import { CHANGE_TYPES, type ChangeType } from '@training/contracts';
+import { CHANGE_TYPE_LABELS } from '@/constants/changelog.ts';
 import Input from '@/components/common/Input.tsx';
 import {
   EMPTY_CHANGELOG_FILTERS,
@@ -40,10 +45,32 @@ const ChangelogFilters = ({ filters, onApply }: ChangelogFiltersProps) => {
         <Input
           type="text"
           value={draft.version}
-          onChange={(event) => setDraft({ ...draft, version: event.target.value })}
+          onChange={(event) =>
+            setDraft({ ...draft, version: event.target.value })
+          }
           placeholder="e.g. 2.4.0"
           className={INPUT_CLASSES}
         />
+      </label>
+      <label className="text-label-xs text-on-surface-muted flex flex-col gap-1 font-semibold">
+        Change type
+        <select
+          value={draft.changeType}
+          onChange={(event) =>
+            setDraft({
+              ...draft,
+              changeType: event.target.value as ChangeType | '',
+            })
+          }
+          className={`${INPUT_CLASSES} border-outline-variant bg-surface-container-lowest text-on-surface rounded-[9px] border px-3`}
+        >
+          <option value="">All types</option>
+          {CHANGE_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {CHANGE_TYPE_LABELS[type]}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="text-label-xs text-on-surface-muted flex flex-col gap-1 font-semibold">
         From

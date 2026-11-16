@@ -30,7 +30,9 @@ const ChangelogRelease = ({ entry }: ChangelogReleaseProps) => {
       </header>
 
       {changes.length === 0 ? (
-        <p className="text-body-sm text-on-surface-muted">No changes recorded.</p>
+        <p className="text-body-sm text-on-surface-muted">
+          No changes recorded.
+        </p>
       ) : (
         groupChangesByType(changes).map(({ type, changes: typeChanges }) => (
           <section key={type} aria-label={CHANGE_TYPE_LABELS[type]}>

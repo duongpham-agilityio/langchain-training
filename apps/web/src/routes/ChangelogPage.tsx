@@ -55,7 +55,7 @@ const ChangelogPage = () => {
           title={hasActiveFilters ? 'No releases match' : 'No releases yet'}
           description={
             hasActiveFilters
-              ? 'Try another version or date range.'
+              ? 'Try another version, change type or date range.'
               : 'Archive a release from a thread and it will show up here.'
           }
           action={
