@@ -6,7 +6,8 @@ import { createGetChangelog } from "./get-changelog";
 import { createPublishReleaseNotesToSlack } from "./publish-release-notes-to-slack";
 import { createRenderReleaseNotesPreview } from "./release-notes-preview";
 import { createSendReleaseEmail } from "./send-release-email";
-import { createGetCurrentDateTime, createScheduleReleaseSend } from "./schedule-release-send";
+// TEMP: scheduling is switched off.
+// import { createGetCurrentDateTime, createScheduleReleaseSend } from "./schedule-release-send";
 import { createShowChangelogAnswer } from "./show-changelog-answer";
 import { createUserMemoryTools } from "./user-memory";
 
@@ -23,8 +24,8 @@ export const createTools = (pool: Pool, store?: BaseStore) => [
   createRenderReleaseNotesPreview(pool),
   createPublishReleaseNotesToSlack(pool),
   createSendReleaseEmail(pool),
-  createGetCurrentDateTime(),
-  createScheduleReleaseSend(pool),
+  // createGetCurrentDateTime(),
+  // createScheduleReleaseSend(pool),
   createEditReleaseItem(),
   createGetChangelog(pool),
   createShowChangelogAnswer(),

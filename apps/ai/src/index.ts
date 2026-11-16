@@ -27,7 +27,8 @@ import {
 } from "@/db";
 import { type AuthEnv, createIdentifyUser, createRequireAuth, userContextMiddleware } from "@/middlewares";
 import { createCheckpointAgentRunner } from "@/runner";
-import { startScheduler } from "@/services";
+// TEMP: scheduling is switched off.
+// import { startScheduler } from "@/services";
 import {
   createChangelogRoute,
   createReleaseEmailRoute,
@@ -119,8 +120,8 @@ app.route(
 );
 
 // Sends due scheduled jobs with or without a browser; several instances are safe (atomic claim).
-const stopScheduler = startScheduler(pgPool);
-process.once("SIGTERM", stopScheduler);
+// const stopScheduler = startScheduler(pgPool);
+// process.once("SIGTERM", stopScheduler);
 
 serve({ fetch: app.fetch, port: config.port }, ({ port }) => {
   console.log(`[ai] CopilotKit runtime on http://localhost:${port}${config.runtimeBasePath}`);
