@@ -31,10 +31,18 @@ const OverLimitSchema = z.object({
   hash: z.string(),
 });
 
+// The tool could not do its job (e.g. the next version could not be worked out): just a message.
+// Last in the union so the richer failure shapes above win when their fields are present.
+const ToolErrorSchema = z.object({
+  ok: z.literal(false),
+  error: z.string(),
+});
+
 const ReleasePreviewResultSchema = z.union([
   RenderedSchema,
   UnsupportedFormatSchema,
   OverLimitSchema,
+  ToolErrorSchema,
 ]);
 
 export type ReleasePreviewResult = z.infer<typeof ReleasePreviewResultSchema>;
@@ -109,7 +117,10 @@ export const parseReleasePreviewResult = (
   if (!result.ok) {
     return {
       kind: 'refused',
-      message: `${result.error} Supported formats: ${result.supportedFormats.join(', ')}.`,
+      message:
+        'supportedFormats' in result
+          ? `${result.error} Supported formats: ${result.supportedFormats.join(', ')}.`
+          : result.error,
     };
   }
 
