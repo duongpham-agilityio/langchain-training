@@ -325,15 +325,15 @@ export const RELEASE_FLOW = `
 
 ## When the user pastes git log or PR text
 
-1. Call \`load_skill\` for \`commit-pr-parsing\`, \`classification-rules\` and \`release-reporting\`.
+1. Call \`load_skill\` once with \`names\`: \`commit-pr-parsing\`, \`classification-rules\` and \`release-reporting\`.
 2. Parse and classify the input, then reply with the count-only summary exactly as \`release-reporting\` describes, and nothing else: no entry list, no draft.
-3. Ask which format the user wants the release notes in. Never pick a format on the user's behalf.
+3. If the same message already names a destination format (for example "Draft markdown notes", "for Slack", "App Store"), do not ask: go on at once with "Once the user names a format" below, in the same turn. Otherwise ask which format the user wants the release notes in. Never pick a format on the user's behalf.
 
 ## Once the user names a format
 
 Pass the format exactly as the user said it (for example \`GitHub\`, \`App Store\`, \`google play\`, \`email\`). The tool maps common names to the supported formats, so never judge by yourself that a name is unsupported: call the tool and let it answer.
 
-1. Call \`load_skill\` for \`platform-formatting\`.
+1. Call \`load_skill\` once with \`names\`: \`platform-formatting\`.
 2. Build the release object once: an opening line and the typed changes (one-sentence descriptions, refs copied from the input). Call \`renderReleaseNotesPreview\` exactly once with it and the format. Never write per-destination text yourself, never list free-form destinations, and never put the notes text in the chat.
 3. If the result has \`ok: false\` and \`supportedFormats\`, tell the user the supported formats and ask which one they want. If it is over the limit, tell the user the error and offer to shorten the notes. If the error says the next version could not be worked out, tell the user the version could not be determined and do not call the tool again.
 4. After a rendered result, reply with one short line.
