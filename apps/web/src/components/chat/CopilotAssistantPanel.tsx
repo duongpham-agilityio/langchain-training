@@ -3,6 +3,7 @@ import { CopilotChat, useAgent } from '@copilotkit/react-core/v2';
 import { RELEASE_COPILOT_AGENT_ID } from '@training/contracts';
 import { useChatSendFailureListener } from '@/hooks/use-chat-send-failure.ts';
 import { useDraftThreadRow } from '@/hooks/use-draft-thread-row.ts';
+import CopilotAssistantMessage from './CopilotAssistantMessage.tsx';
 import CopilotUserMessage from './CopilotUserMessage.tsx';
 import WelcomeScreen from './WelcomeScreen.tsx';
 import { useAgentContext } from '@/hooks/use-agent-context.ts';
@@ -36,6 +37,7 @@ const CopilotAssistantPanel = () => {
           chatDisclaimerText: '',
         }}
         messageView={{
+          assistantMessage: CopilotAssistantMessage,
           userMessage: CopilotUserMessage,
           className: 'mx-auto flex h-full w-full flex-col gap-6 px-8 pt-7 pb-3',
         }}
