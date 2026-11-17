@@ -1,8 +1,12 @@
 import type { Release } from '@training/contracts';
-import { EDIT_REQUEST_PROMPT } from '@/constants/preview-edit.ts';
+import {
+  EDIT_REQUEST_PROMPT,
+  UNKNOWN_ITEM_LINE,
+} from '@/constants/preview-edit.ts';
 
 export interface EditRequestInput {
-  itemId: string;
+  // null when the selection is not tied to one known property.
+  itemId: string | null;
   selectedText: string;
   release: Release;
   hash: string;
@@ -20,7 +24,7 @@ export const buildEditRequestMessage = ({
 }: EditRequestInput): string =>
   [
     EDIT_REQUEST_PROMPT,
-    `Item id: ${itemId}`,
+    itemId ? `Item id: ${itemId}` : UNKNOWN_ITEM_LINE,
     `Selected text: ${JSON.stringify(selectedText)}`,
     `Draft hash: ${hash}`,
     `Release object: ${JSON.stringify(release)}`,

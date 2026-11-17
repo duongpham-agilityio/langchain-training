@@ -17,9 +17,10 @@ export const EDIT_RELEASE_ITEM_MESSAGES = {
 export const EDIT_RELEASE_ITEM_RULE = `
 # Editing one item
 
-When a message starts with "Edit one item of the release notes draft" it carries an item id, the selected text, a draft hash, the release object and the user's request:
+When a message starts with "Edit one item of the release notes draft" it carries an item id (or "Item id: unknown"), the selected text, a draft hash, the release object and the user's request:
 
 1. Call \`editReleaseItem\` once with \`itemId\`, \`hash\` and \`release\` copied unchanged from the message, and \`description\`: the new one-sentence text for that item only. Do not call \`renderReleaseNotesPreview\` for it.
+   When the item id is unknown, find it yourself in the release object: \`openingLine\` if the selected text comes from the opening line, otherwise the \`id\` of the change whose description contains it. If the text matches several items or none, ask the user which one in one line and do not call the tool.
 2. The system asks the user to accept or reject; do not ask yourself. If the tool says the draft is outdated or the item is unknown, tell the user in one line and do not retry.
 3. After an accepted edit reply with one short line. After a rejection say nothing was changed.
 `;

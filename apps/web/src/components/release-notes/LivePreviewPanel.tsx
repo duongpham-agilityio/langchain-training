@@ -88,10 +88,12 @@ const LivePreviewPanel = ({
   const [activeTab, setActiveTab] = useState<PreviewTab>(PreviewTab.Preview);
   const previewKind = getFormatPresentation(format ?? '').preview;
   const previewRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const sendEditRequest = useSendEditRequest();
 
-  // Only the Markdown render is drawn by us, so only its items can carry ids. Other formats
-  // (text, sandboxed HTML) offer no edit menu.
+  // Only the Markdown render is drawn by us, so only its items can carry ids. Every other format
+  // (text, sandboxed HTML) is still editable: the selection is sent without an item id and the
+  // agent finds the property from the selected text.
   const itemIds = useMemo(
     () =>
       content && release && previewKind === PreviewKind.Markdown
@@ -99,7 +101,7 @@ const LivePreviewPanel = ({
         : null,
     [content, release, previewKind],
   );
-  const canEdit = itemIds !== null && itemIds.size > 0 && hash !== null;
+  const canEdit = Boolean(content && release && hash);
   const { selection, capture, dismiss } = usePreviewSelection(
     previewRef,
     canEdit && activeTab === PreviewTab.Preview,
@@ -116,8 +118,23 @@ const LivePreviewPanel = ({
     });
     if (isSent) {
       window.getSelection()?.removeAllRanges();
+      iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
       dismiss();
     }
+  };
+
+  // The iframe is its own document, so its mouse/key events never reach the panel: listen inside it
+  // and shift the selection rect by the iframe's position.
+  const handleIframeLoad = () => {
+    const frame = iframeRef.current;
+    const doc = frame?.contentDocument;
+    if (!frame || !doc || !canEdit) return;
+    const onSelect = () => {
+      const box = frame.getBoundingClientRect();
+      capture(frame.contentWindow ?? window, { x: box.left, y: box.top });
+    };
+    doc.addEventListener('mouseup', onSelect);
+    doc.addEventListener('keyup', onSelect);
   };
 
   const renderPreview = () => {
@@ -134,12 +151,14 @@ const LivePreviewPanel = ({
           />
         );
       case PreviewKind.Html:
-        // Sandboxed with no permissions: the email is model-generated HTML and
-        // must not run scripts or reach the app's origin.
+        // Model-generated HTML: scripts, forms and navigation stay blocked. allow-same-origin
+        // alone is safe without allow-scripts (nothing can run) and lets us read the selection.
         return (
           <iframe
+            ref={iframeRef}
             title="HTML email preview"
-            sandbox=""
+            sandbox="allow-same-origin"
+            onLoad={handleIframeLoad}
             srcDoc={content}
             className="border-outline-subtle mt-1.5 h-[70vh] w-full rounded-lg border bg-white"
           />
@@ -246,8 +265,8 @@ const LivePreviewPanel = ({
           <div
             ref={previewRef}
             className="px-8 py-7"
-            onMouseUp={canEdit ? capture : undefined}
-            onKeyUp={canEdit ? capture : undefined}
+            onMouseUp={canEdit ? () => capture() : undefined}
+            onKeyUp={canEdit ? () => capture() : undefined}
           >
             {fileName && (
               <div className="text-on-surface-muted font-mono text-[11px]">
