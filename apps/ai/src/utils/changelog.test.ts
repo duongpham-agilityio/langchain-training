@@ -15,6 +15,13 @@ describe("buildChangelogQuery", () => {
     expect(text).toContain("limit $3");
   });
 
+  it("lists only submitted releases: the sent check is also a where condition", () => {
+    const { text } = buildChangelogQuery(OWNER, { limit: 10 });
+    const where = text.slice(text.indexOf("where h.owner_id"));
+    expect(where).toContain("exists (");
+    expect(where).toContain("s.status = $2");
+  });
+
   it("adds date range and version filters as bound params", () => {
     const { text, params } = buildChangelogQuery(OWNER, {
       from: "20261101",

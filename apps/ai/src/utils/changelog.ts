@@ -21,8 +21,9 @@ export class InvalidChangelogCursorError extends Error {}
 
 /**
  * Builds the changelog SQL and params. Pure so filters and cursor are unit-tested without a
- * database. `$1` is always the owner; `sent` is true when the release has a `sent` row in
- * `release_sends` (any channel), independent of how those rows are written (F-12).
+ * database. `$1` is always the owner. Only releases with a `sent` row in `release_sends` (any
+ * channel, independent of how those rows are written, F-12) are listed, so `sent` is always true:
+ * the changelog records submitted releases, History lists everything saved.
  */
 export const buildChangelogQuery = (
   ownerId: string,
@@ -57,13 +58,14 @@ export const buildChangelogQuery = (
   // One extra row tells us whether another page exists.
   params.push(limit + 1);
 
-  const text = `select h.id, h.release, h.created_at,
-       exists (
+  const sentExists = `exists (
          select 1 from ${RELEASE_SENDS_TABLE} s
          where s.release_id = h.id and s.owner_id = h.owner_id and s.status = $${sentParam}
-       ) as sent
+       )`;
+  const text = `select h.id, h.release, h.created_at,
+       ${sentExists} as sent
      from ${RELEASE_HISTORY_TABLE} h
-     where ${where.join(" and ")}
+     where ${where.join(" and ")} and ${sentExists}
      order by h.created_at desc, h.id desc
      limit $${params.length}`;
   return { text, params };

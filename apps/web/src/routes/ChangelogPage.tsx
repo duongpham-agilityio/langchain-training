@@ -56,7 +56,7 @@ const ChangelogPage = () => {
           description={
             hasActiveFilters
               ? 'Try another version or date range.'
-              : 'Archive a release from a thread and it will show up here.'
+              : 'Send a release to Slack or email and it will show up here. Archived releases that were not sent stay in History.'
           }
           action={
             hasActiveFilters ? (
