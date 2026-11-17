@@ -33,6 +33,8 @@ export const config = {
   fallbackModel: process.env.AI_FALLBACK_MODEL ?? DEFAULT_FALLBACK_MODEL,
   guardModel: process.env.AI_GUARD_MODEL ?? DEFAULT_GUARD_MODEL,
   openaiApiKey: requireEnv("OPENAI_API_KEY"),
+  // Read by `ChatOpenAI` itself; kept here only so startup can log which host the models talk to.
+  openaiBaseUrl: process.env.OPENAI_BASE_URL || undefined,
   supabase: {
     url: requireEnv("SUPABASE_URL"),
     anonKey: requireEnv("SUPABASE_ANON_KEY"),
