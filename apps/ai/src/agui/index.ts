@@ -37,6 +37,7 @@ import {
   THREAD_ACCESS_DENIED_MESSAGE,
   TOOL_NAMES,
   TRACE_METADATA_KEYS,
+  AGENT_RECURSION_LIMIT,
   TRACE_RUN_NAME,
   TRACE_TAG,
 } from "@/constants";
@@ -239,6 +240,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         const langsmithRunId = randomUUID();
         const config = {
           runId: langsmithRunId,
+          recursionLimit: AGENT_RECURSION_LIMIT,
           runName: TRACE_RUN_NAME,
           // Find a trace by conversation or owner; ignored by LangSmith when tracing is off.
           tags: [TRACE_TAG],

@@ -9,6 +9,11 @@ export const PREVIEW_ITEM_ATTRIBUTE = 'data-item-id';
 // object and the draft hash it was built from, so it can edit that one property of that draft.
 export const EDIT_REQUEST_PROMPT = [
   'Edit one item of the release notes draft shown in the Live Preview.',
-  'Change only the property named by the item id and keep every other property as it is.',
+  'Change only the property named by the item id (or, when there is none, the property the selected text comes from) and keep every other property as it is.',
   'Use the release object below as the base and check the draft hash matches the draft on screen.',
 ].join(' ');
+
+// Sent in place of the item id when the selection is not tied to one mapped item (plain-text and
+// HTML formats, or a selection spanning items): the model locates the property itself.
+export const UNKNOWN_ITEM_LINE =
+  'Item id: unknown, find the property of the release object that contains the selected text';

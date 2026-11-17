@@ -57,6 +57,19 @@ const userMemoryStore = await createUserMemoryStore();
 const tracingEnabled = configureTracing(config.langsmith);
 console.log(`[ai] LangSmith tracing ${tracingEnabled ? "on" : "off"}`);
 
+// Which models the app is configured for, and which host they are called on (host only, never the key).
+const modelHost = (() => {
+  if (!config.openaiBaseUrl) return "OpenAI default";
+  try {
+    return new URL(config.openaiBaseUrl).host;
+  } catch {
+    return "invalid OPENAI_BASE_URL";
+  }
+})();
+console.log(
+  `[ai] models: main=${config.model} fallback=${config.fallbackModel} guard=${config.guardModel} (host: ${modelHost})`,
+);
+
 // No key, no client: the evaluation scheduler is then a no-op.
 const langsmithClient = config.langsmith.apiKey
   ? new Client({ apiKey: config.langsmith.apiKey })
@@ -107,7 +120,9 @@ app.route("/", createReleaseEmailRoute());
 
 app.get(HEALTH_PATH, async (c) => {
   const db = await checkDatabase(pgPool);
-  return c.json({ ok: db.reachable, db }, db.reachable ? 200 : 503);
+  // Model names only (dev aid: which model createAgent really got); never keys or the base URL.
+  const models = { main: config.model, fallback: config.fallbackModel, guard: config.guardModel };
+  return c.json({ ok: db.reachable, db, models }, db.reachable ? 200 : 503);
 });
 
 app.route(

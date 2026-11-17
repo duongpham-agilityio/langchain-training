@@ -4,6 +4,7 @@ import {
   type CopilotChatUserMessageProps,
 } from '@copilotkit/react-core/v2';
 import { ChatErrorKind } from '@/lib/chat-error.ts';
+import { summarizeEditRequest } from '@/lib/release-notes/summarize-edit-request.ts';
 import { useChatSendFailure } from '@/hooks/use-chat-send-failure.ts';
 
 // Passed as CopilotChat's `messageView.userMessage` slot: the built-in user
@@ -14,10 +15,18 @@ const CopilotUserMessage = (props: CopilotChatUserMessageProps) => {
 
   const isUnauthorized = failure?.kind === ChatErrorKind.Unauthorized;
 
+  // An edit request from the Live Preview carries the release JSON for the agent: show one line.
+  const { content } = props.message;
+  const summary =
+    typeof content === 'string' ? summarizeEditRequest(content) : null;
+
   return (
     <div>
       <CopilotChatUserMessage
         {...props}
+        message={
+          summary ? { ...props.message, content: summary } : props.message
+        }
         messageRenderer="bg-primary! text-white! rounded-br-none!"
       />
       {failure && (

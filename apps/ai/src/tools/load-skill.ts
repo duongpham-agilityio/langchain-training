@@ -10,12 +10,15 @@ import { loadSkillSchema } from "@/schemas";
 import { SKILL_NAMES, SKILLS } from "@/skills";
 
 export const loadSkill = tool(
-  async ({ name }) => {
-    const skill = SKILLS.find((item) => item.name === name);
+  async ({ names }) => {
+    // An empty call (no names) is answered with the list, so the model can call again correctly.
+    if (names.length === 0) {
+      return `No skill name given. Call load_skill once with names from: ${SKILL_NAMES.join(", ")}.`;
+    }
     // The schema enum blocks unknown names; this keeps the tool safe if called directly.
-    return skill
-      ? skill.content
-      : `Unknown skill "${name}". Available: ${SKILL_NAMES.join(", ")}.`;
+    return [...new Set(names)]
+      .map((name) => SKILLS.find((item) => item.name === name)?.content ?? `Unknown skill "${name}". Available: ${SKILL_NAMES.join(", ")}.`)
+      .join("\n\n---\n\n");
   },
   {
     name: LOAD_SKILL_TOOL_NAME,

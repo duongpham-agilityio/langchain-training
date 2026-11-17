@@ -18,7 +18,9 @@ import {
 import {
   createDraftContextMiddleware,
   createModelFallbackMiddleware,
+  createModelLogMiddleware,
   createPiiMiddleware,
+  logAgentModel,
   // createScheduleValidationMiddleware,
   createUserTemplateMiddleware,
   memoryMiddleware,
@@ -50,12 +52,14 @@ export const createBaseAgent = (
 }: CreateBaseAgentOptions = {},
 ) =>
   createAgent({
-    model: new ChatOpenAI({ model: config.model }),
+    model: logAgentModel(new ChatOpenAI({ model: config.model })),
     tools: createTools(pool, store),
     systemPrompt,
     // Skills and Slack approval always on; callers add more (e.g. guards) after it.
     middleware: [
-      // Outermost model wrapper: a failing primary call is retried on the fallback model.
+      // Logs the model that answered each call, including a fallback; outside the fallback wrapper to see its result.
+      createModelLogMiddleware(),
+      // A failing primary call is retried on the fallback model.
       createModelFallbackMiddleware(),
       skillsMiddleware,
       // Appends the user's saved template (F-16) after the static prompt on each model call.
