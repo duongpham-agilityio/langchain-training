@@ -8,7 +8,7 @@ import { config } from "@/config";
 import {
   EDIT_APPROVAL_DESCRIPTION,
   EMAIL_APPROVAL_DESCRIPTION,
-  // SCHEDULE_APPROVAL_DESCRIPTION,
+  SCHEDULE_APPROVAL_DESCRIPTION,
   SLACK_APPROVAL_DESCRIPTION,
   SYSTEM_PROMPT,
   TOOL_NAMES,
@@ -21,7 +21,7 @@ import {
   createModelLogMiddleware,
   createPiiMiddleware,
   logAgentModel,
-  // createScheduleValidationMiddleware,
+  createScheduleValidationMiddleware,
   createUserTemplateMiddleware,
   memoryMiddleware,
   skillsMiddleware,
@@ -80,11 +80,10 @@ export const createBaseAgent = (
             allowedDecisions: ["approve", "reject"],
             description: EMAIL_APPROVAL_DESCRIPTION,
           },
-          // TEMP: scheduling is switched off.
-          // [TOOL_NAMES.scheduleReleaseSend]: {
-          //   allowedDecisions: ["approve", "reject"],
-          //   description: SCHEDULE_APPROVAL_DESCRIPTION,
-          // },
+          [TOOL_NAMES.scheduleReleaseSend]: {
+            allowedDecisions: ["approve", "reject"],
+            description: SCHEDULE_APPROVAL_DESCRIPTION,
+          },
           // Accept applies the edit, Reject changes nothing (the tool body never runs).
           [TOOL_NAMES.editReleaseItem]: {
             allowedDecisions: ["approve", "reject"],
@@ -93,7 +92,7 @@ export const createBaseAgent = (
         },
       }),
       // After the approval middleware on purpose (afterModel runs in reverse): bad times never reach the card.
-      // createScheduleValidationMiddleware(),
+      createScheduleValidationMiddleware(),
       ...(middleware ?? []),
     ],
     checkpointer,
