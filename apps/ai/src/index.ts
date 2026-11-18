@@ -30,6 +30,7 @@ import { createCheckpointAgentRunner } from "@/runner";
 import { startScheduler } from "@/services";
 import {
   createChangelogRoute,
+  createCronRoute,
   createReleaseEmailRoute,
   createReleaseHistoryRoutes,
   createSlackRoute,
@@ -116,6 +117,8 @@ app.route("/", createSlackRoute(pgPool));
 app.route("/", createThreadsRoute(pgPool));
 app.route("/", createChangelogRoute(pgPool));
 app.route("/", createReleaseEmailRoute());
+// Not behind requireAuth: Vercel Cron has no user session; the route checks CRON_SECRET itself.
+app.route("/", createCronRoute(pgPool));
 
 app.get(HEALTH_PATH, async (c) => {
   const db = await checkDatabase(pgPool);
@@ -133,10 +136,16 @@ app.route(
   }),
 );
 
-// Sends due scheduled jobs with or without a browser; several instances are safe (atomic claim).
-const stopScheduler = startScheduler(pgPool);
-process.once("SIGTERM", stopScheduler);
+// Vercel runs this file as a function: it needs the default-exported app, not a listening server,
+// and a setInterval poller does not survive between invocations there.
+if (!process.env.VERCEL) {
+  // Sends due scheduled jobs with or without a browser; several instances are safe (atomic claim).
+  const stopScheduler = startScheduler(pgPool);
+  process.once("SIGTERM", stopScheduler);
 
-serve({ fetch: app.fetch, port: config.port }, ({ port }) => {
-  console.log(`[ai] CopilotKit runtime on http://localhost:${port}${config.runtimeBasePath}`);
-});
+  serve({ fetch: app.fetch, port: config.port }, ({ port }) => {
+    console.log(`[ai] CopilotKit runtime on http://localhost:${port}${config.runtimeBasePath}`);
+  });
+}
+
+export default app;

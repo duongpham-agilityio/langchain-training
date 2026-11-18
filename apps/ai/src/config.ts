@@ -45,6 +45,8 @@ export const config = {
   // Optional: empty string counts as unset, so the server starts without email.
   resendApiKey: process.env.RESEND_API_KEY || undefined,
   emailFrom: process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM,
+  // Shared secret for Vercel Cron: Vercel sends it as `Authorization: Bearer <CRON_SECRET>`. Unset = cron route refuses.
+  cronSecret: process.env.CRON_SECRET || undefined,
   scheduler: {
     // SCHEDULER_ENABLED=false turns the poller off (for example on a second instance that only serves HTTP).
     enabled: process.env.SCHEDULER_ENABLED !== "false",
