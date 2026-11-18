@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "ai": {
+      "root": "apps/ai",
+      "framework": "hono"
+    },
+    "web": {
+      "root": "apps/web",
+      "framework": "vite",
+      "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+    }
+  },
+  "crons": [{ "path": "/cron/scheduled-sends", "schedule": "0 0 * * *" }],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "ai" } },
+    { "source": "/release-history", "destination": { "service": "ai" } },
+    { "source": "/release-history/(.*)", "destination": { "service": "ai" } },
+    { "source": "/slack/(.*)", "destination": { "service": "ai" } },
+    { "source": "/health", "destination": { "service": "ai" } },
+    { "source": "/cron/(.*)", "destination": { "service": "ai" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
+  ]
+}
