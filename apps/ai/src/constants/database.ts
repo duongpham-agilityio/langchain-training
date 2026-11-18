@@ -12,3 +12,6 @@ export const HEALTH_PATH = "/health";
 
 // Everything this app creates (checkpointer tables, `threads`) lives here, not in `public`. Quote it in SQL: the hyphens need it.
 export const DB_SCHEMA = "release-builder-dev";
+
+// Same schema as the other tables the code queries (`scheduled_sends`, `release_history`); the migration file is written like theirs.
+export const SHARED_PAGES_TABLE = `"${DB_SCHEMA}".shared_pages`;

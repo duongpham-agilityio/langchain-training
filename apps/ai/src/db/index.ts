@@ -8,3 +8,4 @@ export * from "./user-memory";
 export * from "./release-sends";
 export * from "./changelog";
 export * from "./scheduled-sends";
+export * from "./shared-pages";

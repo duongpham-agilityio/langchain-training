@@ -33,6 +33,7 @@ import {
   createCronRoute,
   createReleaseEmailRoute,
   createReleaseHistoryRoutes,
+  createSharedPagesRoute,
   createSlackRoute,
   createThreadsRoute,
 } from "@/routes";
@@ -117,6 +118,8 @@ app.route("/", createSlackRoute(pgPool));
 app.route("/", createThreadsRoute(pgPool));
 app.route("/", createChangelogRoute(pgPool));
 app.route("/", createReleaseEmailRoute());
+// Public, unlike the routes above: a shared changelog page opens from a link with no session.
+app.route("/", createSharedPagesRoute(pgPool));
 // Not behind requireAuth: Vercel Cron has no user session; the route checks CRON_SECRET itself.
 app.route("/", createCronRoute(pgPool));
 

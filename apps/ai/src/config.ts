@@ -4,6 +4,7 @@ import {
   DEFAULT_FALLBACK_MODEL,
   DEFAULT_GUARD_MODEL,
   DEFAULT_MODEL,
+  DEFAULT_PUBLIC_URL,
   DEFAULT_PORT,
   SCHEDULER_MAX_ATTEMPTS,
   SCHEDULER_POLL_INTERVAL_MS,
@@ -40,6 +41,8 @@ export const config = {
     anonKey: requireEnv("SUPABASE_ANON_KEY"),
     serviceRoleKey: requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
   },
+  // Base of the shared-page links; on Vercel set it to the production domain.
+  publicBaseUrl: process.env.AI_PUBLIC_URL || DEFAULT_PUBLIC_URL,
   databaseUrl: requireEnv("DATABASE_URL"),
   slackWebhookUrl: process.env.SLACK_WEBHOOK_URL,
   // Optional: empty string counts as unset, so the server starts without email.
