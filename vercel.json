@@ -18,6 +18,7 @@
     { "source": "/release-history/(.*)", "destination": { "service": "ai" } },
     { "source": "/slack/(.*)", "destination": { "service": "ai" } },
     { "source": "/health", "destination": { "service": "ai" } },
+    { "source": "/shared/(.*)", "destination": { "service": "ai" } },
     { "source": "/cron/(.*)", "destination": { "service": "ai" } },
     { "source": "/(.*)", "destination": { "service": "web" } }
   ]

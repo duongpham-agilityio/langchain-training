@@ -1,3 +1,4 @@
+import { changelogPage } from "./changelog-page";
 import { classificationRules } from "./classification-rules";
 import { commitPrParsing } from "./commit-pr-parsing";
 import { platformFormatting } from "./platform-formatting";
@@ -15,6 +16,7 @@ export const SKILLS = [
   classificationRules,
   platformFormatting,
   releaseReporting,
+  changelogPage,
 ] as const satisfies readonly Skill[];
 
 export type SkillName = (typeof SKILLS)[number]["name"];

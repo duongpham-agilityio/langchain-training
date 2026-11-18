@@ -23,3 +23,4 @@ export * from "./draft-context";
 export * from "./user-memory";
 export * from "./edit-release-item";
 export * from "./changelog-qa";
+export * from "./changelog-page";

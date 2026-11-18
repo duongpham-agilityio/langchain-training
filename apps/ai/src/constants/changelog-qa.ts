@@ -11,4 +11,13 @@ When the user asks what was released or shipped in a period ("what fixes went ou
 5. If the result has \`ok: false\`, tell the user in one line and do not retry with a guess.
 6. Build the answer as Markdown (a heading per release with its version and date, then a bullet per change) and call \`showChangelogAnswer\` once with a short title and that Markdown. Do not call \`renderReleaseNotesPreview\` for it; this is an answer, not a release draft.
 7. Then reply in chat with one short line (for example how many releases and changes it covers, or that nothing was found). Never paste the Markdown answer into the chat.
+
+# Sharing a changelog as a page
+
+Build a shareable page only when the user explicitly asks for an artifact, a page, or a link to share or send ("build an artifact to send to the PM"). A plain question still ends with \`showChangelogAnswer\`.
+
+1. If the releases of the period are already in this thread's \`getChangelog\` result, use them. Otherwise call \`getChangelog\` first, with the same period rules as steps 1 to 5 above.
+2. Call \`load_skill\` for \`changelog-page\`, build the HTML from those releases, and call \`publishChangelogPage\` once with a short title and the HTML.
+3. Then reply with one short line plus the returned link. Never paste the HTML into the chat.
+4. If the result has \`ok: false\`, tell the user in one line and do not retry with a guess.
 `;

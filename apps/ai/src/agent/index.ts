@@ -53,7 +53,7 @@ export const createBaseAgent = (
 ) =>
   createAgent({
     model: logAgentModel(new ChatOpenAI({ model: config.model })),
-    tools: createTools(pool, store),
+    tools: createTools(pool, store, config.publicBaseUrl),
     systemPrompt,
     // Skills and Slack approval always on; callers add more (e.g. guards) after it.
     middleware: [
