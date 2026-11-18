@@ -7,6 +7,9 @@ export const SCHEDULER_STUCK_JOB_TIMEOUT_MS = 10 * 60_000;
 // Wait before a failed attempt is tried again (times the attempt count).
 export const SCHEDULER_RETRY_DELAY_MS = 30_000;
 
+// Called by Vercel Cron (GET). Outside /api on purpose: it is not a user session, it has its own secret check.
+export const CRON_SCHEDULED_SENDS_PATH = "/cron/scheduled-sends";
+
 export const SCHEDULER_ERROR_MESSAGES = {
   STUCK: "The send did not finish in time. It may or may not have reached Slack, so it was not retried.",
   MISSING_WEBHOOK_URL: "Missing required env var: SLACK_WEBHOOK_URL.",
