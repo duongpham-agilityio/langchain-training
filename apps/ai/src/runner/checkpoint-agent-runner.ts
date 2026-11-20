@@ -60,7 +60,7 @@ export class CheckpointAgentRunner extends InMemoryAgentRunner {
   private replayFromCheckpoint = async ({ threadId, ownerId }: AgentRunnerConnectRequest): Promise<BaseEvent[]> => {
     try {
       // Same answer for "not yours" and "does not exist", so a caller learns nothing about other threads.
-      if (!ownerId || (await getThreadOwner(this.pool, threadId)) !== ownerId) return [];
+      if (!ownerId || (await getThreadOwner(this.pool, threadId))?.ownerId !== ownerId) return [];
       // Cast: the agent's state type is not inferred through `createAgent` (same cast as in `agui/index.ts`).
       const state = (await this.agent.getState({ configurable: { thread_id: threadId } })) as {
         values?: { messages?: BaseMessage[] };

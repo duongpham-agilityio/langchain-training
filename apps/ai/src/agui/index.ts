@@ -32,6 +32,8 @@ import {
   DRAFT_CONTEXT_CONFIG_KEY,
   EMAIL_RECIPIENT_CONFIG_KEY,
   GUARD_REPLIES,
+  PROJECT_ACCESS_DENIED_MESSAGE,
+  PROJECT_ID_HEADER,
   RELEASE_FORMAT_LABELS,
   type ReleaseFormat,
   THREAD_ACCESS_DENIED_MESSAGE,
@@ -57,6 +59,7 @@ import { ReleaseSchema } from "@/schemas";
 import {
   resolveTimeZone,
   type AnswerEvaluationScheduler,
+  type ProjectGate,
   type PromptInjectionGuard,
   type ThreadGate,
   type ThreadTitleScheduler,
@@ -188,7 +191,7 @@ type ApprovalRequest = {
  */
 export class ReleaseNotesAguiAgent extends AbstractAgent {
   /**
-   * Request headers (`authorization`, `x-time-zone`): the CopilotKit runtime assigns them on the cloned
+   * Request headers (`authorization`, `x-time-zone`, `x-project-id`): the CopilotKit runtime assigns them on the cloned
    * agent right before `run`. Not declared on `AbstractAgent` in the installed @ag-ui/client types.
    */
   headers: Record<string, string> = {};
@@ -200,6 +203,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
     private readonly scheduleEvaluation?: AnswerEvaluationScheduler,
     private readonly threads?: ThreadGate,
     private readonly identify?: IdentifyRunUser,
+    private readonly projects?: ProjectGate,
   ) {
     super();
   }
@@ -222,13 +226,21 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         const headers = this.headers;
         const userId = this.identify ? await this.identify(headers) : null;
         if (!userId) throw new Error(UNAUTHORIZED_MESSAGE);
+
+        // Which project this run belongs to: the header is only a claim until the owner check passes.
+        // Missing, malformed or foreign = the same refusal, before the thread gate and any state read.
+        const projectId = headers[PROJECT_ID_HEADER.toLowerCase()]?.trim();
+        if (!projectId || (this.projects && !(await this.projects(userId, projectId)))) {
+          throw new Error(PROJECT_ACCESS_DENIED_MESSAGE);
+        }
         const context: AgentContext = {
           userId,
+          projectId,
           timeZone: resolveTimeZone(headers[TIME_ZONE_HEADER.toLowerCase()]),
         };
 
-        // Owner check first: a thread of someone else is refused before any state is read.
-        if (this.threads && !(await this.threads.canUse(userId, input.threadId))) {
+        // Owner check first: a thread of someone else (or of another project) is refused before any state is read.
+        if (this.threads && !(await this.threads.canUse(userId, projectId, input.threadId))) {
           throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
         }
 
@@ -253,7 +265,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         }
 
         // The guard passed: create the owner row now (empty title). Losing a first-turn race means not ours.
-        if (this.threads && !(await this.threads.claim(userId, input.threadId))) {
+        if (this.threads && !(await this.threads.claim(userId, projectId, input.threadId))) {
           throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
         }
 
@@ -272,6 +284,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           metadata: {
             [TRACE_METADATA_KEYS.threadId]: input.threadId,
             [TRACE_METADATA_KEYS.userId]: userId,
+            [TRACE_METADATA_KEYS.projectId]: projectId,
           },
           configurable: {
             thread_id: input.threadId,
@@ -413,7 +426,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         // Title generation is fire-and-forget, after RUN_FINISHED, and only for a completed turn.
         const firstUserMessage = messages.find((message) => HumanMessage.isInstance(message));
         if (producedReply && !interrupts.length && firstUserMessage) {
-          this.scheduleTitle?.({ userId, threadId: input.threadId, userMessage: firstUserMessage.text });
+          this.scheduleTitle?.({ userId, projectId, threadId: input.threadId, userMessage: firstUserMessage.text });
         }
         // Answer-quality checks are fire-and-forget too; guard-blocked and interrupted turns are skipped.
         if (producedReply && !interrupts.length) {
@@ -445,6 +458,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
       this.scheduleEvaluation,
       this.threads,
       this.identify,
+      this.projects,
     );
   }
 }
@@ -457,6 +471,8 @@ export const createAguiAgent = (
   scheduleEvaluation?: AnswerEvaluationScheduler,
   threads?: ThreadGate,
   identify?: IdentifyRunUser,
-) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation, threads, identify);
+  projects?: ProjectGate,
+) =>
+  new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation, threads, identify, projects);
 
 export * from "./draft-context";

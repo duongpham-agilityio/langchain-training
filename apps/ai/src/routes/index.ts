@@ -5,3 +5,4 @@ export * from "./threads";
 export * from "./changelog";
 export * from "./cron";
 export * from "./shared-pages";
+export * from "./projects";

@@ -8,4 +8,5 @@ export const TRACE_TAG = "release-copilot";
 export const TRACE_METADATA_KEYS = {
   threadId: "thread_id",
   userId: "user_id",
+  projectId: "project_id",
 } as const;

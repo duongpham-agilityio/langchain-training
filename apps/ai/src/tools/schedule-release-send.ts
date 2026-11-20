@@ -5,6 +5,7 @@ import type { Pool } from "pg";
 import {
   CURRENT_DATE_TIME_DESCRIPTION,
   DEFAULT_TIME_ZONE,
+  PROJECT_REQUIRED_MESSAGE,
   SCHEDULE_RELEASE_SEND_DESCRIPTION,
   SCHEDULE_TOOL_MESSAGES,
   TOOL_NAMES,
@@ -44,6 +45,9 @@ export const createScheduleReleaseSend = (pool: Pool) =>
       const context = readAgentContext(runtime);
       const userId = context?.userId;
       if (!context || !userId) return SCHEDULE_TOOL_MESSAGES.NOT_SIGNED_IN;
+      // The project comes from the verified run context, never from the model's arguments.
+      const projectId = context.projectId;
+      if (!projectId) return PROJECT_REQUIRED_MESSAGE;
 
       const { timeZone } = context;
       const request = resolveScheduleRequest(localDateTime, timeZone);
@@ -53,8 +57,8 @@ export const createScheduleReleaseSend = (pool: Pool) =>
       if (!built.ok) return built.error;
 
       const releaseId =
-        (await findReleaseId(pool, userId, release)) ??
-        (await saveReleaseHistory(pool, userId, { release })).id;
+        (await findReleaseId(pool, userId, projectId, release)) ??
+        (await saveReleaseHistory(pool, userId, projectId, { release })).id;
 
       await insertScheduledSend(pool, {
         ownerId: userId,

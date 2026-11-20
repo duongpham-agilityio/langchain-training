@@ -11,6 +11,9 @@ export type ReleaseHistoryRow = {
   release: unknown;
   status: ReleaseHistoryRecord["status"];
   created_at: Date | string;
+  project_id: string;
+  /** From the join with `projects`. */
+  project_name: string;
   /** Recipients of successful email sends; absent for rows from queries that do not select it. */
   email_recipients?: string[] | null;
 };
@@ -29,6 +32,8 @@ export const toReleaseHistoryRecord = (
   const rendered = renderRelease(parsed.data, format);
   return {
     id: row.id,
+    projectId: row.project_id,
+    projectName: row.project_name,
     release: parsed.data,
     status: row.status,
     format,

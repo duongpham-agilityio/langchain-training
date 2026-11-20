@@ -12,7 +12,10 @@ const release = {
   ],
 };
 
-const row = { id: "r1", release, status: "archived" as const, created_at: "2026-11-10T00:00:00Z" };
+const row = { id: "r1", release, status: "archived" as const, created_at: "2026-11-10T00:00:00Z",
+  project_id: "p1",
+  project_name: "Alpha",
+};
 
 describe("toRecord", () => {
   it("renders the stored release in the requested format", () => {

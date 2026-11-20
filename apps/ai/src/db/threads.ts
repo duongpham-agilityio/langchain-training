@@ -20,39 +20,53 @@ const toSummary = (row: ThreadRow): ThreadSummary => ({
   id: row.id,
   title: row.title,
   resourceId: row.owner_id,
+  projectId: row.project_id,
   createdAt: new Date(row.created_at).toISOString(),
   updatedAt: new Date(row.updated_at).toISOString(),
 });
 
-/** Always filtered by owner: this runs with the service role, which bypasses RLS. */
-export const listThreads = async (pool: Pool, ownerId: string): Promise<ThreadSummary[]> => {
+/** Always filtered by owner: this runs with the service role, which bypasses RLS. `projectId` narrows to one project. */
+export const listThreads = async (
+  pool: Pool,
+  ownerId: string,
+  projectId?: string,
+): Promise<ThreadSummary[]> => {
+  const params = projectId ? [ownerId, projectId] : [ownerId];
   const { rows } = await pool.query<ThreadRow>(
-    `select id, owner_id, title, created_at, updated_at from ${THREADS_TABLE}
-     where owner_id = $1
+    `select id, owner_id, project_id, title, created_at, updated_at from ${THREADS_TABLE}
+     where owner_id = $1${projectId ? " and project_id = $2" : ""}
      order by updated_at desc, id desc`,
-    [ownerId],
+    params,
   );
   return rows.map(toSummary);
 };
 
-/** Owner of a thread row, or null when the id has no row yet. */
-export const getThreadOwner = async (pool: Pool, id: string): Promise<string | null> => {
-  const { rows } = await pool.query<Pick<ThreadRow, "owner_id">>(
-    `select owner_id from ${THREADS_TABLE} where id = $1`,
+/** Who and which project a thread row belongs to. */
+export type ThreadOwner = { ownerId: string; projectId: string };
+
+/** Owner and project of a thread row, or null when the id has no row yet. */
+export const getThreadOwner = async (pool: Pool, id: string): Promise<ThreadOwner | null> => {
+  const { rows } = await pool.query<Pick<ThreadRow, "owner_id" | "project_id">>(
+    `select owner_id, project_id from ${THREADS_TABLE} where id = $1`,
     [id],
   );
-  return rows[0]?.owner_id ?? null;
+  return rows[0] ? { ownerId: rows[0].owner_id, projectId: rows[0].project_id } : null;
 };
 
 /**
- * Creates the owner row with an empty title (the title step fills it later) and returns the row's owner.
- * First writer wins: when the id already belongs to someone else, that owner comes back and nothing changes.
+ * Creates the owner row in the project with an empty title (the title step fills it later) and returns the row's owner and project.
+ * First writer wins: when the id already belongs to someone else (or to another project), that row comes back and nothing changes.
  */
-export const claimThread = async (pool: Pool, ownerId: string, id: string): Promise<string | null> => {
+export const claimThread = async (
+  pool: Pool,
+  ownerId: string,
+  projectId: string,
+  id: string,
+): Promise<ThreadOwner | null> => {
   await pool.query(
-    `insert into ${THREADS_TABLE} (id, owner_id) values ($1, $2)
+    `insert into ${THREADS_TABLE} (id, owner_id, project_id) values ($1, $2, $3)
      on conflict (id) do nothing`,
-    [id, ownerId],
+    [id, ownerId, projectId],
   );
   return getThreadOwner(pool, id);
 };
@@ -72,14 +86,17 @@ export const touchThread = async (pool: Pool, ownerId: string, id: string): Prom
 export const setThreadTitle = async (
   pool: Pool,
   ownerId: string,
+  projectId: string,
   id: string,
   title: string,
 ): Promise<void> => {
   await pool.query(
-    `insert into ${THREADS_TABLE} (id, owner_id, title) values ($1, $2, $3)
+    `insert into ${THREADS_TABLE} (id, owner_id, project_id, title) values ($1, $2, $3, $4)
      on conflict (id) do update set title = excluded.title
-     where ${THREADS_TABLE}.title = '' and ${THREADS_TABLE}.owner_id = excluded.owner_id`,
-    [id, ownerId, title],
+     where ${THREADS_TABLE}.title = ''
+       and ${THREADS_TABLE}.owner_id = excluded.owner_id
+       and ${THREADS_TABLE}.project_id = excluded.project_id`,
+    [id, ownerId, projectId, title],
   );
 };
 

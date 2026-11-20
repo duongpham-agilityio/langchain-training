@@ -4,6 +4,7 @@ import type { Pool } from "pg";
 // Constants
 import {
   DEFAULT_TIME_ZONE,
+  PROJECT_REQUIRED_MESSAGE,
   RELEASE_FORMAT_ALIASES,
   RELEASE_FORMATS,
   RELEASE_NOTES_PREVIEW_DESCRIPTION,
@@ -60,10 +61,13 @@ export const createRenderReleaseNotesPreview = (pool: Pool) =>
 
       const context = readAgentContext(runtime);
       const userId = context?.userId;
+      // The next version counts per project, and the project comes from the verified run context.
+      const projectId = context?.projectId;
+      if (!projectId) return JSON.stringify({ ok: false, error: PROJECT_REQUIRED_MESSAGE });
       // A failed read or a malformed stored version must not crash the turn or leak SQL text to the model.
       let version: string;
       try {
-        const previousVersion = userId ? await getLatestReleaseVersion(pool, userId) : null;
+        const previousVersion = userId ? await getLatestReleaseVersion(pool, userId, projectId) : null;
         version = nextVersion(previousVersion, input.changes, input.version);
       } catch (error) {
         console.error("[ai] next release version failed:", error);

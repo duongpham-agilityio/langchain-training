@@ -3,6 +3,7 @@ import type { Pool } from "pg";
 
 // Constants
 import {
+  PROJECT_REQUIRED_MESSAGE,
   PUBLISH_RELEASE_NOTES_TO_SLACK_DESCRIPTION,
   SLACK_ERROR_MESSAGES,
   SLACK_TOOL_MESSAGES,
@@ -28,13 +29,17 @@ import { readAgentContext } from "@/agent/context";
 export const createPublishReleaseNotesToSlack = (pool: Pool) =>
   tool(
     async ({ release }, runtime) => {
-      const userId = readAgentContext(runtime)?.userId;
+      const context = readAgentContext(runtime);
+      const userId = context?.userId;
       if (!userId) return SLACK_ERROR_MESSAGES.NOT_SIGNED_IN;
+      // The project comes from the verified run context, never from the model's arguments.
+      const projectId = context.projectId;
+      if (!projectId) return PROJECT_REQUIRED_MESSAGE;
 
       // An unsaved draft is saved first, so the send always has a History record to attach to.
       const releaseId =
-        (await findReleaseId(pool, userId, release)) ??
-        (await saveReleaseHistory(pool, userId, { release })).id;
+        (await findReleaseId(pool, userId, projectId, release)) ??
+        (await saveReleaseHistory(pool, userId, projectId, { release })).id;
 
       const result = await sendReleaseToSlack(pool, userId, releaseId);
       return result.ok ? SLACK_TOOL_MESSAGES.PUBLISHED : result.error;
