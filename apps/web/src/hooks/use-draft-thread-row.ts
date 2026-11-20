@@ -40,6 +40,8 @@ export const useDraftThreadRow = ({
       id: threadId,
       title: '',
       resourceId,
+      // Placeholder until the web client has a project picker (a later ticket); the server row carries the real one.
+      projectId: '',
       createdAt: now,
       updatedAt: now,
     });

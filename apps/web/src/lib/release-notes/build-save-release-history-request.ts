@@ -6,4 +6,6 @@ import type { SaveReleaseHistoryRequest } from '@training/contracts';
 export const buildSaveReleaseHistoryRequest = ({
   release,
 }: ReleaseNotesDraft): SaveReleaseHistoryRequest | null =>
-  release ? { release } : null;
+  // The web has no project picker yet (a later ticket): an empty id keeps the contract
+  // typed, and the server answers 400 until the client sends a real project.
+  release ? { projectId: '', release } : null;
