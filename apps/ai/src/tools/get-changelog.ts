@@ -16,7 +16,10 @@ import { listChangelog } from "@/db";
 import { getChangelogSchema } from "@/schemas";
 
 // Utils
-import { ChangelogRangeError, getUserTimeZone, resolveChangelogRange, userContext } from "@/utils";
+import { ChangelogRangeError, resolveChangelogRange } from "@/utils";
+
+// Context
+import { readAgentContext } from "@/agent/context";
 
 /**
  * Read-only changelog for the agent (F-28). The owner and the time zone come from the verified
@@ -24,11 +27,12 @@ import { ChangelogRangeError, getUserTimeZone, resolveChangelogRange, userContex
  */
 export const createGetChangelog = (pool: Pool) =>
   tool(
-    async (input) => {
-      const userId = userContext.getStore()?.userId;
-      if (!userId) return JSON.stringify({ ok: false, error: CHANGELOG_TOOL_MESSAGES.NO_USER });
+    async (input, runtime) => {
+      const context = readAgentContext(runtime);
+      const userId = context?.userId;
+      if (!context || !userId) return JSON.stringify({ ok: false, error: CHANGELOG_TOOL_MESSAGES.NO_USER });
       try {
-        const range = resolveChangelogRange(input, new Date(), getUserTimeZone());
+        const range = resolveChangelogRange(input, new Date(), context.timeZone);
         const { releases, nextCursor } = await listChangelog(pool, userId, {
           ...range,
           limit: CHANGELOG_TOOL_LIMIT,

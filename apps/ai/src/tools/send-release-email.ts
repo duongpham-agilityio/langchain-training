@@ -19,8 +19,8 @@ import { isValidEmailAddress, SendReleaseEmailInputSchema } from "@/schemas";
 // Services
 import { sendReleaseEmail } from "@/services";
 
-// Utils
-import { userContext } from "@/utils";
+// Context
+import { readAgentContext } from "@/agent/context";
 
 /**
  * Runs only after `humanInTheLoopMiddleware` got an approval. The recipient is not an argument: it
@@ -30,7 +30,7 @@ import { userContext } from "@/utils";
 export const createSendReleaseEmail = (pool: Pool) =>
   tool(
     async ({ release }, config) => {
-      const userId = userContext.getStore()?.userId;
+      const userId = readAgentContext(config)?.userId;
       if (!userId) return EMAIL_ERROR_MESSAGES.NOT_SIGNED_IN;
 
       const recipient = (config?.configurable?.[EMAIL_RECIPIENT_CONFIG_KEY] as { address?: unknown } | undefined)

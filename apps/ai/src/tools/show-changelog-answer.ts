@@ -11,8 +11,8 @@ import {
 // Schemas
 import { showChangelogAnswerSchema } from "@/schemas/changelog-answer";
 
-// Utils
-import { userContext } from "@/utils/user-context";
+// Context
+import { readAgentContext } from "@/agent/context";
 
 /**
  * F-29: hands a Markdown answer about the changelog to the Live Preview. It reads and saves nothing;
@@ -20,8 +20,8 @@ import { userContext } from "@/utils/user-context";
  */
 export const createShowChangelogAnswer = () =>
   tool(
-    async ({ title, markdown }) => {
-      if (!userContext.getStore()?.userId) {
+    async ({ title, markdown }, runtime) => {
+      if (!readAgentContext(runtime)?.userId) {
         return JSON.stringify({ ok: false, error: CHANGELOG_ANSWER_MESSAGES.NOT_SIGNED_IN });
       }
       if (markdown.length > CHANGELOG_ANSWER_MAX_LENGTH) {

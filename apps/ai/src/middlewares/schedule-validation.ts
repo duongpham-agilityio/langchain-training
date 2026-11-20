@@ -7,7 +7,10 @@ import { SCHEDULE_TOOL_MESSAGES, TOOL_NAMES } from "@/constants";
 // Utils
 // Deep imports: the `@/utils` barrel reaches `config.ts` (env vars at import), which a unit test should not need.
 import { resolveScheduleRequest } from "@/utils/schedule-request";
-import { getUserTimeZone } from "@/utils/user-context";
+
+// Context
+import { DEFAULT_TIME_ZONE } from "@/constants";
+import { readAgentContext } from "@/agent/context";
 
 /**
  * Refuses a bad schedule time BEFORE the approval card: a past or impossible time never reaches the user.
@@ -20,7 +23,7 @@ export const createScheduleValidationMiddleware = (now: () => Date = () => new D
     name: "ScheduleValidationMiddleware",
     afterModel: {
       canJumpTo: ["model"],
-      hook: (state) => {
+      hook: (state, runtime) => {
         const last = state.messages.at(-1);
         if (!AIMessage.isInstance(last) || !last.tool_calls?.length) return;
 
@@ -28,7 +31,7 @@ export const createScheduleValidationMiddleware = (now: () => Date = () => new D
         for (const call of last.tool_calls) {
           if (call.name !== TOOL_NAMES.scheduleReleaseSend || !call.id) continue;
           const localDateTime = (call.args as { localDateTime?: unknown }).localDateTime;
-          const result = resolveScheduleRequest(String(localDateTime), getUserTimeZone(), now());
+          const result = resolveScheduleRequest(String(localDateTime), readAgentContext(runtime)?.timeZone ?? DEFAULT_TIME_ZONE, now());
           if (!result.ok) refusals.set(call.id, result.error);
         }
         if (refusals.size === 0) return;

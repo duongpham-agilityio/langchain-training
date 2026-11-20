@@ -4,11 +4,9 @@ import {
   RELEASE_NOTES_TITLE_PREFIX,
 } from "@/constants";
 
-import { getUserTimeZone } from "./user-context";
-
 export const formatReleaseDate = (
-  now: Date = new Date(),
-  timeZone: string = getUserTimeZone(),
+  now: Date,
+  timeZone: string,
 ): string =>
   new Intl.DateTimeFormat(RELEASE_NOTES_DATE_LOCALE, {
     timeZone,

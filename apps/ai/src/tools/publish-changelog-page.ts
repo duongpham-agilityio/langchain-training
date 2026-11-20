@@ -16,7 +16,10 @@ import { insertSharedPage } from "@/db";
 import { publishChangelogPageSchema } from "@/schemas";
 
 // Utils
-import { buildSharedPageUrl, userContext } from "@/utils";
+import { buildSharedPageUrl } from "@/utils";
+
+// Context
+import { readAgentContext } from "@/agent/context";
 
 /**
  * Saves a self-contained HTML page of the changelog and returns its public link. The page lives in
@@ -25,8 +28,8 @@ import { buildSharedPageUrl, userContext } from "@/utils";
  */
 export const createPublishChangelogPage = (pool: Pool, baseUrl: string) =>
   tool(
-    async ({ title, html }) => {
-      const userId = userContext.getStore()?.userId;
+    async ({ title, html }, runtime) => {
+      const userId = readAgentContext(runtime)?.userId;
       if (!userId) {
         return JSON.stringify({ ok: false, error: CHANGELOG_PAGE_MESSAGES.NOT_SIGNED_IN });
       }

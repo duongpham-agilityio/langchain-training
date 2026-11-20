@@ -6,9 +6,8 @@ import { hasTitledThread, setThreadTitle } from "@/db";
 
 // Utils
 import { generateThreadTitle } from "./thread-title";
-import { userContext } from "./user-context";
 
-export type ThreadTitleScheduler = (turn: { threadId: string; userMessage: string }) => void;
+export type ThreadTitleScheduler = (turn: { userId: string; threadId: string; userMessage: string }) => void;
 
 /**
  * Builds the hook the AG-UI agent calls after a turn that produced a reply.
@@ -21,8 +20,7 @@ export const createThreadTitleScheduler = (
   pool: Pool,
   model: Pick<BaseChatModel, "invoke">,
 ): ThreadTitleScheduler => {
-  return ({ threadId, userMessage }) => {
-    const ownerId = userContext.getStore()?.userId;
+  return ({ userId: ownerId, threadId, userMessage }) => {
     if (!ownerId || !userMessage.trim()) return;
 
     void (async () => {

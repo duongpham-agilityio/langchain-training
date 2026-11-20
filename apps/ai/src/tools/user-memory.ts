@@ -16,16 +16,16 @@ import { clearUserPreferences, getUserPreferences, saveUserPreferences } from "@
 // Schemas
 import { clearUserPreferencesSchema, saveUserPreferencesSchema } from "@/schemas";
 
-// Utils
-import { userContext } from "@/utils";
+// Context
+import { readAgentContext } from "@/agent/context";
 
-// The owner comes from the verified request context, never from model arguments.
-const currentUserId = () => userContext.getStore()?.userId;
+// The owner comes from the verified run context, never from model arguments.
+const currentUserId = (runtime: { context?: unknown }) => readAgentContext(runtime)?.userId;
 
 export const createUserMemoryTools = (store: BaseStore) => [
   tool(
-    async (update) => {
-      const userId = currentUserId();
+    async (update, runtime) => {
+      const userId = currentUserId(runtime);
       if (!userId) return USER_MEMORY_MESSAGES.NO_USER;
       return JSON.stringify(await saveUserPreferences(store, userId, update));
     },
@@ -36,8 +36,8 @@ export const createUserMemoryTools = (store: BaseStore) => [
     },
   ),
   tool(
-    async () => {
-      const userId = currentUserId();
+    async (_input, runtime) => {
+      const userId = currentUserId(runtime);
       if (!userId) return USER_MEMORY_MESSAGES.NO_USER;
       const record = await getUserPreferences(store, userId);
       return Object.keys(record).length ? JSON.stringify(record) : USER_MEMORY_MESSAGES.NOTHING_SAVED;
@@ -48,8 +48,8 @@ export const createUserMemoryTools = (store: BaseStore) => [
     },
   ),
   tool(
-    async ({ fields }) => {
-      const userId = currentUserId();
+    async ({ fields }, runtime) => {
+      const userId = currentUserId(runtime);
       if (!userId) return USER_MEMORY_MESSAGES.NO_USER;
       await clearUserPreferences(store, userId, fields);
       return USER_MEMORY_MESSAGES.CLEARED;

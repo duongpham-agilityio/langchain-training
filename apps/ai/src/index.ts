@@ -25,7 +25,7 @@ import {
   createUserMemoryStore,
   ensureThreadsTable,
 } from "@/db";
-import { type AuthEnv, createIdentifyUser, createRequireAuth, userContextMiddleware } from "@/middlewares";
+import { type AuthEnv, createIdentifyRunUser, createIdentifyUser, createRequireAuth } from "@/middlewares";
 import { createCheckpointAgentRunner } from "@/runner";
 import { startScheduler } from "@/services";
 import {
@@ -89,6 +89,7 @@ const runtime = new CopilotRuntime({
       createPromptInjectionGuard(new ChatOpenAI({ model: config.guardModel, temperature: 0 })),
       createAnswerEvaluationScheduler(langsmithClient),
       createThreadGate(pgPool),
+      createIdentifyRunUser(supabaseAdmin),
     ),
   },
   // Scopes every runtime thread operation to the verified caller (a thread id alone is no longer enough).
@@ -103,17 +104,11 @@ app.use("*", cors({ origin: config.corsOrigin, allowHeaders: CORS_ALLOWED_HEADER
 // Every /api route needs a valid Supabase session; /health is registered outside it and stays public.
 const requireAuth = createRequireAuth(supabaseAdmin);
 app.use(API_PATH_PATTERN, requireAuth);
-// Lets the agent run (which only sees AG-UI input) know the verified owner for the thread row.
-app.use(API_PATH_PATTERN, userContextMiddleware);
 // The web client calls History at /release-history (no /api prefix), so it needs its own guard.
 app.use(RELEASE_HISTORY_PATH, requireAuth);
 app.use(RELEASE_HISTORY_PATH_PATTERN, requireAuth);
-// Outside /api too, so the default release date follows the browser zone on these routes.
-app.use(RELEASE_HISTORY_PATH, userContextMiddleware);
-app.use(RELEASE_HISTORY_PATH_PATTERN, userContextMiddleware);
 app.route("/", createReleaseHistoryRoutes(pgPool));
 app.use(SLACK_PATH_PATTERN, requireAuth);
-app.use(SLACK_PATH_PATTERN, userContextMiddleware);
 app.route("/", createSlackRoute(pgPool));
 app.route("/", createThreadsRoute(pgPool));
 app.route("/", createChangelogRoute(pgPool));

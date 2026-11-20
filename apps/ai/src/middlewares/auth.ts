@@ -18,6 +18,14 @@ export const resolveUserFromAuthHeader = async (
   return error || !data.user ? null : data.user;
 };
 
+/** Headers of an AG-UI run (set per request by the CopilotKit runtime) -> verified user id, or null. */
+export type IdentifyRunUser = (headers: Record<string, string>) => Promise<string | null>;
+
+/** Same token check as `createRequireAuth`, for the agent run, which only sees the forwarded headers. */
+export const createIdentifyRunUser =
+  (supabase: SupabaseClient): IdentifyRunUser =>
+  async (headers) => (await resolveUserFromAuthHeader(supabase, headers.authorization))?.id ?? null;
+
 /**
  * `identifyUser` for `CopilotRuntime`: scopes every thread operation of the runtime to the verified caller.
  * Same token check as `createRequireAuth`; throws when no user resolves, so the request is refused.

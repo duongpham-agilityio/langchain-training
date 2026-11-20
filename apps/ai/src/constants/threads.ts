@@ -10,3 +10,6 @@ export const THREAD_TITLE_PROMPT = `Write a short title (at most 6 words) for a 
 Reply with the title only: no quotes, no trailing punctuation.`;
 // Same wording for "not yours" and "does not exist", so a caller learns nothing about other users' thread ids.
 export const THREAD_ACCESS_DENIED_MESSAGE = "Thread not available";
+
+/** Run error when the request carries no verified user. */
+export const UNAUTHORIZED_MESSAGE = "Unauthorized";

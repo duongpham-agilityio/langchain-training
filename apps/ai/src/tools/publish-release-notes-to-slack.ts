@@ -18,8 +18,8 @@ import { PublishReleaseNotesToSlackInputSchema } from "@/schemas";
 // Services
 import { sendReleaseToSlack } from "@/services";
 
-// Utils
-import { userContext } from "@/utils";
+// Context
+import { readAgentContext } from "@/agent/context";
 
 /**
  * Factory because it saves to and records in the database. Runs only after `humanInTheLoopMiddleware`
@@ -27,8 +27,8 @@ import { userContext } from "@/utils";
  */
 export const createPublishReleaseNotesToSlack = (pool: Pool) =>
   tool(
-    async ({ release }) => {
-      const userId = userContext.getStore()?.userId;
+    async ({ release }, runtime) => {
+      const userId = readAgentContext(runtime)?.userId;
       if (!userId) return SLACK_ERROR_MESSAGES.NOT_SIGNED_IN;
 
       // An unsaved draft is saved first, so the send always has a History record to attach to.

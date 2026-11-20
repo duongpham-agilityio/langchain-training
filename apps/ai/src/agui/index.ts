@@ -35,19 +35,27 @@ import {
   RELEASE_FORMAT_LABELS,
   type ReleaseFormat,
   THREAD_ACCESS_DENIED_MESSAGE,
+  TIME_ZONE_HEADER,
   TOOL_NAMES,
   TRACE_METADATA_KEYS,
+  UNAUTHORIZED_MESSAGE,
   AGENT_RECURSION_LIMIT,
   TRACE_RUN_NAME,
   TRACE_TAG,
 } from "@/constants";
+
+// Middlewares
+import type { IdentifyRunUser } from "@/middlewares/auth";
+
+// Context
+import type { AgentContext } from "@/agent/context";
 
 // Schemas
 import { ReleaseSchema } from "@/schemas";
 
 // Utils
 import {
-  userContext,
+  resolveTimeZone,
   type AnswerEvaluationScheduler,
   type PromptInjectionGuard,
   type ThreadGate,
@@ -179,12 +187,19 @@ type ApprovalRequest = {
  * emit a tool result event, hence this small custom agent.
  */
 export class ReleaseNotesAguiAgent extends AbstractAgent {
+  /**
+   * Request headers (`authorization`, `x-time-zone`): the CopilotKit runtime assigns them on the cloned
+   * agent right before `run`. Not declared on `AbstractAgent` in the installed @ag-ui/client types.
+   */
+  headers: Record<string, string> = {};
+
   constructor(
     private readonly agent: BaseAgent,
     private readonly scheduleTitle?: ThreadTitleScheduler,
     private readonly guard?: PromptInjectionGuard,
     private readonly scheduleEvaluation?: AnswerEvaluationScheduler,
     private readonly threads?: ThreadGate,
+    private readonly identify?: IdentifyRunUser,
   ) {
     super();
   }
@@ -202,8 +217,18 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           runId: input.runId,
         });
 
+        // Who runs this: the CopilotKit runtime sets the request headers on the cloned agent before `run`.
+        // No verified user, no run (the same refusal the thread gate gives).
+        const headers = this.headers;
+        const userId = this.identify ? await this.identify(headers) : null;
+        if (!userId) throw new Error(UNAUTHORIZED_MESSAGE);
+        const context: AgentContext = {
+          userId,
+          timeZone: resolveTimeZone(headers[TIME_ZONE_HEADER.toLowerCase()]),
+        };
+
         // Owner check first: a thread of someone else is refused before any state is read.
-        if (this.threads && !(await this.threads.canUse(input.threadId))) {
+        if (this.threads && !(await this.threads.canUse(userId, input.threadId))) {
           throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
         }
 
@@ -228,7 +253,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
         }
 
         // The guard passed: create the owner row now (empty title). Losing a first-turn race means not ours.
-        if (this.threads && !(await this.threads.claim(input.threadId))) {
+        if (this.threads && !(await this.threads.claim(userId, input.threadId))) {
           throw new Error(THREAD_ACCESS_DENIED_MESSAGE);
         }
 
@@ -246,7 +271,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           tags: [TRACE_TAG],
           metadata: {
             [TRACE_METADATA_KEYS.threadId]: input.threadId,
-            [TRACE_METADATA_KEYS.userId]: userContext.getStore()?.userId,
+            [TRACE_METADATA_KEYS.userId]: userId,
           },
           configurable: {
             thread_id: input.threadId,
@@ -268,6 +293,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
 
         const stream = await this.agent.stream(agentInput, {
           ...config,
+          context,
           streamMode: ["messages", "updates"],
         });
         const interrupts: Interrupt[] = [];
@@ -383,11 +409,11 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           ...(interrupts.length ? { outcome: { type: "interrupt", interrupts } } : {}),
         });
         // A used turn (including one that ends in an approval) moves the thread up the list.
-        if (producedReply) void this.threads?.touch(input.threadId);
+        if (producedReply) void this.threads?.touch(userId, input.threadId);
         // Title generation is fire-and-forget, after RUN_FINISHED, and only for a completed turn.
         const firstUserMessage = messages.find((message) => HumanMessage.isInstance(message));
         if (producedReply && !interrupts.length && firstUserMessage) {
-          this.scheduleTitle?.({ threadId: input.threadId, userMessage: firstUserMessage.text });
+          this.scheduleTitle?.({ userId, threadId: input.threadId, userMessage: firstUserMessage.text });
         }
         // Answer-quality checks are fire-and-forget too; guard-blocked and interrupted turns are skipped.
         if (producedReply && !interrupts.length) {
@@ -418,6 +444,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
       this.guard,
       this.scheduleEvaluation,
       this.threads,
+      this.identify,
     );
   }
 }
@@ -429,6 +456,7 @@ export const createAguiAgent = (
   guard?: PromptInjectionGuard,
   scheduleEvaluation?: AnswerEvaluationScheduler,
   threads?: ThreadGate,
-) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation, threads);
+  identify?: IdentifyRunUser,
+) => new ReleaseNotesAguiAgent(agent, scheduleTitle, guard, scheduleEvaluation, threads, identify);
 
 export * from "./draft-context";
