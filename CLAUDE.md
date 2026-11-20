@@ -37,7 +37,7 @@ Single app / script: `pnpm --filter @training/ai <script>` or `pnpm --filter rel
 
 ## Database and repro scripts
 
-- `supabase/migrations/` holds the SQL migrations (currently `20261109000000_create_release_history.sql`: `release_history` and `release_sends`). The `threads` table is not one of them: the server creates it at start (see `apps/ai/CLAUDE.md`).
+- `supabase/migrations/` holds the SQL migrations (`20261109000000_create_release_history.sql`: `release_history` and `release_sends`; `20261120000000_create_projects.sql`: `projects` and the NOT NULL `release_history.project_id`). The `threads` table is not one of them: the server creates it at start, with a NOT NULL `project_id` to `projects` (so apply the migration first; see `apps/ai/CLAUDE.md`).
 - `docs/reports/repro/run.sh` is a local repro script and is not committed (the folder may be missing in a fresh clone).
 
 ## Tooling
