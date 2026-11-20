@@ -1,7 +1,7 @@
 import type { Pool } from "pg";
 
 // Constants
-import { DB_SCHEMA, THREADS_TABLE } from "@/constants";
+import { DB_SCHEMA, PROJECTS_TABLE, THREADS_TABLE } from "@/constants";
 
 // Schemas
 import type { ThreadSummary } from "@/schemas";
@@ -10,6 +10,7 @@ import type { ThreadSummary } from "@/schemas";
 type ThreadRow = {
   id: string;
   owner_id: string;
+  project_id: string;
   title: string;
   created_at: Date | string;
   updated_at: Date | string;
@@ -102,10 +103,20 @@ export const ensureThreadsTable = async (pool: Pool): Promise<void> => {
       `create table if not exists ${THREADS_TABLE} (
          id         text primary key check (length(id) > 0),
          owner_id   uuid not null references auth.users (id) on delete cascade,
+         project_id uuid not null references ${PROJECTS_TABLE} (id) on delete cascade,
          title      text not null default '',
          created_at timestamptz not null default now(),
          updated_at timestamptz not null default now()
        )`,
+    );
+    // A table created before projects existed gets the column here; fails (logged) while it still has rows: clean it first.
+    await pool.query(
+      `alter table ${THREADS_TABLE}
+         add column if not exists project_id uuid not null references ${PROJECTS_TABLE} (id) on delete cascade`,
+    );
+    await pool.query(
+      `create index if not exists threads_owner_project_updated_idx
+         on ${THREADS_TABLE} (owner_id, project_id, updated_at desc, id desc)`,
     );
     await pool.query(
       `create index if not exists threads_owner_updated_idx
