@@ -4,6 +4,7 @@ export * from "./release";
 export * from "./release-history";
 export * from "./slack";
 export * from "./schedule";
+export * from "./projects";
 export * from "./threads";
 export * from "./email";
 export * from "./release-sends";

@@ -15,3 +15,6 @@ export const DB_SCHEMA = "release-builder-dev";
 
 // Same schema as the other tables the code queries (`scheduled_sends`, `release_history`); the migration file is written like theirs.
 export const SHARED_PAGES_TABLE = `"${DB_SCHEMA}".shared_pages`;
+
+// Created by `supabase/migrations/20261120000000_create_projects.sql` (written like the other migrations); `threads.project_id` points here, so it must exist before the server starts.
+export const PROJECTS_TABLE = `"${DB_SCHEMA}".projects`;
