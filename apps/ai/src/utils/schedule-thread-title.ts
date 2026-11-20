@@ -7,7 +7,12 @@ import { hasTitledThread, setThreadTitle } from "@/db";
 // Utils
 import { generateThreadTitle } from "./thread-title";
 
-export type ThreadTitleScheduler = (turn: { userId: string; threadId: string; userMessage: string }) => void;
+export type ThreadTitleScheduler = (turn: {
+  userId: string;
+  projectId: string;
+  threadId: string;
+  userMessage: string;
+}) => void;
 
 /**
  * Builds the hook the AG-UI agent calls after a turn that produced a reply.
@@ -20,13 +25,13 @@ export const createThreadTitleScheduler = (
   pool: Pool,
   model: Pick<BaseChatModel, "invoke">,
 ): ThreadTitleScheduler => {
-  return ({ userId: ownerId, threadId, userMessage }) => {
+  return ({ userId: ownerId, projectId, threadId, userMessage }) => {
     if (!ownerId || !userMessage.trim()) return;
 
     void (async () => {
       if (await hasTitledThread(pool, ownerId, threadId)) return;
       const title = await generateThreadTitle(model, userMessage);
-      if (title) await setThreadTitle(pool, ownerId, threadId, title);
+      if (title) await setThreadTitle(pool, ownerId, projectId, threadId, title);
     })().catch((error) => {
       console.error(`[ai] thread title failed for ${threadId}: ${String(error)}`);
     });

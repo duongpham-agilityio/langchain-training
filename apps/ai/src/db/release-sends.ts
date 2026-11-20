@@ -13,18 +13,19 @@ import {
 
 export type ReleaseSendOutcome = { status: "sent" } | { status: "failed"; error: string };
 
-/** The owner's newest saved row holding exactly this release object (jsonb equality), or null. */
+/** The owner's newest saved row in this project holding exactly this release object (jsonb equality), or null. */
 export const findReleaseId = async (
   pool: Pool,
   ownerId: string,
+  projectId: string,
   release: unknown,
 ): Promise<string | null> => {
   const { rows } = await pool.query<{ id: string }>(
     `select id from ${RELEASE_HISTORY_TABLE}
-     where owner_id = $1 and release = $2::jsonb
+     where owner_id = $1 and project_id = $2 and release = $3::jsonb
      order by created_at desc, id desc
      limit 1`,
-    [ownerId, JSON.stringify(release)],
+    [ownerId, projectId, JSON.stringify(release)],
   );
   return rows[0]?.id ?? null;
 };

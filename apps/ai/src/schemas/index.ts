@@ -13,3 +13,4 @@ export * from "./edit-release-item";
 export * from "./changelog-tool";
 export * from "./changelog-answer";
 export * from "./changelog-page";
+export * from "./projects";

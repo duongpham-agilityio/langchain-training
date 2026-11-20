@@ -21,6 +21,7 @@ export {
 } from "@training/contracts";
 
 export const ListReleaseHistoryQuerySchema = z.object({
+  projectId: z.uuid().optional(),
   q: z.string().trim().optional(),
   status: z.enum(RELEASE_STATUSES).optional(),
   format: z.enum(RELEASE_FORMATS).default(RELEASE_HISTORY_DEFAULT_FORMAT),
@@ -37,6 +38,11 @@ export const ListReleaseHistoryQuerySchema = z.object({
 export const GetReleaseHistoryQuerySchema = ListReleaseHistoryQuerySchema.pick({ format: true });
 
 export type ListReleaseHistoryQuery = z.infer<typeof ListReleaseHistoryQuerySchema>;
+
+/** `latest-version` needs the project: versions are counted per project. */
+export const LatestReleaseVersionQuerySchema = z.object({
+  projectId: z.uuid(),
+});
 
 export const NextReleaseVersionRequestSchema = z.object({
   previousVersion: z.string().regex(RELEASE_VERSION_PATTERN).nullish(),

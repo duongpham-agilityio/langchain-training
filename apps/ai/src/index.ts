@@ -32,6 +32,7 @@ import {
   createChangelogRoute,
   createCronRoute,
   createReleaseEmailRoute,
+  createProjectsRoute,
   createReleaseHistoryRoutes,
   createSharedPagesRoute,
   createSlackRoute,
@@ -40,6 +41,7 @@ import {
 import {
   configureTracing,
   createAnswerEvaluationScheduler,
+  createProjectGate,
   createPromptInjectionGuard,
   createThreadGate,
   createThreadTitleScheduler,
@@ -90,6 +92,7 @@ const runtime = new CopilotRuntime({
       createAnswerEvaluationScheduler(langsmithClient),
       createThreadGate(pgPool),
       createIdentifyRunUser(supabaseAdmin),
+      createProjectGate(pgPool),
     ),
   },
   // Scopes every runtime thread operation to the verified caller (a thread id alone is no longer enough).
@@ -110,6 +113,7 @@ app.use(RELEASE_HISTORY_PATH_PATTERN, requireAuth);
 app.route("/", createReleaseHistoryRoutes(pgPool));
 app.use(SLACK_PATH_PATTERN, requireAuth);
 app.route("/", createSlackRoute(pgPool));
+app.route("/", createProjectsRoute(pgPool));
 app.route("/", createThreadsRoute(pgPool));
 app.route("/", createChangelogRoute(pgPool));
 app.route("/", createReleaseEmailRoute());

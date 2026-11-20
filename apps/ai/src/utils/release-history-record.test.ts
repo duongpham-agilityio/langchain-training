@@ -12,7 +12,10 @@ const release = {
   ],
 };
 
-const row = { id: "r1", release, status: "archived" as const, created_at: "2026-11-10T00:00:00Z" };
+const row = { id: "r1", release, status: "archived" as const, created_at: "2026-11-10T00:00:00Z",
+  project_id: "p1",
+  project_name: "Alpha",
+};
 
 describe("toRecord", () => {
   it("renders the stored release in the requested format", () => {
@@ -21,6 +24,12 @@ describe("toRecord", () => {
     expect(record?.format).toBe("markdown");
     expect(record?.text).toContain("# 1.2.0 (20261110)");
     expect(record?.createdAt).toBe("2026-11-10T00:00:00.000Z");
+  });
+
+  it("carries the project id and name", () => {
+    const record = toRecord(row, "markdown");
+    expect(record?.projectId).toBe("p1");
+    expect(record?.projectName).toBe("Alpha");
   });
 
   it("carries the email recipients, empty when none", () => {

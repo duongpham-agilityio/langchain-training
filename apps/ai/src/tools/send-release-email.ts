@@ -6,6 +6,7 @@ import {
   EMAIL_ERROR_MESSAGES,
   EMAIL_RECIPIENT_CONFIG_KEY,
   EMAIL_TOOL_MESSAGES,
+  PROJECT_REQUIRED_MESSAGE,
   SEND_RELEASE_EMAIL_DESCRIPTION,
   TOOL_NAMES,
 } from "@/constants";
@@ -30,8 +31,12 @@ import { readAgentContext } from "@/agent/context";
 export const createSendReleaseEmail = (pool: Pool) =>
   tool(
     async ({ release }, config) => {
-      const userId = readAgentContext(config)?.userId;
+      const context = readAgentContext(config);
+      const userId = context?.userId;
       if (!userId) return EMAIL_ERROR_MESSAGES.NOT_SIGNED_IN;
+      // The project comes from the verified run context, never from the model's arguments.
+      const projectId = context.projectId;
+      if (!projectId) return PROJECT_REQUIRED_MESSAGE;
 
       const recipient = (config?.configurable?.[EMAIL_RECIPIENT_CONFIG_KEY] as { address?: unknown } | undefined)
         ?.address;
@@ -40,8 +45,8 @@ export const createSendReleaseEmail = (pool: Pool) =>
       if (!isValidEmailAddress(recipient)) return EMAIL_ERROR_MESSAGES.INVALID_RECIPIENT;
 
       const releaseId =
-        (await findReleaseId(pool, userId, release)) ??
-        (await saveReleaseHistory(pool, userId, { release })).id;
+        (await findReleaseId(pool, userId, projectId, release)) ??
+        (await saveReleaseHistory(pool, userId, projectId, { release })).id;
 
       const result = await sendReleaseEmail(pool, userId, releaseId, recipient);
       return result.ok ? EMAIL_TOOL_MESSAGES.SENT : result.error;

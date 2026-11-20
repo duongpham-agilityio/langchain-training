@@ -5,6 +5,7 @@ import { z } from "zod";
 // Constants
 import {
   LATEST_RELEASE_VERSION_PATH,
+  PROJECT_NOT_FOUND_MESSAGE,
   NEXT_RELEASE_VERSION_PATH,
   RELEASE_HISTORY_PATH,
   SCHEDULED_SENDS_PATH,
@@ -12,6 +13,7 @@ import {
 
 // DB
 import {
+  findOwnedProject,
   getLatestReleaseVersion,
   cancelScheduledSend,
   getReleaseHistory,
@@ -27,6 +29,7 @@ import type { AuthEnv } from "@/middlewares";
 // Schemas
 import {
   GetReleaseHistoryQuerySchema,
+  LatestReleaseVersionQuerySchema,
   ListReleaseHistoryQuerySchema,
   NextReleaseVersionRequestSchema,
   SaveReleaseHistoryRequestSchema,
@@ -42,6 +45,10 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
   routes.get(RELEASE_HISTORY_PATH, async (c) => {
     const query = ListReleaseHistoryQuerySchema.safeParse(c.req.query());
     if (!query.success) return c.json({ error: query.error.message }, 400);
+    // A project filter must be one of the caller's own projects.
+    if (query.data.projectId && !(await findOwnedProject(pool, c.get("userId"), query.data.projectId))) {
+      return c.json({ error: PROJECT_NOT_FOUND_MESSAGE }, 404);
+    }
     try {
       return c.json(await listReleaseHistory(pool, c.get("userId"), query.data));
     } catch (error) {
@@ -53,7 +60,13 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
   // No web client calls this route.
   // Before `/:id`, or "latest-version" would be read as a record id and answer 404.
   routes.get(LATEST_RELEASE_VERSION_PATH, async (c) => {
-    return c.json({ version: await getLatestReleaseVersion(pool, c.get("userId")) });
+    const query = LatestReleaseVersionQuerySchema.safeParse(c.req.query());
+    if (!query.success) return c.json({ error: query.error.message }, 400);
+    const userId = c.get("userId");
+    if (!(await findOwnedProject(pool, userId, query.data.projectId))) {
+      return c.json({ error: PROJECT_NOT_FOUND_MESSAGE }, 404);
+    }
+    return c.json({ version: await getLatestReleaseVersion(pool, userId, query.data.projectId) });
   });
 
   // No web client calls this route.
@@ -95,7 +108,12 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
   routes.post(RELEASE_HISTORY_PATH, async (c) => {
     const body = SaveReleaseHistoryRequestSchema.safeParse(await c.req.json().catch(() => null));
     if (!body.success) return c.json({ error: body.error.message }, 400);
-    return c.json(await saveReleaseHistory(pool, c.get("userId"), body.data), 201);
+    const userId = c.get("userId");
+    // Without this check a caller could file a release under someone else's project id.
+    if (!(await findOwnedProject(pool, userId, body.data.projectId))) {
+      return c.json({ error: PROJECT_NOT_FOUND_MESSAGE }, 404);
+    }
+    return c.json(await saveReleaseHistory(pool, userId, body.data.projectId, body.data), 201);
   });
 
   return routes;
