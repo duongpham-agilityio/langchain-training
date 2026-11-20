@@ -13,6 +13,7 @@ export type PlatformSlot = z.infer<typeof PlatformSlotSchema>;
 
 /** One archive = one release object. Archiving the same version again creates a new record. */
 export const SaveReleaseHistoryRequestSchema = z.object({
+  projectId: z.uuid(),
   release: ReleaseSchema,
 });
 
@@ -24,6 +25,8 @@ export type SaveReleaseHistoryRequest = z.infer<typeof SaveReleaseHistoryRequest
  */
 export const ReleaseHistoryRecordSchema = z.object({
   id: z.string().min(1),
+  projectId: z.string().min(1),
+  projectName: z.string(),
   release: ReleaseSchema,
   status: z.enum(RELEASE_STATUSES),
   format: z.enum(RELEASE_FORMATS),

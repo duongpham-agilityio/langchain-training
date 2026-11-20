@@ -5,6 +5,7 @@ export const ThreadSummarySchema = z.object({
   id: z.string().min(1),
   title: z.string(),
   resourceId: z.string(),
+  projectId: z.string().min(1),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

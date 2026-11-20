@@ -55,6 +55,9 @@ export const RELEASE_COPILOT_AGENT_ID = "releaseCopilotAgent";
 /** Request header carrying the browser IANA time zone. */
 export const TIME_ZONE_HEADER = "X-Time-Zone";
 
+/** Request header carrying the project a chat run belongs to (the server verifies the owner). */
+export const PROJECT_ID_HEADER = "X-Project-Id";
+
 // Route paths both apps agree on.
 export const RUNTIME_BASE_PATH = "/api/copilotkit";
 export const SLACK_PUBLISH_PATH = "/slack/publish";
