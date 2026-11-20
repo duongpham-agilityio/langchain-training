@@ -27,6 +27,9 @@ import {
   skillsMiddleware,
 } from "@/middlewares";
 
+// Context
+import { contextSchema } from "./context";
+
 // Tools
 import { createTools } from "@/tools";
 
@@ -55,6 +58,7 @@ export const createBaseAgent = (
     model: logAgentModel(new ChatOpenAI({ model: config.model })),
     tools: createTools(pool, store, config.publicBaseUrl),
     systemPrompt,
+    contextSchema,
     // Skills and Slack approval always on; callers add more (e.g. guards) after it.
     middleware: [
       // Logs the model that answered each call, including a fallback; outside the fallback wrapper to see its result.

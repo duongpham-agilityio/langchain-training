@@ -5,7 +5,10 @@ import type { BaseStore } from "@langchain/langgraph";
 import { getUserPreferences } from "@/db";
 
 // Utils
-import { buildUserTemplateBlock, userContext } from "@/utils";
+import { buildUserTemplateBlock } from "@/utils";
+
+// Context
+import { readAgentContext } from "@/agent/context";
 
 /**
  * Reads the user's saved template (F-16 store) on every model call and appends it to the end of the
@@ -18,7 +21,7 @@ export const createUserTemplateMiddleware = (store: BaseStore) =>
   createMiddleware({
     name: "UserTemplateMiddleware",
     wrapModelCall: async (request, handler) => {
-      const userId = userContext.getStore()?.userId;
+      const userId = readAgentContext(request.runtime)?.userId;
       if (!userId) return handler(request);
       try {
         const block = buildUserTemplateBlock(await getUserPreferences(store, userId));

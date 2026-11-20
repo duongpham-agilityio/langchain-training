@@ -3,6 +3,7 @@ import type { Pool } from "pg";
 
 // Constants
 import {
+  DEFAULT_TIME_ZONE,
   RELEASE_FORMAT_ALIASES,
   RELEASE_FORMATS,
   RELEASE_NOTES_PREVIEW_DESCRIPTION,
@@ -24,8 +25,10 @@ import {
   nextVersion,
   renderRelease,
   renderReleaseEmail,
-  userContext,
 } from "@/utils";
+
+// Context
+import { readAgentContext } from "@/agent/context";
 
 const isReleaseFormat = (format: string): format is ReleaseFormat =>
   (RELEASE_FORMATS as readonly string[]).includes(format);
@@ -43,7 +46,7 @@ const normalizeFormat = (format: string): string => {
  */
 export const createRenderReleaseNotesPreview = (pool: Pool) =>
   tool(
-    async (input) => {
+    async (input, runtime) => {
       // The model copies the format from the user's words ("GitHub", "App Store"), so normalize first.
       const requestedFormat = normalizeFormat(input.format);
       if (!isReleaseFormat(requestedFormat)) {
@@ -55,7 +58,8 @@ export const createRenderReleaseNotesPreview = (pool: Pool) =>
       }
       const format = requestedFormat;
 
-      const userId = userContext.getStore()?.userId;
+      const context = readAgentContext(runtime);
+      const userId = context?.userId;
       // A failed read or a malformed stored version must not crash the turn or leak SQL text to the model.
       let version: string;
       try {
@@ -68,7 +72,7 @@ export const createRenderReleaseNotesPreview = (pool: Pool) =>
 
       const release = ReleaseSchema.parse({
         version,
-        date: input.date ?? formatReleaseDate(),
+        date: input.date ?? formatReleaseDate(new Date(), context?.timeZone ?? DEFAULT_TIME_ZONE),
         openingLine: input.openingLine,
         changes: input.changes,
       });

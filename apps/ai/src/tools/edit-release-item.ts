@@ -15,7 +15,10 @@ import { DraftContextSchema } from "@/agui";
 import { EditReleaseItemInputSchema } from "@/schemas";
 
 // Utils
-import { applyReleaseEdit, checkEditHash, hashRelease, renderRelease, renderReleaseEmail, userContext } from "@/utils";
+import { applyReleaseEdit, checkEditHash, hashRelease, renderRelease, renderReleaseEmail } from "@/utils";
+
+// Context
+import { readAgentContext } from "@/agent/context";
 
 const refuse = (error: string) => JSON.stringify({ ok: false, error });
 
@@ -27,7 +30,7 @@ const refuse = (error: string) => JSON.stringify({ ok: false, error });
 export const createEditReleaseItem = () =>
   tool(
     async ({ itemId, description, release, hash }, config) => {
-      if (!userContext.getStore()?.userId) return refuse(EDIT_RELEASE_ITEM_MESSAGES.NOT_SIGNED_IN);
+      if (!readAgentContext(config)?.userId) return refuse(EDIT_RELEASE_ITEM_MESSAGES.NOT_SIGNED_IN);
 
       // The draft on screen is the current one; without it only the hash/release pair is checked.
       const draft = DraftContextSchema.safeParse(config?.configurable?.[DRAFT_CONTEXT_CONFIG_KEY]);
