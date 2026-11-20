@@ -13,7 +13,7 @@ pnpm (`pnpm@10`, Node >= 22) + Turborepo monorepo (`apps/*`, `packages/*`):
 - [apps/ai](apps/ai/CLAUDE.md) — `@training/ai`, Hono agent server (LangChain `createAgent` exposed through CopilotKit runtime / AG-UI).
 - [apps/web](apps/web/CLAUDE.md) — `release-copilot`, React + Vite client (CopilotKit UI, Supabase auth).
 
-- [packages/contracts](packages/contracts) — `@training/contracts`, source-only (no build step) zod schemas and constants both apps import: change types, release formats and labels, release/change/entry, Slack publish, release history and thread schemas, tool names, agent id, `X-Time-Zone` header, shared route paths, Slack content limit. Renaming a field there breaks the typecheck/build of the app not updated. `apps/ai` inlines it at build (`tsup.config.ts` `noExternal`); apps add it as `workspace:*`. Keep `.describe(...)` text for the model in the app, on top of the shared schema (`.extend`).
+- [packages/contracts](packages/contracts) — `@training/contracts`, source-only (no build step) zod schemas and constants both apps import: change types, release formats and labels, release/change/entry, Slack publish, release history and thread schemas, tool names, agent id, `X-Time-Zone` and `X-Project-Id` headers, project schemas, shared route paths, Slack content limit. Renaming a field there breaks the typecheck/build of the app not updated. `apps/ai` inlines it at build (`tsup.config.ts` `noExternal`); apps add it as `workspace:*`. Keep `.describe(...)` text for the model in the app, on top of the shared schema (`.extend`).
 
 The web client calls the agent server; the two must agree on port and path (see "Cross-app wiring" in each app's CLAUDE.md).
 
@@ -37,7 +37,7 @@ Single app / script: `pnpm --filter @training/ai <script>` or `pnpm --filter rel
 
 ## Database and repro scripts
 
-- `supabase/migrations/` holds the SQL migrations (`20261109000000_create_release_history.sql`: `release_history` and `release_sends`; `20261120000000_create_projects.sql`: `projects` and the NOT NULL `release_history.project_id`). The `threads` table is not one of them: the server creates it at start, with a NOT NULL `project_id` to `projects` (so apply the migration first; see `apps/ai/CLAUDE.md`).
+- `supabase/migrations/` holds the SQL migrations (`20261109000000_create_release_history.sql`: `release_history` and `release_sends`; `20261120000000_create_projects.sql`: `projects` and the NOT NULL `release_history.project_id`). Every chat run (`X-Project-Id` header), thread and saved release belongs to one project the server verified for the user; the version counts per project. The `threads` table is not one of them: the server creates it at start, with a NOT NULL `project_id` to `projects` (so apply the migration first; see `apps/ai/CLAUDE.md`).
 - `docs/reports/repro/run.sh` is a local repro script and is not committed (the folder may be missing in a fresh clone).
 
 ## Tooling
