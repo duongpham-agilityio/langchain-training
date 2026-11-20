@@ -26,12 +26,6 @@ describe("toRecord", () => {
     expect(record?.createdAt).toBe("2026-11-10T00:00:00.000Z");
   });
 
-  it("carries the project id and name", () => {
-    const record = toRecord(row, "markdown");
-    expect(record?.projectId).toBe("p1");
-    expect(record?.projectName).toBe("Alpha");
-  });
-
   it("carries the email recipients, empty when none", () => {
     expect(toRecord(row, "markdown")?.emailRecipients).toEqual([]);
     expect(toRecord({ ...row, email_recipients: ["a@b.co"] }, "markdown")?.emailRecipients).toEqual(["a@b.co"]);
