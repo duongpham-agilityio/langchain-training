@@ -2,7 +2,10 @@
 -- Greenfield: no backfill and no default project. Old rows are cleaned by hand before this runs
 -- (adding a NOT NULL column without a default fails on a table that still has rows).
 
-create table public.projects (
+-- Same schema as the app (`DB_SCHEMA` in apps/ai/src/constants/database.ts); `release_history` must already be there.
+create schema if not exists "release-builder-dev";
+
+create table "release-builder-dev".projects (
   id          uuid primary key default gen_random_uuid(),
   owner_id    uuid not null default auth.uid()
               references auth.users (id) on delete cascade,
@@ -13,9 +16,9 @@ create table public.projects (
 
 -- Project list: newest first per owner.
 create index projects_owner_created_idx
-  on public.projects (owner_id, created_at desc, id desc);
+  on "release-builder-dev".projects (owner_id, created_at desc, id desc);
 
-create function public.projects_set_updated_at()
+create function "release-builder-dev".projects_set_updated_at()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -27,32 +30,32 @@ end;
 $$;
 
 create trigger projects_set_updated_at
-  before update on public.projects
-  for each row execute function public.projects_set_updated_at();
+  before update on "release-builder-dev".projects
+  for each row execute function "release-builder-dev".projects_set_updated_at();
 
-alter table public.projects enable row level security;
+alter table "release-builder-dev".projects enable row level security;
 
-create policy "projects_select_own" on public.projects
+create policy "projects_select_own" on "release-builder-dev".projects
   for select to authenticated
   using (owner_id = (select auth.uid()));
 
-create policy "projects_insert_own" on public.projects
+create policy "projects_insert_own" on "release-builder-dev".projects
   for insert to authenticated
   with check (owner_id = (select auth.uid()));
 
-create policy "projects_update_own" on public.projects
+create policy "projects_update_own" on "release-builder-dev".projects
   for update to authenticated
   using (owner_id = (select auth.uid()))
   with check (owner_id = (select auth.uid()));
 
-create policy "projects_delete_own" on public.projects
+create policy "projects_delete_own" on "release-builder-dev".projects
   for delete to authenticated
   using (owner_id = (select auth.uid()));
 
 -- release_history belongs to one project. No default: an insert without project_id is rejected.
-alter table public.release_history
+alter table "release-builder-dev".release_history
   add column project_id uuid not null
-  references public.projects (id) on delete cascade;
+  references "release-builder-dev".projects (id) on delete cascade;
 
 create index release_history_owner_project_idx
-  on public.release_history (owner_id, project_id, created_at desc, id desc);
+  on "release-builder-dev".release_history (owner_id, project_id, created_at desc, id desc);
