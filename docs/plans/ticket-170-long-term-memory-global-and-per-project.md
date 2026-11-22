@@ -19,4 +19,4 @@ Preferences saved globally apply everywhere; preferences saved in a project appl
 
 ## Done check
 - `pnpm typecheck`, `pnpm test`, `pnpm lint`, `pnpm build` exit 0
-- Tests cover separation of levels/projects and the override text
+- Verified in the real preview (no new test files)
