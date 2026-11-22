@@ -35,6 +35,14 @@ describe("buildChangelogQuery", () => {
     expect(text).toContain("h.release->>'version' = $4");
   });
 
+  it("filters by project and joins the project name", () => {
+    const { text, params } = buildChangelogQuery(OWNER, { projectId: "p1", limit: 5 });
+    expect(params).toEqual([OWNER, "p1", "sent", 6]);
+    expect(text).toContain("h.project_id = $2");
+    expect(text).toContain("p.name as project_name");
+    expect(text).toContain("on p.id = h.project_id");
+  });
+
   it("applies the cursor as a (created_at, id) keyset", () => {
     const cursor = encodeReleaseCursor({ created_at: "2026-11-10T00:00:00Z", id: "abc" });
     const { text, params } = buildChangelogQuery(OWNER, { cursor, limit: 5 });
@@ -63,8 +71,10 @@ describe("toChangelogEntry", () => {
   };
 
   it("maps version, date, changes and the sent flag", () => {
-    expect(toChangelogEntry({ id: "r1", release, created_at: "2026-11-10", sent: true })).toEqual({
+    expect(toChangelogEntry({ id: "r1", release, created_at: "2026-11-10", project_id: "p1", project_name: "Alpha", sent: true })).toEqual({
       id: "r1",
+      projectId: "p1",
+      projectName: "Alpha",
       version: "1.2.0",
       date: "20261110",
       changes: release.changes,
@@ -73,6 +83,6 @@ describe("toChangelogEntry", () => {
   });
 
   it("skips a row that is not a release", () => {
-    expect(toChangelogEntry({ id: "r1", release: {}, created_at: "2026-11-10", sent: false })).toBeNull();
+    expect(toChangelogEntry({ id: "r1", release: {}, created_at: "2026-11-10", project_id: "p1", project_name: "Alpha", sent: false })).toBeNull();
   });
 });

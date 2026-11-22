@@ -1,7 +1,7 @@
 import { ReleaseSchema } from "@training/contracts";
 
 // Constants
-import { RELEASE_HISTORY_TABLE, RELEASE_SENDS_TABLE, RELEASE_SEND_STATUS_SENT } from "@/constants";
+import { PROJECTS_TABLE, RELEASE_HISTORY_TABLE, RELEASE_SENDS_TABLE, RELEASE_SEND_STATUS_SENT } from "@/constants";
 
 // Schemas
 import type { ChangelogEntry } from "@/schemas";
@@ -13,6 +13,7 @@ export interface ChangelogFilters {
   from?: string;
   to?: string;
   version?: string;
+  projectId?: string;
   cursor?: string;
   limit: number;
 }
@@ -21,13 +22,13 @@ export class InvalidChangelogCursorError extends Error {}
 
 /**
  * Builds the changelog SQL and params. Pure so filters and cursor are unit-tested without a
- * database. `$1` is always the owner. Only releases with a `sent` row in `release_sends` (any
+ * database. `$1` is always the owner; the optional `projectId` is verified by the route. Only releases with a `sent` row in `release_sends` (any
  * channel, independent of how those rows are written, F-12) are listed, so `sent` is always true:
  * the changelog records submitted releases, History lists everything saved.
  */
 export const buildChangelogQuery = (
   ownerId: string,
-  { from, to, version, cursor, limit }: ChangelogFilters,
+  { from, to, version, projectId, cursor, limit }: ChangelogFilters,
 ): { text: string; params: unknown[] } => {
   const params: unknown[] = [ownerId];
   const where = ["h.owner_id = $1"];
@@ -44,6 +45,10 @@ export const buildChangelogQuery = (
   if (version) {
     params.push(version);
     where.push(`h.release->>'version' = $${params.length}`);
+  }
+  if (projectId) {
+    params.push(projectId);
+    where.push(`h.project_id = $${params.length}`);
   }
   if (cursor) {
     const decoded = decodeReleaseCursor(cursor);
@@ -62,9 +67,9 @@ export const buildChangelogQuery = (
          select 1 from ${RELEASE_SENDS_TABLE} s
          where s.release_id = h.id and s.owner_id = h.owner_id and s.status = $${sentParam}
        )`;
-  const text = `select h.id, h.release, h.created_at,
+  const text = `select h.id, h.release, h.created_at, h.project_id, p.name as project_name,
        ${sentExists} as sent
-     from ${RELEASE_HISTORY_TABLE} h
+     from ${RELEASE_HISTORY_TABLE} h join ${PROJECTS_TABLE} p on p.id = h.project_id
      where ${where.join(" and ")} and ${sentExists}
      order by h.created_at desc, h.id desc
      limit $${params.length}`;
@@ -75,6 +80,8 @@ export type ChangelogRow = {
   id: string;
   release: unknown;
   created_at: Date | string;
+  project_id: string;
+  project_name: string;
   sent: boolean;
 };
 
@@ -83,5 +90,5 @@ export const toChangelogEntry = (row: ChangelogRow): ChangelogEntry | null => {
   const parsed = ReleaseSchema.safeParse(row.release);
   if (!parsed.success) return null;
   const { version, date, changes } = parsed.data;
-  return { id: row.id, version, date, changes, sent: row.sent };
+  return { id: row.id, projectId: row.project_id, projectName: row.project_name, version, date, changes, sent: row.sent };
 };

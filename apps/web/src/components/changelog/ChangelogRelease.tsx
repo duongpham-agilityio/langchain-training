@@ -12,7 +12,7 @@ interface ChangelogReleaseProps {
 }
 
 const ChangelogRelease = ({ entry }: ChangelogReleaseProps) => {
-  const { version, date, changes, sent } = entry;
+  const { version, date, changes, sent, projectName } = entry;
 
   return (
     <li className="border-outline-subtle relative flex flex-col gap-3 border-l-2 pb-8 pl-6 last:pb-0">
@@ -24,6 +24,7 @@ const ChangelogRelease = ({ entry }: ChangelogReleaseProps) => {
         <span className="text-label-sm text-on-surface-muted">
           {formatReleaseDateDisplay(date)}
         </span>
+        <Badge variant={BadgeVariant.Brand}>{projectName}</Badge>
         <Badge variant={sent ? BadgeVariant.Success : BadgeVariant.Neutral}>
           {sent ? 'Sent' : 'Not sent'}
         </Badge>
