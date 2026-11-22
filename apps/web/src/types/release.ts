@@ -19,6 +19,8 @@ export const enum ReleaseHistoryFilter {
 // the format picked on the page (`formatId`), not stored.
 export interface ReleaseHistoryItem {
   id: string;
+  projectId: string;
+  projectName: string;
   version: string;
   title: string;
   formatId: string;

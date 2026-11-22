@@ -16,6 +16,7 @@ import {
   useDraftThreadStore,
   type PendingTitleThread,
 } from '@/store/draft-thread-store.ts';
+import { useProjectStore } from '@/store/project-store.ts';
 import { useThreadConfig } from './use-thread-config.ts';
 
 // Threads rarely change; avoid refetching every time the dropdown reopens.
@@ -64,6 +65,7 @@ interface UseThreadSessionResult {
   isThreadsLoading: boolean;
   isThreadsError: boolean;
   startNewChat: () => void;
+  startNewChatInProject: (projectId: string) => void;
   selectThread: (threadId: string) => void;
 }
 
@@ -90,6 +92,7 @@ export const useThreadSession = (): UseThreadSessionResult => {
     (state) => state.clearDraftThread,
   );
   const queryClient = useQueryClient();
+  const setActiveProjectId = useProjectStore((state) => state.setActiveProjectId);
 
   const {
     data: threads,
@@ -179,9 +182,22 @@ export const useThreadSession = (): UseThreadSessionResult => {
       startNewThread();
       navigate(ROUTE_DASHBOARD);
     },
+    // A new chat belongs to the project that is active when its first run
+    // starts, so the project is switched before the fresh thread is minted.
+    startNewChatInProject: (projectId) => {
+      setActiveProjectId(projectId);
+      startNewThread();
+      navigate(ROUTE_DASHBOARD);
+    },
+    // Opening a chat also makes its project the active one: runs send that
+    // project, and the server refuses a thread of another project.
     // `explicit: true` is what makes CopilotChat connect to the stored thread
     // and load its history, instead of treating the id as a fresh draft.
     selectThread: (nextThreadId) => {
+      const projectId = mergedThreads?.find(
+        (thread) => thread.id === nextThreadId,
+      )?.projectId;
+      if (projectId) setActiveProjectId(projectId);
       setActiveThreadId(nextThreadId, { explicit: true });
       navigate(buildThreadPath(nextThreadId));
     },

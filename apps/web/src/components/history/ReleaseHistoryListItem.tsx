@@ -17,7 +17,7 @@ const ReleaseHistoryListItem = ({
   isSelected,
   onSelect,
 }: ReleaseHistoryListItemProps) => {
-  const { version, title, shortDate, formatLabel, sendStatus } = item;
+  const { version, title, shortDate, formatLabel, sendStatus, projectName } = item;
   const isSent = sendStatus === ReleaseSendStatus.Sent;
 
   return (
@@ -43,7 +43,9 @@ const ReleaseHistoryListItem = ({
         {version}
       </div>
       <div className="text-label-xs text-on-surface-muted mt-px flex w-full items-center gap-1.5 font-normal">
-        <span>{formatLabel}</span>
+        <span className="truncate">
+          {projectName} · {formatLabel}
+        </span>
         <span className="ml-auto flex items-center gap-1.25">
           <span
             className={cn(
