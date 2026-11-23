@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
+import type { Project } from '@training/contracts';
+import { ALL_PROJECTS_FILTER } from '@/hooks/use-release-history.ts';
 import Button, { ButtonSize, ButtonVariant } from '@/components/common/Button.tsx';
 import EmptyState from '@/components/common/EmptyState.tsx';
 import Input from '@/components/common/Input.tsx';
@@ -36,6 +38,9 @@ interface ReleaseHistoryListProps {
   latestItemId: string | undefined;
   query: string;
   filter: ReleaseHistoryFilter;
+  projects: Project[];
+  projectFilterId: string;
+  onProjectFilterChange: (projectId: string) => void;
   onQueryChange: (query: string) => void;
   onFilterChange: (filter: ReleaseHistoryFilter) => void;
   onClearFilters: () => void;
@@ -49,6 +54,9 @@ const ReleaseHistoryList = ({
   latestItemId,
   query,
   filter,
+  projects,
+  projectFilterId,
+  onProjectFilterChange,
   onQueryChange,
   onFilterChange,
   onClearFilters,
@@ -84,6 +92,19 @@ const ReleaseHistoryList = ({
           rightSlot={<Kbd className="mr-1.5">/</Kbd>}
           className="border-outline-strong placeholder:text-on-surface-muted focus:border-primary-fixed-dim focus:ring-primary-soft h-9 rounded-[9px] py-0 pr-10 pl-8.5 text-[13.5px] focus:ring-3"
         />
+        <select
+          aria-label="Filter by project"
+          value={projectFilterId}
+          onChange={(event) => onProjectFilterChange(event.target.value)}
+          className="border-outline-strong bg-surface-container-lowest text-on-surface h-9 w-full rounded-[9px] border px-2.5 text-[13.5px]"
+        >
+          <option value={ALL_PROJECTS_FILTER}>All projects</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
         <div role="group" aria-label="Filter by status">
           <Tabs
             items={FILTER_ITEMS}

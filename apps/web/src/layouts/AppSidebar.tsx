@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import {
   Archive,
+  FolderPlus,
   ChevronRight,
   History,
   Plus,
@@ -28,6 +29,7 @@ interface AppSidebarProps {
   onToggleCollapse: () => void;
   workspaceName: string;
   onNewThread: () => void;
+  onNewProject: () => void;
   userName: string;
   avatarSrc?: string;
   onSignOut: () => Promise<void>;
@@ -44,6 +46,7 @@ const AppSidebar = ({
   onToggleCollapse,
   workspaceName,
   onNewThread,
+  onNewProject,
   userName,
   avatarSrc,
   onSignOut,
@@ -138,6 +141,14 @@ const AppSidebar = ({
           <Plus className="size-3.75" strokeWidth={2.2} />
           New thread
         </Button>
+        <button
+          type="button"
+          onClick={onNewProject}
+          className="text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-body-sm flex h-8.5 w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 font-medium"
+        >
+          <FolderPlus className="size-4" />
+          New project
+        </button>
         {/* TODO(coming-soon): Search threads (⌘K) — to be implemented later.
         <button
           type="button"

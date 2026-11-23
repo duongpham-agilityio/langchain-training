@@ -13,6 +13,7 @@ import { useReleaseSends } from '@/hooks/use-release-sends.ts';
 import ReleaseDetailBody from '@/components/history/ReleaseDetailBody.tsx';
 import { buildHistoryPath } from '@/constants/routings.ts';
 // import { useComingSoon } from '@/hooks/use-coming-soon.ts'; // TODO(coming-soon)
+import { useProjects } from '@/hooks/use-projects.ts';
 import { useReleaseHistory } from '@/hooks/use-release-history.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
 import { useSendReleaseToSlack } from '@/hooks/use-send-release-to-slack.ts';
@@ -53,15 +54,18 @@ const HistoryPage = () => {
     query,
     filter,
     format,
+    projectFilterId,
     isLoading,
     isError,
     selectItem,
     setQuery,
     setFilter,
     setFormat,
+    setProjectFilterId,
     clearFilters,
     refetch,
   } = useReleaseHistory();
+  const { projects } = useProjects();
   const { sends, cancellingId, cancelJob } = useReleaseSends(
     selectedItem?.id ?? '',
   );
@@ -142,6 +146,9 @@ const HistoryPage = () => {
         latestItemId={latestItemId}
         query={query}
         filter={filter}
+        projects={projects ?? []}
+        projectFilterId={projectFilterId}
+        onProjectFilterChange={setProjectFilterId}
         onQueryChange={setQuery}
         onFilterChange={setFilter}
         onClearFilters={clearFilters}

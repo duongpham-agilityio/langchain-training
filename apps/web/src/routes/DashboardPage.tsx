@@ -16,7 +16,6 @@ import { ToastKind } from '@/store/toast-store.ts';
 import { copyText } from '@/lib/clipboard.ts';
 import { downloadTextFile } from '@/lib/download-text-file.ts';
 import { getFormatPresentation } from '@/lib/release-notes/format-presentation.ts';
-import { buildSaveReleaseHistoryRequest } from '@/lib/release-notes/build-save-release-history-request.ts';
 import {
   buildReleaseNotesFileName,
   describeReleaseDraft,
@@ -119,7 +118,7 @@ const DashboardPage = () => {
                 canArchive={
                   draft !== null &&
                   !renderError &&
-                  buildSaveReleaseHistoryRequest(draft) !== null
+                  Boolean(draft.release)
                 }
                 onClose={closePreview}
               />
