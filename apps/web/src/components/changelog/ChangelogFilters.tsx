@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import Button, { ButtonSize, ButtonVariant } from '@/components/common/Button.tsx';
 import Input from '@/components/common/Input.tsx';
+import { useProjects } from '@/hooks/use-projects.ts';
 import {
   EMPTY_CHANGELOG_FILTERS,
   type ChangelogFilters as Filters,
@@ -18,6 +19,7 @@ const INPUT_CLASSES = 'h-9 rounded-[9px] py-0 text-[13.5px]';
 // half-typed versions.
 const ChangelogFilters = ({ filters, onApply }: ChangelogFiltersProps) => {
   const [draft, setDraft] = useState<Filters>(filters);
+  const { projects = [] } = useProjects();
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -35,6 +37,21 @@ const ChangelogFilters = ({ filters, onApply }: ChangelogFiltersProps) => {
       aria-label="Changelog filters"
       className="flex flex-wrap items-end gap-3"
     >
+      <label className="text-label-xs text-on-surface-muted flex flex-col gap-1 font-semibold">
+        Project
+        <select
+          value={draft.projectId}
+          onChange={(event) => setDraft({ ...draft, projectId: event.target.value })}
+          className="border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-primary h-9 rounded-[9px] border px-3 text-[13.5px] focus:ring-2 focus:outline-none"
+        >
+          <option value="">All projects</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="text-label-xs text-on-surface-muted flex flex-col gap-1 font-semibold">
         Version
         <Input

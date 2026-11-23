@@ -63,8 +63,10 @@ describe("toChangelogEntry", () => {
   };
 
   it("maps version, date, changes and the sent flag", () => {
-    expect(toChangelogEntry({ id: "r1", release, created_at: "2026-11-10", sent: true })).toEqual({
+    expect(toChangelogEntry({ id: "r1", release, created_at: "2026-11-10", project_id: "p1", project_name: "Alpha", sent: true })).toEqual({
       id: "r1",
+      projectId: "p1",
+      projectName: "Alpha",
       version: "1.2.0",
       date: "20261110",
       changes: release.changes,
@@ -73,6 +75,6 @@ describe("toChangelogEntry", () => {
   });
 
   it("skips a row that is not a release", () => {
-    expect(toChangelogEntry({ id: "r1", release: {}, created_at: "2026-11-10", sent: false })).toBeNull();
+    expect(toChangelogEntry({ id: "r1", release: {}, created_at: "2026-11-10", project_id: "p1", project_name: "Alpha", sent: false })).toBeNull();
   });
 });
