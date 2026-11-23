@@ -7,7 +7,7 @@ import { releaseCopilotHttpClient } from '@/services/http-client.ts';
 
 export const listProjects = async (): Promise<Project[]> => {
   const body = await releaseCopilotHttpClient.get(PROJECTS_PATH, {
-    target: 'the projects',
+    target: 'the projects list',
   });
 
   const parsed = ListProjectsResponseSchema.safeParse(body);

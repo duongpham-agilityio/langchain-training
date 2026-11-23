@@ -5,6 +5,7 @@ import type { ThreadSummary } from '@training/contracts';
 import { THREADS_QUERY_KEY } from '@/constants/query-keys.ts';
 import { isPlaceholderTitle } from '@/lib/thread-title.ts';
 import { useDraftThreadStore } from '@/store/draft-thread-store.ts';
+import { useActiveProject } from './use-active-project.ts';
 import { useAuth } from './use-auth.ts';
 import { useThreadConfig } from './use-thread-config.ts';
 
@@ -23,6 +24,8 @@ export const useDraftThreadRow = ({
   const { threadId, hasExplicitThreadId } = useThreadConfig();
   const { session } = useAuth();
   const resourceId = session!.user.id;
+  const { activeProject } = useActiveProject();
+  const projectId = activeProject?.id ?? '';
   const setDraftThread = useDraftThreadStore((state) => state.setDraftThread);
   const markPendingTitle = useDraftThreadStore(
     (state) => state.markPendingTitle,
@@ -40,12 +43,11 @@ export const useDraftThreadRow = ({
       id: threadId,
       title: '',
       resourceId,
-      // Placeholder until the web client has a project picker (a later ticket); the server row carries the real one.
-      projectId: '',
+      projectId,
       createdAt: now,
       updatedAt: now,
     });
-  }, [isDraftInProgress, threadId, resourceId, setDraftThread]);
+  }, [isDraftInProgress, threadId, resourceId, projectId, setDraftThread]);
 
   // A run ending is the earliest moment the server row can exist and the only
   // moment a title can appear: the LangChain server generates a title once per

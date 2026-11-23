@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { useReleaseWorkspaceStore } from '@/store/release-workspace-store.ts';
 import { ToastKind } from '@/store/toast-store.ts';
+import { useActiveProject } from '@/hooks/use-active-project.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
 import { useToast } from '@/hooks/use-toast.ts';
 import { ROUTE_HISTORY } from '@/constants/routings.ts';
@@ -18,6 +19,7 @@ interface UseArchiveReleaseResult {
 
 export const useArchiveRelease = (): UseArchiveReleaseResult => {
   const { threadId } = useThreadSession();
+  const { activeProject } = useActiveProject();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -27,7 +29,8 @@ export const useArchiveRelease = (): UseArchiveReleaseResult => {
     // saveReleaseHistory resolves with { ok: false } instead of rejecting, so
     // rethrow to route failures into onError.
     mutationFn: async (draft: ReleaseNotesDraft): Promise<void> => {
-      const request = buildSaveReleaseHistoryRequest(draft);
+      if (!activeProject) throw new Error('Create a project before archiving.');
+      const request = buildSaveReleaseHistoryRequest(draft, activeProject.id);
       if (!request) {
         throw new Error('This draft has no release object. Ask Release Builder for a new draft before archiving.');
       }

@@ -14,20 +14,33 @@ import {
 import { clearUserPreferences, getUserPreferences, saveUserPreferences } from "@/db";
 
 // Schemas
-import { clearUserPreferencesSchema, saveUserPreferencesSchema } from "@/schemas";
+import {
+  clearUserPreferencesSchema,
+  getUserPreferencesSchema,
+  saveUserPreferencesSchema,
+  type UserMemoryScope,
+} from "@/schemas";
 
 // Context
 import { readAgentContext } from "@/agent/context";
 
-// The owner comes from the verified run context, never from model arguments.
-const currentUserId = (runtime: { context?: unknown }) => readAgentContext(runtime)?.userId;
+/**
+ * The owner and the project come from the verified run context, never from model arguments.
+ * Returns the message to answer with when the scope cannot be used (no user, or project scope without a project).
+ */
+const resolveTarget = (runtime: { context?: unknown }, scope: UserMemoryScope) => {
+  const context = readAgentContext(runtime);
+  if (!context?.userId) return { error: USER_MEMORY_MESSAGES.NO_USER };
+  if (scope === "project" && !context.projectId) return { error: USER_MEMORY_MESSAGES.NO_PROJECT };
+  return { userId: context.userId, projectId: scope === "project" ? context.projectId : undefined };
+};
 
 export const createUserMemoryTools = (store: BaseStore) => [
   tool(
-    async (update, runtime) => {
-      const userId = currentUserId(runtime);
-      if (!userId) return USER_MEMORY_MESSAGES.NO_USER;
-      return JSON.stringify(await saveUserPreferences(store, userId, update));
+    async ({ scope, ...update }, runtime) => {
+      const target = resolveTarget(runtime, scope);
+      if ("error" in target) return target.error;
+      return JSON.stringify(await saveUserPreferences(store, target.userId, update, target.projectId));
     },
     {
       name: USER_MEMORY_TOOL_NAMES.save,
@@ -36,22 +49,32 @@ export const createUserMemoryTools = (store: BaseStore) => [
     },
   ),
   tool(
-    async (_input, runtime) => {
-      const userId = currentUserId(runtime);
-      if (!userId) return USER_MEMORY_MESSAGES.NO_USER;
-      const record = await getUserPreferences(store, userId);
-      return Object.keys(record).length ? JSON.stringify(record) : USER_MEMORY_MESSAGES.NOTHING_SAVED;
+    async ({ scope }, runtime) => {
+      const levels = scope ? [scope] : (["global", "project"] as const);
+      const result: Partial<Record<UserMemoryScope, object>> = {};
+      for (const level of levels) {
+        const target = resolveTarget(runtime, level);
+        if ("error" in target) {
+          // Both levels asked and only the project is missing: still answer with the global one.
+          if (scope) return target.error;
+          continue;
+        }
+        const record = await getUserPreferences(store, target.userId, target.projectId);
+        if (Object.keys(record).length) result[level] = record;
+      }
+      return Object.keys(result).length ? JSON.stringify(result) : USER_MEMORY_MESSAGES.NOTHING_SAVED;
     },
     {
       name: USER_MEMORY_TOOL_NAMES.read,
       description: GET_USER_PREFERENCES_DESCRIPTION,
+      schema: getUserPreferencesSchema,
     },
   ),
   tool(
-    async ({ fields }, runtime) => {
-      const userId = currentUserId(runtime);
-      if (!userId) return USER_MEMORY_MESSAGES.NO_USER;
-      await clearUserPreferences(store, userId, fields);
+    async ({ fields, scope }, runtime) => {
+      const target = resolveTarget(runtime, scope);
+      if ("error" in target) return target.error;
+      await clearUserPreferences(store, target.userId, fields, target.projectId);
       return USER_MEMORY_MESSAGES.CLEARED;
     },
     {

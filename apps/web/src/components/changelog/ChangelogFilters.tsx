@@ -19,7 +19,7 @@ const INPUT_CLASSES = 'h-9 rounded-[9px] py-0 text-[13.5px]';
 // half-typed versions.
 const ChangelogFilters = ({ filters, onApply }: ChangelogFiltersProps) => {
   const [draft, setDraft] = useState<Filters>(filters);
-  const projects = useProjects();
+  const { projects = [] } = useProjects();
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();

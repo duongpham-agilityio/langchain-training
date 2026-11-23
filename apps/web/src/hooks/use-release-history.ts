@@ -25,6 +25,9 @@ import {
 
 export const RELEASE_HISTORY_QUERY_KEY = ['release-history'];
 
+// Value of the project filter that shows every project (sends no `projectId`).
+export const ALL_PROJECTS_FILTER = '';
+
 export const DEFAULT_HISTORY_FORMAT: ReleaseFormat = 'markdown';
 
 // One item per stored release. The server renders `text` in the requested
@@ -32,6 +35,8 @@ export const DEFAULT_HISTORY_FORMAT: ReleaseFormat = 'markdown';
 // History records a real "sent" flag.
 const mapRecordToItem = ({
   id,
+  projectId,
+  projectName,
   release,
   status,
   format,
@@ -39,6 +44,8 @@ const mapRecordToItem = ({
   emailRecipients,
 }: ReleaseHistoryRecord): ReleaseHistoryItem => ({
   id,
+  projectId,
+  projectName,
   version: formatReleaseVersion(release.version),
   title: release.openingLine,
   formatId: format,
@@ -69,8 +76,8 @@ const matchesFilter = (item: ReleaseHistoryItem, filter: ReleaseHistoryFilter): 
 const matchesQuery = (item: ReleaseHistoryItem, query: string): boolean => {
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) return true;
-  const { version, title } = item;
-  return `${version} ${title}`.toLowerCase().includes(normalizedQuery);
+  const { version, title, projectName } = item;
+  return `${version} ${title} ${projectName}`.toLowerCase().includes(normalizedQuery);
 };
 
 interface UseReleaseHistoryResult {
@@ -83,12 +90,14 @@ interface UseReleaseHistoryResult {
   query: string;
   filter: ReleaseHistoryFilter;
   format: ReleaseFormat;
+  projectFilterId: string;
   isLoading: boolean;
   isError: boolean;
   selectItem: (item: ReleaseHistoryItem) => void;
   setQuery: (query: string) => void;
   setFilter: (filter: ReleaseHistoryFilter) => void;
   setFormat: (format: ReleaseFormat) => void;
+  setProjectFilterId: (projectId: string) => void;
   clearFilters: () => void;
   refetch: () => void;
 }
@@ -101,10 +110,16 @@ export const useReleaseHistory = (): UseReleaseHistoryResult => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<ReleaseHistoryFilter>(ReleaseHistoryFilter.All);
   const [format, setFormat] = useState<ReleaseFormat>(DEFAULT_HISTORY_FORMAT);
+  const [projectFilterId, setProjectFilterId] = useState(ALL_PROJECTS_FILTER);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: [...RELEASE_HISTORY_QUERY_KEY, format],
-    queryFn: () => listReleaseHistory({ format }),
+    queryKey: [...RELEASE_HISTORY_QUERY_KEY, format, projectFilterId],
+    // The server narrows by project; "All projects" sends no param.
+    queryFn: () =>
+      listReleaseHistory({
+        format,
+        ...(projectFilterId ? { projectId: projectFilterId } : {}),
+      }),
   });
 
   const items = data?.releases.map(mapRecordToItem) ?? [];
@@ -126,14 +141,17 @@ export const useReleaseHistory = (): UseReleaseHistoryResult => {
     query,
     filter,
     format,
+    projectFilterId,
     isLoading,
     isError,
     selectItem: ({ id }) => setSearchParams({ [RELEASE_SEARCH_PARAM]: id }),
     setQuery,
     setFilter,
     setFormat,
+    setProjectFilterId,
     clearFilters: () => {
       setQuery('');
+      setProjectFilterId(ALL_PROJECTS_FILTER);
       setFilter(ReleaseHistoryFilter.All);
     },
     refetch: () => void refetch(),
