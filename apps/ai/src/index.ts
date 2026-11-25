@@ -26,7 +26,6 @@ import {
   ensureThreadsTable,
 } from "@/db";
 import { type AuthEnv, createIdentifyRunUser, createIdentifyUser, createRequireAuth } from "@/middlewares";
-import { createCheckpointAgentRunner } from "@/runner";
 import { startScheduler } from "@/services";
 import {
   createChangelogRoute,
@@ -50,7 +49,7 @@ import {
 // The pool connects lazily, so bad credentials surface in /health instead of crashing startup.
 const pgPool = createPgPool();
 
-// Threads and pending approvals live in Postgres, so they survive a restart. The runner below replays a thread from the checkpoint after a restart.
+// Agent state and pending approvals live in Postgres, so they survive a restart. The chat replay does not: the default in-memory runner keeps it in RAM and loses it on restart (accepted for this practice app).
 const checkpointer = await createCheckpointer(pgPool);
 await ensureThreadsTable(pgPool);
 // Per-user long-term memory (tone, style, opening line); created after the schema exists, survives restarts.
@@ -80,7 +79,7 @@ const langsmithClient = config.langsmith.apiKey
 
 export const supabaseAdmin = createSupabaseAdminClient();
 
-// One agent for both: the AG-UI agent runs it, the runner reads its checkpoint to replay a thread after a restart.
+// Built once; the AG-UI agent runs it with the Postgres checkpointer.
 const baseAgent = createBaseAgent(pgPool, { checkpointer, store: userMemoryStore });
 
 const runtime = new CopilotRuntime({
@@ -97,7 +96,6 @@ const runtime = new CopilotRuntime({
   },
   // Scopes every runtime thread operation to the verified caller (a thread id alone is no longer enough).
   identifyUser: createIdentifyUser(supabaseAdmin),
-  runner: createCheckpointAgentRunner(baseAgent, pgPool),
 });
 
 const app = new Hono<AuthEnv>();
