@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "ai",
+      "runtimeExecutable": "pnpm",
+      "cwd": "apps/ai",
+      "runtimeArgs": ["dev"],
+      "port": 4000
+    },
+    {
       "name": "dev",
       "runtimeExecutable": "pnpm",
       "cwd": "apps/web",
