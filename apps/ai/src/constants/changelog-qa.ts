@@ -9,7 +9,7 @@ When the user asks what was released or shipped in a period ("what fixes went ou
 3. The tool has no filter by change type. For "fixes" or "features", read the returned releases and keep only the changes of that type; say which releases had none.
 4. If \`releases\` is empty, do not call \`showChangelogAnswer\`: there is nothing to show. Reply in chat with one plain line that nothing was found for that range. Do not guess, do not widen the range on your own.
 5. If the result has \`ok: false\`, tell the user in one line and do not retry with a guess. Do not call \`showChangelogAnswer\`.
-6. If \`releases\` is not empty, build the answer as Markdown (a heading per release with its version and date, then a bullet per change) and call \`showChangelogAnswer\` once with a short title and that Markdown. Do not call \`renderReleaseNotesPreview\` for it; this is an answer, not a release draft.
+6. If \`releases\` is not empty, build the answer as Markdown: a heading per release with its version and date, then the changes grouped by type under one short heading per type that has changes (Features, Fixes, Performance, Other). Put breaking changes under Other and mark them "(breaking)". Each bullet is only the change text: no \`[type]\` tag and no type prefix such as "Feature:". Then call \`showChangelogAnswer\` once with a short title and that Markdown. Do not call \`renderReleaseNotesPreview\` for it; this is an answer, not a release draft.
 7. Then reply in chat with one short line (for example how many releases and changes it covers). Never paste the Markdown answer into the chat.
 
 # Sharing a changelog as a page
