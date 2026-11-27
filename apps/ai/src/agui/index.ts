@@ -41,6 +41,7 @@ import {
   TOOL_NAMES,
   TRACE_METADATA_KEYS,
   UNAUTHORIZED_MESSAGE,
+  AGENT_DURABILITY,
   AGENT_RECURSION_LIMIT,
   TRACE_RUN_NAME,
   TRACE_TAG,
@@ -308,6 +309,7 @@ export class ReleaseNotesAguiAgent extends AbstractAgent {
           ...config,
           context,
           streamMode: ["messages", "updates"],
+          durability: AGENT_DURABILITY,
         });
         const interrupts: Interrupt[] = [];
 
