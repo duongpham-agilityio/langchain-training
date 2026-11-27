@@ -85,6 +85,9 @@ export const resolveChangelogRange = (
       return monthRange(today.with({ day: 1 }).subtract({ months: 1 }));
     case "this_year":
       return { from: compact(today.with({ month: 1, day: 1 })), to: compact(today.with({ month: 12, day: 31 })) };
+    case "all_time":
+      // Every release date is a YYYYMMDD string, so these bounds cover all saved releases.
+      return { from: "00000000", to: "99999999" };
     default:
       throw new ChangelogRangeError("Unknown period.");
   }

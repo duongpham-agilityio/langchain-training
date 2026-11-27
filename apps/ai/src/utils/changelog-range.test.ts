@@ -60,6 +60,13 @@ describe("resolveChangelogRange", () => {
     expect(resolveChangelogRange({ period: "this_year" }, now, HCM)).toEqual({ from: "20260101", to: "20261231" });
   });
 
+  it("resolves all_time to every YYYYMMDD date", () => {
+    expect(resolveChangelogRange({ period: "all_time" }, now, HCM)).toEqual({
+      from: "00000000",
+      to: "99999999",
+    });
+  });
+
   it("accepts explicit days; a lone day is a single-day range", () => {
     expect(resolveChangelogRange({ from: "2026-09-05", to: "2026-09-10" }, now, HCM)).toEqual({
       from: "20260905",
@@ -71,6 +78,8 @@ describe("resolveChangelogRange", () => {
   it.each([
     [{}],
     [{ month: "2026-09", period: "today" as const }],
+    [{ period: "all_time" as const, month: "2026-09" }],
+    [{ period: "all_time" as const, from: "2026-09-01" }],
     [{ month: "2026-13" }],
     [{ from: "2026-02-30" }],
     [{ from: "2026-09-10", to: "2026-09-01" }],

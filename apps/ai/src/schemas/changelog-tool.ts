@@ -8,7 +8,7 @@ export const getChangelogSchema = z.object({
   period: z
     .enum(CHANGELOG_PERIODS)
     .optional()
-    .describe("Relative range in the user's time zone, e.g. last_month."),
+    .describe("Relative range in the user's time zone, e.g. last_month. all_time means every saved release, any date."),
   month: z
     .string()
     .optional()
