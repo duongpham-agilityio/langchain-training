@@ -27,7 +27,7 @@ const WORKSPACE_NAME = 'Release Builder';
 const AppContent = () => {
   const location = useLocation();
   const { session, signOut } = useAuth();
-  const { threadId, threads, selectThread, startNewChat, startNewChatInProject } =
+  const { threadId, threads, selectThread, startNewChatInProject } =
     useThreadSession();
   const { projects, isProjectsLoading, activeProject, setActiveProjectId } =
     useActiveProject();
@@ -54,7 +54,6 @@ const AppContent = () => {
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((value) => !value)}
           workspaceName={WORKSPACE_NAME}
-          onNewThread={startNewChat}
           onNewProject={() => setIsCreatingProject(true)}
           userName={session?.user.email ?? 'Signed in'}
           onSignOut={signOut}

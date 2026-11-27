@@ -5,7 +5,6 @@ import {
   FolderPlus,
   ChevronRight,
   History,
-  Plus,
   SquareChevronLeft,
   SquareChevronRight,
 } from 'lucide-react';
@@ -28,7 +27,6 @@ interface AppSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   workspaceName: string;
-  onNewThread: () => void;
   onNewProject: () => void;
   userName: string;
   avatarSrc?: string;
@@ -45,7 +43,6 @@ const AppSidebar = ({
   isCollapsed,
   onToggleCollapse,
   workspaceName,
-  onNewThread,
   onNewProject,
   userName,
   avatarSrc,
@@ -73,11 +70,11 @@ const AppSidebar = ({
         <div className="bg-outline-subtle my-1 h-px w-7" />
         <button
           type="button"
-          onClick={onNewThread}
-          aria-label="New thread"
+          onClick={onNewProject}
+          aria-label="New project"
           className="bg-primary hover:bg-primary-hover flex size-9 cursor-pointer items-center justify-center rounded-[9px] text-white shadow-sm"
         >
-          <Plus className="size-4" />
+          <FolderPlus className="size-4" />
         </button>
         {/* TODO(coming-soon): Search threads — to be implemented later.
         <IconButton
@@ -135,20 +132,12 @@ const AppSidebar = ({
 
       <div className="flex shrink-0 flex-col gap-2 px-3 pt-3.5 pb-1">
         <Button
-          onClick={onNewThread}
+          onClick={onNewProject}
           className="text-body-sm inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg px-3 py-0 font-semibold shadow-sm"
         >
-          <Plus className="size-3.75" strokeWidth={2.2} />
-          New thread
-        </Button>
-        <button
-          type="button"
-          onClick={onNewProject}
-          className="text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-body-sm flex h-8.5 w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 font-medium"
-        >
-          <FolderPlus className="size-4" />
+          <FolderPlus className="size-3.75" strokeWidth={2.2} />
           New project
-        </button>
+        </Button>
         {/* TODO(coming-soon): Search threads (⌘K) — to be implemented later.
         <button
           type="button"
