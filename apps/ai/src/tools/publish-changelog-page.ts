@@ -39,6 +39,10 @@ export const createPublishChangelogPage = (pool: Pool, baseUrl: string) =>
       if (!/^<!doctype html/i.test(html.trimStart())) {
         return JSON.stringify({ ok: false, error: CHANGELOG_PAGE_MESSAGES.NOT_HTML });
       }
+      // A stray double quote in the tool-call JSON can cut the string short; a page without its closing tag was cut.
+      if (!/<\/html>\s*$/i.test(html)) {
+        return JSON.stringify({ ok: false, error: CHANGELOG_PAGE_MESSAGES.INCOMPLETE });
+      }
       const cleanTitle = title.trim();
       try {
         const id = await insertSharedPage(pool, { ownerId: userId, title: cleanTitle, html });

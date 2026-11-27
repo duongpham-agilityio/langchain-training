@@ -14,6 +14,8 @@ export const CHANGELOG_PAGE_MESSAGES = {
   NOT_SIGNED_IN: "You need to be signed in to publish a changelog page.",
   TOO_LONG: "The page is too long to publish. Make it shorter and try again.",
   NOT_HTML: "The page must be one complete HTML document that starts with <!doctype html>.",
+  INCOMPLETE:
+    "The page is cut off: it must end with </html>. Write the whole document again and use single quotes for every attribute value and font name, so nothing needs escaping.",
   SAVE_FAILED: "The page could not be saved. Try again in a moment.",
 } as const;
 
