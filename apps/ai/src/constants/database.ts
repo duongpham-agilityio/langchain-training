@@ -6,6 +6,16 @@
  */
 export const AGENT_RECURSION_LIMIT = 100;
 
+/**
+ * When LangGraph saves checkpoints during a run. The default, `async`, writes one after every graph step
+ * and every middleware hook is a step, so one turn wrote ~11 checkpoints of 6 queries each, one after
+ * another, after the last model call (~0.5 s each at 90 ms per query).
+ * `exit` writes once, when the run finishes or stops at an approval, which is all this app reads back:
+ * the next turn and a resumed approval load the latest state, never an intermediate step.
+ * Cost: a server that dies mid-turn leaves no checkpoint of that turn.
+ */
+export const AGENT_DURABILITY = "exit" as const;
+
 export const DB_CONNECTION_TIMEOUT_MS = 3000;
 export const DB_HEALTH_QUERY = "select 1";
 export const HEALTH_PATH = "/health";
