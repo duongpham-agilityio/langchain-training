@@ -8,7 +8,6 @@ import { groundedItems, refInSource } from "./grounded-items";
 import type { AnswerTurn } from "./types";
 
 const release = (changes: Partial<Release["changes"][number]>[], openingLine = "Fixes and features."): Release => ({
-  version: "1.0.0",
   date: "2026-11-14",
   openingLine,
   changes: changes.map((change, index) => ({

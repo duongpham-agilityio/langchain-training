@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { ChangeSchema, ReleaseSchema } from "./release";
 
-/** One saved release in the changelog: project, version, date, changes and whether it was sent. */
+/** One saved release in the changelog: project, date, title, changes and whether it was sent. */
 export const ChangelogEntrySchema = z.object({
   id: z.string().min(1),
   projectId: z.string().min(1),
   projectName: z.string(),
-  version: ReleaseSchema.shape.version,
   date: ReleaseSchema.shape.date,
+  openingLine: ReleaseSchema.shape.openingLine,
   changes: z.array(ChangeSchema),
   sent: z.boolean(),
 });

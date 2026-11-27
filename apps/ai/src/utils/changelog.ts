@@ -12,7 +12,6 @@ import { decodeReleaseCursor } from "./release-cursor";
 export interface ChangelogFilters {
   from?: string;
   to?: string;
-  version?: string;
   projectId?: string;
   cursor?: string;
   limit: number;
@@ -28,7 +27,7 @@ export class InvalidChangelogCursorError extends Error {}
  */
 export const buildChangelogQuery = (
   ownerId: string,
-  { from, to, version, projectId, cursor, limit }: ChangelogFilters,
+  { from, to, projectId, cursor, limit }: ChangelogFilters,
 ): { text: string; params: unknown[] } => {
   const params: unknown[] = [ownerId];
   const where = ["h.owner_id = $1"];
@@ -41,10 +40,6 @@ export const buildChangelogQuery = (
   if (to) {
     params.push(to);
     where.push(`h.release->>'date' <= $${params.length}`);
-  }
-  if (version) {
-    params.push(version);
-    where.push(`h.release->>'version' = $${params.length}`);
   }
   if (projectId) {
     params.push(projectId);
@@ -89,6 +84,6 @@ export type ChangelogRow = {
 export const toChangelogEntry = (row: ChangelogRow): ChangelogEntry | null => {
   const parsed = ReleaseSchema.safeParse(row.release);
   if (!parsed.success) return null;
-  const { version, date, changes } = parsed.data;
-  return { id: row.id, projectId: row.project_id, projectName: row.project_name, version, date, changes, sent: row.sent };
+  const { date, openingLine, changes } = parsed.data;
+  return { id: row.id, projectId: row.project_id, projectName: row.project_name, date, openingLine, changes, sent: row.sent };
 };

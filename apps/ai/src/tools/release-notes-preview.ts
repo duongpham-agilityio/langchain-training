@@ -1,5 +1,4 @@
 import { tool } from "langchain";
-import type { Pool } from "pg";
 
 // Constants
 import {
@@ -8,13 +7,9 @@ import {
   RELEASE_FORMAT_ALIASES,
   RELEASE_FORMATS,
   RELEASE_NOTES_PREVIEW_DESCRIPTION,
-  RELEASE_NOTES_VERSION_ERROR,
   type ReleaseFormat,
   TOOL_NAMES,
 } from "@/constants";
-
-// Db
-import { getLatestReleaseVersion } from "@/db";
 
 // Schemas
 import { ReleaseNotesPreviewInputSchema, ReleaseSchema } from "@/schemas";
@@ -23,7 +18,6 @@ import { ReleaseNotesPreviewInputSchema, ReleaseSchema } from "@/schemas";
 import {
   formatReleaseDate,
   hashRelease,
-  nextVersion,
   renderRelease,
   renderReleaseEmail,
 } from "@/utils";
@@ -41,11 +35,10 @@ const normalizeFormat = (format: string): string => {
 };
 
 /**
- * Factory (not a singleton) because the previous version comes from the database.
- * Code computes the version and date and renders only the one format asked for; the
+ * Code fills in the date and renders only the one format asked for; the
  * hash lets a re-render prove it used the same release object.
  */
-export const createRenderReleaseNotesPreview = (pool: Pool) =>
+export const createRenderReleaseNotesPreview = () =>
   tool(
     async (input, runtime) => {
       // The model copies the format from the user's words ("GitHub", "App Store"), so normalize first.
@@ -60,22 +53,10 @@ export const createRenderReleaseNotesPreview = (pool: Pool) =>
       const format = requestedFormat;
 
       const context = readAgentContext(runtime);
-      const userId = context?.userId;
-      // The next version counts per project, and the project comes from the verified run context.
-      const projectId = context?.projectId;
-      if (!projectId) return JSON.stringify({ ok: false, error: PROJECT_REQUIRED_MESSAGE });
-      // A failed read or a malformed stored version must not crash the turn or leak SQL text to the model.
-      let version: string;
-      try {
-        const previousVersion = userId ? await getLatestReleaseVersion(pool, userId, projectId) : null;
-        version = nextVersion(previousVersion, input.changes, input.version);
-      } catch (error) {
-        console.error("[ai] next release version failed:", error);
-        return JSON.stringify({ ok: false, error: RELEASE_NOTES_VERSION_ERROR });
-      }
+      // The project comes from the verified run context.
+      if (!context?.projectId) return JSON.stringify({ ok: false, error: PROJECT_REQUIRED_MESSAGE });
 
       const release = ReleaseSchema.parse({
-        version,
         date: input.date ?? formatReleaseDate(new Date(), context?.timeZone ?? DEFAULT_TIME_ZONE),
         openingLine: input.openingLine,
         changes: input.changes,

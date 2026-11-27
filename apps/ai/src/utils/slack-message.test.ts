@@ -5,7 +5,6 @@ import type { Release } from "@/schemas";
 import { buildSlackMessage } from "./slack-message";
 
 const release: Release = {
-  version: "1.2.0",
   date: "20261110",
   openingLine: "Faster sync.",
   changes: [{ id: "c1", type: "fix", breaking: true, description: "Fix crash on launch" }],
@@ -18,7 +17,7 @@ describe("buildSlackMessage", () => {
     if (!result.ok) return;
     expect(result.message.platformId).toBe("slack");
     expect(result.message.label).toBe("Slack");
-    expect(result.message.content).toContain("*1.2.0 (20261110)*");
+    expect(result.message.content).toContain("*20261110*");
     expect(result.message.content).not.toContain("##");
     expect(result.message.content).not.toContain("**");
   });

@@ -45,7 +45,7 @@ const plainItem = (change: Change): string =>
 // Refs (PR numbers, commit hashes) are never written here: only the JSON output carries them.
 const renderMarkdown = (release: Release): string =>
   [
-    `# ${release.version} (${release.date})`,
+    `# ${release.date}`,
     release.openingLine,
     ...groupByType(release.changes).map((group) =>
       [
@@ -57,7 +57,7 @@ const renderMarkdown = (release: Release): string =>
 
 const renderSlack = (release: Release): string =>
   [
-    `*${release.version} (${release.date})*`,
+    `*${release.date}*`,
     release.openingLine,
     ...groupByType(release.changes).map((group) =>
       [
@@ -70,7 +70,7 @@ const renderSlack = (release: Release): string =>
 // Store text is plain: no markup, so it is safe to paste into App Store and Google Play fields.
 const renderPlainText = (release: Release): string =>
   [
-    `${release.version} (${release.date})`,
+    release.date,
     release.openingLine,
     ...groupByType(release.changes).map((group) =>
       [

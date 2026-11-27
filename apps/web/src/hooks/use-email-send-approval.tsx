@@ -22,7 +22,7 @@ export const useEmailSendApproval = (): void => {
       );
       return (
         <EmailSendConfirmCard
-          label={args.success ? args.data.release.version : undefined}
+          label={args.success ? args.data.release.openingLine : undefined}
           content={args.success ? args.data.release.openingLine : undefined}
           onApprove={(recipient) => resolve({ decision: 'approve', recipient })}
           onReject={() => cancel()}

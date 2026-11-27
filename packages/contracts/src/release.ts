@@ -20,7 +20,6 @@ export const ChangeSchema = z.object({
 export type Change = z.infer<typeof ChangeSchema>;
 
 export const ReleaseSchema = z.object({
-  version: z.string().min(1),
   date: z.string().regex(RELEASE_DATE_PATTERN),
   openingLine: z.string().trim().min(1),
   changes: z.array(ChangeSchema),

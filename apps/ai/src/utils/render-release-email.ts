@@ -9,7 +9,7 @@ import { escapeHtml } from "./escape-html";
  * and every string from the release goes through `escapeHtml`.
  */
 export const renderReleaseEmail = (release: Release): { subject: string; html: string } => {
-  const subject = `Release ${release.version} (${release.date})`;
+  const subject = `Release notes (${release.date})`;
 
   const items = release.changes
     .map((change) => {
@@ -22,7 +22,7 @@ export const renderReleaseEmail = (release: Release): { subject: string; html: s
   const html = [
     "<!doctype html>",
     '<html><body style="margin:0;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#1f2933;">',
-    `<h1 style="font-size:20px;margin:0 0 4px 0;">Release ${escapeHtml(release.version)}</h1>`,
+    '<h1 style="font-size:20px;margin:0 0 4px 0;">Release notes</h1>',
     `<p style="margin:0 0 16px 0;color:#52606d;">${escapeHtml(release.date)}</p>`,
     `<p style="margin:0 0 16px 0;">${escapeHtml(release.openingLine)}</p>`,
     `<ul style="margin:0;padding-left:20px;">${items}</ul>`,

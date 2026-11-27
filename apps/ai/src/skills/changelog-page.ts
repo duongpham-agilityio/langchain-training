@@ -19,11 +19,11 @@ Every page loads Google Fonts. A page that only uses system fonts is wrong. Pick
 - Sora and Inter: \`<link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Sora:wght@500;700&family=Inter:wght@400;500;600&display=swap'>\`
 - IBM Plex Sans and IBM Plex Mono: \`<link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap'>\`
 
-Use the first family of the pair for headings and the version, the second for body text, and keep a fallback stack on both (\`'Space Grotesk', system-ui, sans-serif\`). Set the families as custom properties (\`--font-display\`, \`--font-body\`).
-- Use one type scale. Body text at least 16px, comfortable line height, about 65 characters per line. Headings get \`text-wrap: balance\`, uppercase labels a little letter-spacing, versions and dates \`font-variant-numeric: tabular-nums\`.
+Use the first family of the pair for headings and the date, the second for body text, and keep a fallback stack on both (\`'Space Grotesk', system-ui, sans-serif\`). Set the families as custom properties (\`--font-display\`, \`--font-body\`).
+- Use one type scale. Body text at least 16px, comfortable line height, about 65 characters per line. Headings get \`text-wrap: balance\`, uppercase labels a little letter-spacing, dates \`font-variant-numeric: tabular-nums\`.
 
 ## Direction
-- The layout is yours; there is no fixed template. Make one distinctive choice and keep everything around it quiet. The default choice is the opening block: the period or the newest version set very large in the display face, in the accent colour.
+- The layout is yours; there is no fixed template. Make one distinctive choice and keep everything around it quiet. The default choice is the opening block: the period or the newest date set very large in the display face, in the accent colour.
 - Light theme background is white or a cool grey. Never cream, beige or any warm off-white. The accent is a blue, teal, green or violet, never terracotta, orange-brown or acid green on black.
 - Do not wrap every change in its own bordered, rounded box, and do not make a table with the type in a left column. Use spacing and one divider between releases. Use at most two corner radii on the whole page.
 - Also avoid: purple-to-blue gradient hero, emoji as markers, everything centred.
@@ -31,11 +31,11 @@ Use the first family of the pair for headings and the version, the second for bo
 
 ## Structure (required)
 1. Header: a small uppercase kicker ("Changelog"), the period the releases cover as the large heading (for example "November 2026"), and one summary line with counts taken from the result ("2 releases, 9 changes"). If \`truncated\` was true, say here that the list is partial.
-2. One section per release, newest first. Its heading row has the version large in the display font on the left and the date on the right. If the release has breaking changes, add a warning-coloured chip in that row ("1 breaking change").
+2. One section per release, newest first. Its heading row has the date large in the display font on the left and the opening line on the right. If the release has breaking changes, add a warning-coloured chip in that row ("1 breaking change").
 3. Inside a release, group the changes by type under one heading per type, in this order: Features, Fixes, Performance, Docs, Internal, Other. Each heading is a small uppercase label in the accent colour with the number of changes, followed by a bullet list of that type's changes: a real \`<ul>\` with one \`<li>\` per change and a visible bullet in front of every item. Keep the default disc (style it with \`li::marker{color:var(--accent)}\`); never set \`list-style:none\` unless \`li::before\` draws the bullet. Skip a type that has none in that release. Never repeat the type label on every change, and never list the changes as one flat sequence.
 4. Keep the order of the result inside a group. When several changes clearly belong to the same area (for example two that touch Slack), place them next to each other.
 5. A breaking change stays in its type group and starts with a warning-coloured "Breaking" tag.
-6. Hierarchy from strongest to weakest: period, version, type heading, change text. Give each release generous space above it, separate releases with a rule, and keep at least 8px between list items.
+6. Hierarchy from strongest to weakest: period, date, type heading, change text. Give each release generous space above it, separate releases with a rule, and keep at least 8px between list items.
 
 ## Colour and theme
 - Define colour tokens as custom properties on \`:root\` (background, surface, text, muted text, border, accent, and a warning colour for breaking changes) and use only those tokens.
@@ -48,12 +48,12 @@ Use the first family of the pair for headings and the version, the second for bo
 - Size the opening block to its content, not to the viewport. Motion is optional, starts from a visible state and respects \`prefers-reduced-motion\`.
 
 ## Content
-- Show every release from the result with its version and its date, newest first as returned, and every change of it.
-- Only content from the \`getChangelog\` result: its versions, dates and changes. Never add a release, version, date or change from memory or from the chat. Headings and intro text may only restate that data. Escape text that goes into the HTML (\`&\`, \`<\`, \`>\`).
+- Show every release from the result with its date and its opening line, newest first as returned, and every change of it.
+- Only content from the \`getChangelog\` result: its dates, opening lines and changes. Never add a release, date or change from memory or from the chat. Headings and intro text may only restate that data. Escape text that goes into the HTML (\`&\`, \`<\`, \`>\`).
 - If the result has no releases, build a short page that says nothing was found for that period.
 - If \`truncated\` was true, say on the page that the list is partial.
 
 ## Before you publish
-Check the HTML against this list and fix what fails: Google Fonts \`<link>\` present; both families have a fallback; \`:root\` tokens; a dark \`@media (prefers-color-scheme: dark)\` block; \`color-scheme\` and a \`body\` background; light background is not cream; no \`<script>\` unless asked; every release, version, date and change from the result is on the page; changes are grouped under one heading per type, never repeated per row; every feature the user asked for exists in the HTML (a filter needs its buttons, \`data-filter\` and \`data-type\` attributes and the script).
+Check the HTML against this list and fix what fails: Google Fonts \`<link>\` present; both families have a fallback; \`:root\` tokens; a dark \`@media (prefers-color-scheme: dark)\` block; \`color-scheme\` and a \`body\` background; light background is not cream; no \`<script>\` unless asked; every release, date and change from the result is on the page; changes are grouped under one heading per type, never repeated per row; every feature the user asked for exists in the HTML (a filter needs its buttons, \`data-filter\` and \`data-type\` attributes and the script).
 `,
 } as const;

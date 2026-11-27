@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Constants
-import { RELEASE_DATE_PATTERN, RELEASE_VERSION_PATTERN } from "@/constants";
+import { RELEASE_DATE_PATTERN } from "@/constants";
 
 // Utils
 import { joinLines } from "@/utils";
@@ -36,17 +36,6 @@ export const ReleaseNotesPreviewInputSchema = z.object({
         "Every classified change of the release, typed, one sentence each.",
         "When re-rendering the same release in another format, copy the",
         "`changes` of the `release` from the previous tool result unchanged.",
-      ),
-    ),
-  version: z
-    .string()
-    .regex(RELEASE_VERSION_PATTERN)
-    .optional()
-    .describe(
-      joinLines(
-        "MAJOR.MINOR.PATCH. Set it ONLY when the user named a version, or when",
-        "re-rendering: copy `release.version` from the previous result. Omit it",
-        "otherwise: the app computes the version itself.",
       ),
     ),
   date: z

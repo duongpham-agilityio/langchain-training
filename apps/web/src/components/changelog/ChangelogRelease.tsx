@@ -2,28 +2,23 @@ import type { ChangelogEntry } from '@training/contracts';
 import Badge, { BadgeVariant } from '@/components/common/Badge.tsx';
 import { CHANGE_TYPE_LABELS } from '@/constants/changelog.ts';
 import { groupChangesByType } from '@/lib/release-notes/group-changes-by-type.ts';
-import {
-  formatReleaseDateDisplay,
-  formatReleaseVersion,
-} from '@/lib/release-notes/release-title.ts';
+import { formatReleaseDateDisplay } from '@/lib/release-notes/release-title.ts';
 
 interface ChangelogReleaseProps {
   entry: ChangelogEntry;
 }
 
 const ChangelogRelease = ({ entry }: ChangelogReleaseProps) => {
-  const { version, date, changes, sent, projectName } = entry;
+  const { openingLine, date, changes, sent, projectName } = entry;
 
   return (
     <li className="border-outline-subtle relative flex flex-col gap-3 border-l-2 pb-8 pl-6 last:pb-0">
       <span className="bg-primary border-surface absolute top-1.5 -left-[7px] size-3 rounded-full border-2" />
       <header className="flex flex-wrap items-center gap-2.5">
         <h2 className="text-on-surface text-[17px] font-bold tabular-nums">
-          {formatReleaseVersion(version)}
-        </h2>
-        <span className="text-label-sm text-on-surface-muted">
           {formatReleaseDateDisplay(date)}
-        </span>
+        </h2>
+        <span className="text-label-sm text-on-surface-muted">{openingLine}</span>
         <Badge variant={BadgeVariant.Brand}>{projectName}</Badge>
         <Badge variant={sent ? BadgeVariant.Success : BadgeVariant.Neutral}>
           {sent ? 'Sent' : 'Not sent'}

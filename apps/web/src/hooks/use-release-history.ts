@@ -7,7 +7,6 @@ import {
   formatReleaseDateDisplay,
   formatReleaseMonthDisplay,
   formatReleaseShortDateDisplay,
-  formatReleaseVersion,
 } from '@/lib/release-notes/release-title.ts';
 import { groupReleaseHistoryByRecency } from '@/lib/release-notes/group-release-history-by-recency.ts';
 import {
@@ -46,7 +45,6 @@ const mapRecordToItem = ({
   id,
   projectId,
   projectName,
-  version: formatReleaseVersion(release.version),
   title: release.openingLine,
   formatId: format,
   formatLabel: RELEASE_FORMAT_LABELS[format],
@@ -76,8 +74,8 @@ const matchesFilter = (item: ReleaseHistoryItem, filter: ReleaseHistoryFilter): 
 const matchesQuery = (item: ReleaseHistoryItem, query: string): boolean => {
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) return true;
-  const { version, title, projectName } = item;
-  return `${version} ${title} ${projectName}`.toLowerCase().includes(normalizedQuery);
+  const { title, projectName } = item;
+  return `${title} ${projectName}`.toLowerCase().includes(normalizedQuery);
 };
 
 interface UseReleaseHistoryResult {

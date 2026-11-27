@@ -17,12 +17,11 @@ describe("isValidEmailAddress", () => {
 describe("SendReleaseEmailInputSchema", () => {
   it("has no recipient field: an address is stripped, not kept", () => {
     const release = {
-      version: "1.0.0",
       date: "20261110",
       openingLine: "Hi",
       changes: [{ id: "c1", type: "fix", breaking: false, description: "Fix" }],
     };
     const parsed = SendReleaseEmailInputSchema.parse({ release, to: "x@y.com" });
-    expect(parsed).toEqual({ release: expect.objectContaining({ version: "1.0.0" }) });
+    expect(parsed).toEqual({ release: expect.objectContaining({ date: "20261110" }) });
   });
 });

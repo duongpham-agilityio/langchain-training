@@ -1,7 +1,7 @@
 export { OPENING_LINE_ITEM_ID } from "@training/contracts";
 
 export const EDIT_RELEASE_ITEM_DESCRIPTION =
-  "Replace the description of one item (the opening line or one change) of the release notes draft. The user is asked to accept or reject the old and the new sentence before it runs. Only the description changes; type, breaking and version stay.";
+  "Replace the description of one item (the opening line or one change) of the release notes draft. The user is asked to accept or reject the old and the new sentence before it runs. Only the description changes; type and breaking stay.";
 
 /** Shown on the approval card for `editReleaseItem`. */
 export const EDIT_APPROVAL_DESCRIPTION = "Replace this sentence in the release notes?";

@@ -35,7 +35,7 @@ const MarkdownPreview = ({
   return (
     <div
       className={cn(
-        // The design renders notes as flat sections: a 28px version title, a
+        // The design renders notes as flat sections: a 28px title, a
         // small bold section heading, then dot-marked items — not the browser's
         // default heading ramp and disc bullets.
         '[&_h1]:text-on-surface [&_h1]:text-[28px] [&_h1]:leading-9 [&_h1]:font-bold [&_h1]:tracking-[-0.02em]',
