@@ -35,6 +35,13 @@ describe("buildChangelogQuery", () => {
     expect(text).toContain("h.release->>'version' = $4");
   });
 
+  it("adds the project filter as a bound param on h.project_id", () => {
+    const PROJECT = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const { text, params } = buildChangelogQuery(OWNER, { projectId: PROJECT, limit: 5 });
+    expect(params).toContain(PROJECT);
+    expect(text).toMatch(/h\.project_id = \$\d/);
+  });
+
   it("applies the cursor as a (created_at, id) keyset", () => {
     const cursor = encodeReleaseCursor({ created_at: "2026-11-10T00:00:00Z", id: "abc" });
     const { text, params } = buildChangelogQuery(OWNER, { cursor, limit: 5 });
