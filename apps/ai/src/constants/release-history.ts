@@ -3,12 +3,6 @@ import { DB_SCHEMA } from "./database";
 export { RELEASE_HISTORY_PATH, SCHEDULED_SENDS_PATH, RELEASE_STATUSES } from "@training/contracts";
 
 export const RELEASE_HISTORY_PATH_PATTERN = "/release-history/*";
-export const NEXT_RELEASE_VERSION_PATH = "/release-history/next-version";
-export const LATEST_RELEASE_VERSION_PATH = "/release-history/latest-version";
-
-// Version rules: a first release starts here; a MAJOR.MINOR.PATCH string is required for stored versions.
-export const FIRST_RELEASE_VERSION = "1.0.0";
-export const RELEASE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
 export const RELEASE_CHANGE_TYPE_FEATURE = "feature";
 // Qualified like `THREADS_TABLE`: the tables live in `DB_SCHEMA`, and the pool sets no `search_path`, so a bare name looks in `public`.
 export const RELEASE_HISTORY_TABLE = `"${DB_SCHEMA}".release_history`;

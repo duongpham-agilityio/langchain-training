@@ -13,7 +13,7 @@ export type ApplyReleaseEditResult =
 
 /**
  * Replaces the description of one item (`openingLine` or a change id) and nothing else: `type`,
- * `breaking`, `refs`, ids, version and date stay as they are, so the version cannot change here.
+ * `breaking`, `refs`, ids and date stay as they are.
  */
 export const applyReleaseEdit = (
   release: Release,

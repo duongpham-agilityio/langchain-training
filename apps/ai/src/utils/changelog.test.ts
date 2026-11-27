@@ -22,17 +22,15 @@ describe("buildChangelogQuery", () => {
     expect(where).toContain("s.status = $2");
   });
 
-  it("adds date range and version filters as bound params", () => {
+  it("adds date range filters as bound params", () => {
     const { text, params } = buildChangelogQuery(OWNER, {
       from: "20261101",
       to: "20261130",
-      version: "1.2.0",
       limit: 5,
     });
-    expect(params).toEqual([OWNER, "20261101", "20261130", "1.2.0", "sent", 6]);
+    expect(params).toEqual([OWNER, "20261101", "20261130", "sent", 6]);
     expect(text).toContain("h.release->>'date' >= $2");
     expect(text).toContain("h.release->>'date' <= $3");
-    expect(text).toContain("h.release->>'version' = $4");
   });
 
   it("adds the project filter as a bound param on h.project_id", () => {
@@ -63,19 +61,18 @@ describe("release cursor", () => {
 
 describe("toChangelogEntry", () => {
   const release = {
-    version: "1.2.0",
     date: "20261110",
     openingLine: "Hi",
     changes: [{ id: "c1", type: "feature", breaking: false, description: "Add sync" }],
   };
 
-  it("maps version, date, changes and the sent flag", () => {
+  it("maps date, changes and the sent flag", () => {
     expect(toChangelogEntry({ id: "r1", release, created_at: "2026-11-10", project_id: "p1", project_name: "Alpha", sent: true })).toEqual({
       id: "r1",
       projectId: "p1",
       projectName: "Alpha",
-      version: "1.2.0",
       date: "20261110",
+      openingLine: "Hi",
       changes: release.changes,
       sent: true,
     });

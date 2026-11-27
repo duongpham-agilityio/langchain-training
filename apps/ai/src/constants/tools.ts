@@ -15,7 +15,7 @@ export const APPROVAL_INTERRUPT_REASON = "tool_approval";
 export const APPROVAL_REJECT_MESSAGE = "The user rejected this action. Nothing was changed or sent.";
 
 export const GET_CHANGELOG_DESCRIPTION =
-  "Read-only. List the user's saved releases (version, date, changes, sent flag) for a time range. Give exactly one of: `period` (relative to today in the user's time zone, or `all_time` for every saved release, any date), `month` (YYYY-MM) or `from`/`to` (YYYY-MM-DD, inclusive). Use it to answer questions such as what shipped in September, or for all releases. It never changes anything and has no filter by change type.";
+  "Read-only. List the user's saved releases (date, changes, sent flag) for a time range. Give exactly one of: `period` (relative to today in the user's time zone, or `all_time` for every saved release, any date), `month` (YYYY-MM) or `from`/`to` (YYYY-MM-DD, inclusive). Use it to answer questions such as what shipped in September, or for all releases. It never changes anything and has no filter by change type.";
 
 export const CHANGELOG_PERIODS = [
   "today",

@@ -12,7 +12,7 @@ Code writes the text for every format; you never write per-destination markup. Y
 ## The release object
 - \`openingLine\`: one line summarising the release.
 - \`changes\`: every classified entry with a stable \`id\`, one \`type\` (a breaking feature is still a feature), \`breaking\`, a one-sentence \`description\` (past tense, no trailing period, the user's wording for names and identifiers), and \`refs\` copied from the input (omit when none).
-- \`version\` and \`date\` (yyyymmdd): set only when the user named them, or when re-rendering. The app computes the version and fills in today's date.
+- \`date\` (yyyymmdd): set only when the user named it, or when re-rendering. The app fills in today's date.
 
 ## Rules
 - Only use entries that were parsed and classified; never add changes that were not in the input.

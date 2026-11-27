@@ -10,7 +10,6 @@ export interface ChangelogFilters {
   // `<input type="date">` values (`YYYY-MM-DD`), empty when unset.
   from: string;
   to: string;
-  version: string;
   // Empty = all projects.
   projectId: string;
 }
@@ -18,16 +17,11 @@ export interface ChangelogFilters {
 export const EMPTY_CHANGELOG_FILTERS: ChangelogFilters = {
   from: '',
   to: '',
-  version: '',
   projectId: '',
 };
 
 // The server takes `YYYYMMDD`; date inputs give `YYYY-MM-DD`.
 const toApiDate = (value: string): string => value.replaceAll('-', '');
-
-// Stored versions are bare MAJOR.MINOR.PATCH while the page shows "v2.4.0",
-// so a typed leading "v" is dropped before the exact-match filter.
-const toApiVersion = (value: string): string => value.trim().replace(/^v/i, '');
 
 const buildQuery = (
   filters: ChangelogFilters,
@@ -36,8 +30,6 @@ const buildQuery = (
   const query: Record<string, string> = { limit: String(CHANGELOG_PAGE_SIZE) };
   if (filters.from) query.from = toApiDate(filters.from);
   if (filters.to) query.to = toApiDate(filters.to);
-  const version = toApiVersion(filters.version);
-  if (version) query.version = version;
   if (filters.projectId) query.projectId = filters.projectId;
   if (cursor) query.cursor = cursor;
   return query;
@@ -72,7 +64,7 @@ export const useChangelog = (): UseChangelogResult => {
   return {
     entries: query.data?.pages.flatMap((page) => page.releases) ?? [],
     filters,
-    hasActiveFilters: Boolean(filters.from || filters.to || filters.version.trim() || filters.projectId),
+    hasActiveFilters: Boolean(filters.from || filters.to || filters.projectId),
     isLoading: query.isLoading,
     isError: query.isError,
     hasNextPage: query.hasNextPage,

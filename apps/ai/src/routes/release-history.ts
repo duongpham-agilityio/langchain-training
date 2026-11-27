@@ -4,9 +4,7 @@ import { z } from "zod";
 
 // Constants
 import {
-  LATEST_RELEASE_VERSION_PATH,
   PROJECT_NOT_FOUND_MESSAGE,
-  NEXT_RELEASE_VERSION_PATH,
   RELEASE_HISTORY_PATH,
   SCHEDULED_SENDS_PATH,
 } from "@/constants";
@@ -14,7 +12,6 @@ import {
 // DB
 import {
   findOwnedProject,
-  getLatestReleaseVersion,
   cancelScheduledSend,
   getReleaseHistory,
   listReleaseSendRows,
@@ -29,14 +26,12 @@ import type { AuthEnv } from "@/middlewares";
 // Schemas
 import {
   GetReleaseHistoryQuerySchema,
-  LatestReleaseVersionQuerySchema,
   ListReleaseHistoryQuerySchema,
-  NextReleaseVersionRequestSchema,
   SaveReleaseHistoryRequestSchema,
 } from "@/schemas";
 
 // Utils
-import { buildReleaseSendEntries, nextVersion } from "@/utils";
+import { buildReleaseSendEntries } from "@/utils";
 
 /** Mounted behind `createRequireAuth`; every query is scoped to `c.get("userId")`. */
 export const createReleaseHistoryRoutes = (pool: Pool) => {
@@ -55,26 +50,6 @@ export const createReleaseHistoryRoutes = (pool: Pool) => {
       if (error instanceof InvalidCursorError) return c.json({ error: error.message }, 400);
       throw error;
     }
-  });
-
-  // No web client calls this route.
-  // Before `/:id`, or "latest-version" would be read as a record id and answer 404.
-  routes.get(LATEST_RELEASE_VERSION_PATH, async (c) => {
-    const query = LatestReleaseVersionQuerySchema.safeParse(c.req.query());
-    if (!query.success) return c.json({ error: query.error.message }, 400);
-    const userId = c.get("userId");
-    if (!(await findOwnedProject(pool, userId, query.data.projectId))) {
-      return c.json({ error: PROJECT_NOT_FOUND_MESSAGE }, 404);
-    }
-    return c.json({ version: await getLatestReleaseVersion(pool, userId, query.data.projectId) });
-  });
-
-  // No web client calls this route.
-  routes.post(NEXT_RELEASE_VERSION_PATH, async (c) => {
-    const body = NextReleaseVersionRequestSchema.safeParse(await c.req.json().catch(() => null));
-    if (!body.success) return c.json({ error: body.error.message }, 400);
-    const { previousVersion, changes, statedVersion } = body.data;
-    return c.json({ version: nextVersion(previousVersion, changes, statedVersion) });
   });
 
   routes.get(`${RELEASE_HISTORY_PATH}/:id`, async (c) => {

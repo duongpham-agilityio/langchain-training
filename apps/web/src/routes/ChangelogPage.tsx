@@ -55,7 +55,7 @@ const ChangelogPage = () => {
           title={hasActiveFilters ? 'No releases match' : 'No releases yet'}
           description={
             hasActiveFilters
-              ? 'Try another project, version or date range.'
+              ? 'Try another project or date range.'
               : 'Send a release to Slack or email and it will show up here. Archived releases that were not sent stay in History.'
           }
           action={

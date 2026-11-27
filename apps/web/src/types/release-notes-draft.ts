@@ -14,7 +14,6 @@ export const ReleaseNotesDraftSchema = z.object({
     .regex(/^\d{8}$/)
     .nullish(),
   titleOverride: z.string().min(1).nullish(),
-  version: z.string().min(1).nullish(),
   title: z.string().min(1).nullish(),
   // Only the html-email format has a subject line.
   subject: z.string().min(1).nullish(),

@@ -7,6 +7,7 @@ import {
   useReleaseDraftView,
   type ReleaseDraftView,
 } from '@/hooks/use-release-draft-view.ts';
+import { formatReleaseDateDisplay } from '@/lib/release-notes/release-title.ts';
 import { useThreadSession } from '@/hooks/use-thread-session.ts';
 import { useIsLatestToolCall } from '@/hooks/use-is-latest-tool-call.ts';
 import ToolErrorCard from '@/components/chat/ToolErrorCard.tsx';
@@ -65,8 +66,8 @@ const DraftToolCall = ({
     <ReleaseDraftCard
       title={
         draft.release
-          ? draft.version
-            ? `Release notes · v${draft.version}`
+          ? draft.releaseDate
+            ? `Release notes · ${formatReleaseDateDisplay(draft.releaseDate)}`
             : 'Release notes'
           : (draft.title ?? 'Changelog answer')
       }

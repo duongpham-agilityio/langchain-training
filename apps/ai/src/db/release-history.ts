@@ -25,7 +25,7 @@ import {
   type ReleaseHistoryRow,
 } from "@/utils";
 
-// The one place that knows the `release_history` column names (F-06): the version, date, title
+// The one place that knows the `release_history` column names (F-06): the date, title
 // and changes all live inside the `release` object.
 // `email_recipients` = distinct recipients of successful email sends (F-13), for the detail view.
 // `project_name` comes from the join with `projects` (every row has a project: NOT NULL foreign key).
@@ -58,9 +58,8 @@ export const listReleaseHistory = async (
 
   if (q) {
     params.push(`%${escapeLike(q)}%`);
-    // Version and title (the opening line) both live in the release object.
-    const n = params.length;
-    where.push(`(h.release->>'version' ilike $${n} or h.release->>'openingLine' ilike $${n})`);
+    // The title (the opening line) lives in the release object.
+    where.push(`h.release->>'openingLine' ilike $${params.length}`);
   }
   if (status) {
     params.push(status);
@@ -104,25 +103,8 @@ export const getReleaseHistory = async (
   return rows[0] ? toReleaseHistoryRecord(rows[0], format) : null;
 };
 
-/** The newest saved version (by created_at) of one of the owner's projects, or null when that project has none: versions count per project. */
-export const getLatestReleaseVersion = async (
-  pool: Pool,
-  ownerId: string,
-  projectId: string,
-): Promise<string | null> => {
-  // The version lives inside the stored release object (F-06 dropped the `version` column).
-  const { rows } = await pool.query<{ version: string | null }>(
-    `select release->>'version' as version from ${RELEASE_HISTORY_TABLE}
-     where owner_id = $1 and project_id = $2
-     order by created_at desc, id desc
-     limit 1`,
-    [ownerId, projectId],
-  );
-  return rows[0]?.version ?? null;
-};
-
 /**
- * Saving the same version again creates a new record, as the web expects. The caller has already
+ * Saving the same release again creates a new record, as the web expects. The caller has already
  * checked that `projectId` is the owner's (the column is NOT NULL and has no default).
  */
 export const saveReleaseHistory = async (

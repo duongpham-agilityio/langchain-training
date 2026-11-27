@@ -1,4 +1,4 @@
-// Placeholder shaped like ReleaseHistoryListItem's three lines (version + date,
+// Placeholder shaped like ReleaseHistoryListItem's three lines (title + date,
 // title, platform + status) so the list doesn't jump when data arrives.
 const ReleaseHistoryListItemSkeleton = () => (
   <div aria-hidden="true" className="flex w-full animate-pulse flex-col gap-2 px-3 py-2.5">

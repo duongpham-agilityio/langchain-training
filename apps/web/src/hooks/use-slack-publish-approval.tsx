@@ -32,7 +32,7 @@ export const useSlackPublishApproval = (): void => {
         const args = ScheduleSendToolInputSchema.safeParse(rawArgs);
         return (
           <SchedulePublishConfirmCard
-            label={args.success ? args.data.release.version : undefined}
+            label={args.success ? args.data.release.openingLine : undefined}
             localDateTime={args.success ? args.data.localDateTime : undefined}
             onApprove={() => resolve({ decision: 'approve' })}
             onReject={() => cancel()}
@@ -42,7 +42,7 @@ export const useSlackPublishApproval = (): void => {
       const args = SlackPublishToolInputSchema.safeParse(rawArgs);
       return (
         <SlackPublishConfirmCard
-          label={args.success ? args.data.release.version : undefined}
+          label={args.success ? args.data.release.openingLine : undefined}
           content={args.success ? args.data.release.openingLine : undefined}
           onApprove={() => resolve({ decision: 'approve' })}
           onReject={() => cancel()}

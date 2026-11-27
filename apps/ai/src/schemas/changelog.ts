@@ -21,7 +21,6 @@ export const ChangelogQuerySchema = z
   .object({
     from: dateParam.optional(),
     to: dateParam.optional(),
-    version: z.string().trim().min(1).optional(),
     projectId: z.uuid().optional(),
     cursor: z.string().optional(),
     limit: z.coerce

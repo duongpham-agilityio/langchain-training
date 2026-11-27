@@ -6,7 +6,6 @@ import { applyReleaseEdit, checkEditHash } from "./edit-release-item";
 import { hashRelease } from "./hash-release";
 
 const release: Release = {
-  version: "1.2.0",
   date: "20261114",
   openingLine: "A small release.",
   changes: [
@@ -22,7 +21,7 @@ describe("applyReleaseEdit", () => {
     if (!result.ok) return;
     expect(result.release.changes[0]).toEqual({ ...release.changes[0], description: "Add full-text search." });
     expect(result.release.changes[1]).toEqual(release.changes[1]);
-    expect(result.release.version).toBe("1.2.0");
+    expect(result.release.date).toBe(release.date);
     expect(result.release.openingLine).toBe(release.openingLine);
   });
 

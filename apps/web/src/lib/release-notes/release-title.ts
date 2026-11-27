@@ -56,26 +56,21 @@ export const formatReleaseMonthDisplay = (
 ): string =>
   formatParsedReleaseDate(releaseDate, { year: 'numeric', month: 'long' });
 
-// "v2.4.0-markdown.md", "v2.4.0-json.json", "v2.4.0-html-email.html"; drafts without a
-// version fall back to RELEASE_NOTES.<ext>. The extension follows the format.
+// "20260902-markdown.md", "20260902-json.json"; drafts without a date fall back to
+// RELEASE_NOTES.<ext>. The extension follows the format.
 export const buildReleaseNotesFileName = ({
-  version,
+  releaseDate,
   platform,
 }: ReleaseNotesDraft): string => {
   const { extension } = getFormatPresentation(platform);
-  return version
-    ? `v${version}-${platform}.${extension}`
+  return releaseDate
+    ? `${releaseDate}-${platform}.${extension}`
     : `RELEASE_NOTES.${extension}`;
 };
 
-// "v2.4.0 · GitHub", or just the label when the draft has no version.
-export const describeReleaseDraft = ({ version, label }: ReleaseNotesDraft): string =>
-  version ? `v${version} · ${label}` : label;
-
-// "2.4.0" -> "v2.4.0". Drafts carry a bare MAJOR.MINOR.PATCH, so History
-// prefixes it once on the way in; already-prefixed values pass through.
-export const formatReleaseVersion = (version: string): string =>
-  version.startsWith('v') ? version : `v${version}`;
+// "Sep 2, 2026 · GitHub", or just the label when the draft has no date.
+export const describeReleaseDraft = ({ releaseDate, label }: ReleaseNotesDraft): string =>
+  releaseDate ? `${formatReleaseDateDisplay(releaseDate)} · ${label}` : label;
 
 const RELEASE_FORMAT_EXTENSIONS: Record<string, string> = {
   markdown: '.md',
@@ -83,16 +78,15 @@ const RELEASE_FORMAT_EXTENSIONS: Record<string, string> = {
   'html-email': '.html',
 };
 
-// "v2.4.0-markdown.md" — the History twin of buildReleaseNotesFileName, whose
-// version is already display-formatted.
+// "20260902-markdown.md" — the History twin of buildReleaseNotesFileName.
 export const buildReleaseHistoryFileName = ({
-  version,
+  releaseDate,
   formatId,
 }: ReleaseHistoryItem): string =>
-  `${version}-${formatId}${RELEASE_FORMAT_EXTENSIONS[formatId] ?? '.txt'}`;
+  `${releaseDate}-${formatId}${RELEASE_FORMAT_EXTENSIONS[formatId] ?? '.txt'}`;
 
-// "v2.4.0 · GitHub"
+// "Sep 2, 2026 · GitHub"
 export const describeReleaseHistoryItem = ({
-  version,
+  date,
   formatLabel,
-}: ReleaseHistoryItem): string => `${version} · ${formatLabel}`;
+}: ReleaseHistoryItem): string => `${date} · ${formatLabel}`;

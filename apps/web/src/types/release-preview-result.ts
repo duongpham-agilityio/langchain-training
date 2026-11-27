@@ -31,7 +31,7 @@ const OverLimitSchema = z.object({
   hash: z.string(),
 });
 
-// The tool could not do its job (e.g. the next version could not be worked out): just a message.
+// The tool could not do its job (e.g. no project selected): just a message.
 // Last in the union so the richer failure shapes above win when their fields are present.
 const ToolErrorSchema = z.object({
   ok: z.literal(false),
@@ -103,7 +103,6 @@ export const parseReleasePreviewResult = (
       kind: 'draft',
       draft: {
         releaseDate: result.release.date,
-        version: result.release.version,
         title: result.release.openingLine,
         platform: OVER_LIMIT_PLATFORM,
         label: 'Over the length limit',
@@ -128,7 +127,6 @@ export const parseReleasePreviewResult = (
     kind: 'draft',
     draft: {
       releaseDate: result.release.date,
-      version: result.release.version,
       // History needs a title; the opening line is the release's one-line summary.
       title: result.release.openingLine,
       subject: result.subject,
@@ -167,7 +165,7 @@ const AnswerRefusalSchema = z.object({
 export const CHANGELOG_ANSWER_LABEL = 'Changelog answer';
 
 // What apps/ai `showChangelogAnswer` returns: a Markdown answer for the Live Preview. It is a draft
-// without `release`/`hash`/`version`, so it cannot be archived, edited or sent as release notes.
+// without `release`/`hash`, so it cannot be archived, edited or sent as release notes.
 export const parseChangelogAnswerResult = (
   raw: unknown,
 ): ReleasePreviewOutcome => {

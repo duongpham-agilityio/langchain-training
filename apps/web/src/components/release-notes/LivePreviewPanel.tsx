@@ -64,7 +64,7 @@ interface LivePreviewPanelProps {
   onArchive: () => void;
   isArchiving: boolean;
   isArchived: boolean;
-  // False when the draft lacks a version/title, which History requires.
+  // False when the draft lacks a title, which History requires.
   canArchive: boolean;
   onClose: () => void;
 }
@@ -239,7 +239,7 @@ const LivePreviewPanel = ({
             title={
               canArchive
                 ? undefined
-                : 'Ask Release Builder for a version and title to archive'
+                : 'Ask Release Builder for a title to archive'
             }
             onClick={onArchive}
             className="text-body-sm ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg px-3 py-0 font-semibold shadow-sm"

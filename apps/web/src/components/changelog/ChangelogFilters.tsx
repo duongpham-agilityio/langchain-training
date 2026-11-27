@@ -14,9 +14,8 @@ interface ChangelogFiltersProps {
 
 const INPUT_CLASSES = 'h-9 rounded-[9px] py-0 text-[13.5px]';
 
-// Edits are held locally and applied on submit: the version filter is an exact
-// match, so querying on every keystroke would only fire requests for
-// half-typed versions.
+// Edits are held locally and applied on submit, so a date range is not queried
+// on every half-picked date.
 const ChangelogFilters = ({ filters, onApply }: ChangelogFiltersProps) => {
   const [draft, setDraft] = useState<Filters>(filters);
   const { projects = [] } = useProjects();
@@ -51,16 +50,6 @@ const ChangelogFilters = ({ filters, onApply }: ChangelogFiltersProps) => {
             </option>
           ))}
         </select>
-      </label>
-      <label className="text-label-xs text-on-surface-muted flex flex-col gap-1 font-semibold">
-        Version
-        <Input
-          type="text"
-          value={draft.version}
-          onChange={(event) => setDraft({ ...draft, version: event.target.value })}
-          placeholder="e.g. 2.4.0"
-          className={INPUT_CLASSES}
-        />
       </label>
       <label className="text-label-xs text-on-surface-muted flex flex-col gap-1 font-semibold">
         From

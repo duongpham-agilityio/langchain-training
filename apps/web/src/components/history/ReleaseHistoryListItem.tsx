@@ -9,7 +9,7 @@ interface ReleaseHistoryListItemProps {
   onSelect: (item: ReleaseHistoryItem) => void;
 }
 
-// The design's `.rel` row: version + date, title, then send
+// The design's `.rel` row: title + date, then send
 // status. The format lives in the detail header.
 const ReleaseHistoryListItem = ({
   item,
@@ -17,7 +17,7 @@ const ReleaseHistoryListItem = ({
   isSelected,
   onSelect,
 }: ReleaseHistoryListItemProps) => {
-  const { version, title, shortDate, formatLabel, sendStatus, projectName } = item;
+  const { title, shortDate, formatLabel, sendStatus, projectName } = item;
   const isSent = sendStatus === ReleaseSendStatus.Sent;
 
   return (
@@ -38,9 +38,6 @@ const ReleaseHistoryListItem = ({
         <span className="text-label-xs text-on-surface-muted ml-auto font-normal">
           {shortDate}
         </span>
-      </div>
-      <div className="text-body-sm text-on-surface-variant w-full truncate">
-        {version}
       </div>
       <div className="text-label-xs text-on-surface-muted mt-px flex w-full items-center gap-1.5 font-normal">
         <span className="truncate">

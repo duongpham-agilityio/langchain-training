@@ -7,7 +7,6 @@ import {
   RELEASE_HISTORY_DEFAULT_PAGE_SIZE,
   RELEASE_HISTORY_MAX_PAGE_SIZE,
   RELEASE_STATUSES,
-  RELEASE_VERSION_PATTERN,
 } from "@/constants";
 
 // Shared with the web client.
@@ -38,21 +37,3 @@ export const ListReleaseHistoryQuerySchema = z.object({
 export const GetReleaseHistoryQuerySchema = ListReleaseHistoryQuerySchema.pick({ format: true });
 
 export type ListReleaseHistoryQuery = z.infer<typeof ListReleaseHistoryQuerySchema>;
-
-/** `latest-version` needs the project: versions are counted per project. */
-export const LatestReleaseVersionQuerySchema = z.object({
-  projectId: z.uuid(),
-});
-
-export const NextReleaseVersionRequestSchema = z.object({
-  previousVersion: z.string().regex(RELEASE_VERSION_PATTERN).nullish(),
-  changes: z.array(
-    z.object({
-      type: z.string().min(1),
-      breaking: z.boolean(),
-    }),
-  ),
-  statedVersion: z.string().min(1).nullish(),
-});
-
-export type NextReleaseVersionRequest = z.infer<typeof NextReleaseVersionRequestSchema>;

@@ -24,7 +24,7 @@ export * from "./show-changelog-answer";
 export * from "./user-memory";
 
 export const createTools = (pool: Pool, store?: BaseStore, publicBaseUrl = DEFAULT_PUBLIC_URL) => [
-  createRenderReleaseNotesPreview(pool),
+  createRenderReleaseNotesPreview(),
   createPublishReleaseNotesToSlack(pool),
   createSendReleaseEmail(pool),
   createGetCurrentDateTime(),

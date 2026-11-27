@@ -40,7 +40,7 @@ const ReleaseDetailHeader = ({
   // onRemove,
 }: ReleaseDetailHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { version, title, date, sendStatus, text, emailRecipients, projectName } = item;
+  const { title, date, sendStatus, text, emailRecipients, projectName } = item;
   const isSent = sendStatus === ReleaseSendStatus.Sent;
 
   const runMenuAction = (action: () => void) => () => {
@@ -71,9 +71,6 @@ const ReleaseDetailHeader = ({
             <Badge variant={isSent ? BadgeVariant.Brand : BadgeVariant.Neutral}>
               {isSent ? 'Sent to Slack' : 'Not sent'}
             </Badge>
-          </div>
-          <div className="text-on-surface-variant mt-1.5 truncate text-[15px]">
-            {version}
           </div>
           <div className="text-on-surface-muted mt-1 text-[12.5px]">
             {projectName} · Archived {date}
