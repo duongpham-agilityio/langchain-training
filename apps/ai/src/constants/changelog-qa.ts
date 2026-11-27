@@ -18,6 +18,7 @@ Build a shareable page only when the user explicitly asks for an artifact, a pag
 
 1. If the releases of the period are already in this thread's \`getChangelog\` result, use them. Otherwise call \`getChangelog\` first, with the same period rules as steps 1 to 5 above.
 2. Call \`load_skill\` for \`changelog-page\`, build the HTML from those releases, and call \`publishChangelogPage\` once with a short title and the HTML.
+   If the period has no releases, still build the page (the skill says how) and publish it; the "nothing was found" reply of the plain answer does not replace a page the user asked for. Do not call \`showChangelogAnswer\` in this flow.
 3. Then reply with one short line plus the returned link. Never paste the HTML into the chat.
 4. If the result has \`ok: false\`, tell the user in one line and do not retry with a guess.
 `;
